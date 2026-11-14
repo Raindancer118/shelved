@@ -49,7 +49,7 @@ public class StatsService {
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
                 .limit(5).map(e -> new AuthorCount(e.getKey(), e.getValue())).toList();
         return new Stats(all.size(), withPrice, list, used, shelves.findByOwnerIdOrderByPosition(owner).size(),
-                seriesViews.size(), (int) seriesViews.stream().filter(v -> v.missingCount() == 0).count(),
+                seriesViews.size(), (int) seriesViews.stream().filter(v -> v.missingCount() == 0 && v.knownTotal() != null).count(),
                 seriesViews.stream().mapToInt(SeriesService.SeriesView::missingCount).sum(),
                 all.stream().map(Book::getPageCount).filter(p -> p != null).mapToLong(Integer::longValue).sum(),
                 top);

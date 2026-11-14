@@ -19,7 +19,7 @@ public final class Views {
     private Views() {
     }
 
-    public record BookSummary(UUID id, String title, List<String> authors, String authorSort, String seriesName,
+    public record BookSummary(UUID id, String isbn13, String title, List<String> authors, String authorSort, String seriesName,
                               Integer seriesVolume, String cover, String location, Instant createdAt) {
     }
 
@@ -37,7 +37,7 @@ public final class Views {
     }
 
     static BookSummary summary(Book b, Map<UUID, Integer> shelfNumbers) {
-        return new BookSummary(b.getId(), b.getTitle(), b.getAuthors(), b.getAuthorSort(), b.getSeriesName(),
+        return new BookSummary(b.getId(), b.getIsbn13(), b.getTitle(), b.getAuthors(), b.getAuthorSort(), b.getSeriesName(),
                 b.getSeriesVolume(), cover(b), location(b, shelfNumbers), b.getCreatedAt());
     }
 
