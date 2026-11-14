@@ -29,13 +29,35 @@ public final class ImageTiler {
     private ImageTiler() {
     }
 
-    public static List<BufferedImage> tiles(BufferedImage src) {
+    public enum Direction { LEFT_TO_RIGHT, TOP_TO_BOTTOM }
+
+    public record Split(List<BufferedImage> images, Direction direction) {
+    }
+
+    public static Split split(BufferedImage src) {
         int w = src.getWidth();
         int h = src.getHeight();
         double aspect = (double) w / h;
-        if (aspect <= 1.8) {
-            return List.of(fit(src));
+        if (aspect > 1.8) {
+            return new Split(wide(src), Direction.LEFT_TO_RIGHT);
         }
+        // a whole bookcase in one 12 MP shot: two overlapping halves along the long side keep spines readable
+        if ((long) w * h > 1.5 * MAX_PIXELS) {
+            boolean portrait = h > w;
+            int len = portrait ? h : w;
+            int half = len / 2;
+            int overlap = (int) (len * OVERLAP / 2);
+            BufferedImage a = portrait ? src.getSubimage(0, 0, w, half + overlap) : src.getSubimage(0, 0, half + overlap, h);
+            BufferedImage b = portrait ? src.getSubimage(0, half - overlap, w, h - half + overlap) : src.getSubimage(half - overlap, 0, w - half + overlap, h);
+            return new Split(List.of(fit(a), fit(b)), portrait ? Direction.TOP_TO_BOTTOM : Direction.LEFT_TO_RIGHT);
+        }
+        return new Split(List.of(fit(src)), Direction.LEFT_TO_RIGHT);
+    }
+
+    private static List<BufferedImage> wide(BufferedImage src) {
+        int w = src.getWidth();
+        int h = src.getHeight();
+        double aspect = (double) w / h;
         int n = Math.min(MAX_SEGMENTS, (int) Math.ceil(aspect / SEGMENT_ASPECT));
         int step = w / n;
         int overlap = (int) (step * OVERLAP);
