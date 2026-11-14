@@ -166,7 +166,8 @@ async function viewBook(id) {
     ['Sprache', b.language && (LANGS[b.language] ?? b.language)],
     ['ISBN', b.isbn13],
     ['Neupreis', b.listPriceCents != null && euros(b.listPriceCents)],
-    ['Gebraucht', b.usedPriceCents != null && `ca. ${euros(b.usedPriceCents)}`],
+    ['Privat verkauft', b.usedPriceCents != null && `ca. ${euros(b.usedPriceCents)}`],
+    ['Ankauf (momox & Co.)', b.buybackPriceCents != null && (b.buybackPriceCents > 0 ? `ca. ${euros(b.buybackPriceCents)}` : 'kaum etwas')],
     ['Dicke', `${b.estimatedThicknessMm} mm${b.thicknessMm ? '' : ' (geschätzt)'}`],
   ].filter(([, v]) => v);
   const copiesRow = `<dt>Exemplare</dt><dd class="stepper"><button class="round sm" id="less" aria-label="Ein Exemplar weniger" ${b.copies <= 1 ? 'disabled' : ''}>−</button>
@@ -663,7 +664,7 @@ async function viewStats() {
     <div class="head"><div><h1>Statistik</h1></div></div>
     <small class="dauthor">Wert deiner Bibliothek (Neupreis)</small>
     <div class="value">${esc(eur)}<small>,${esc(cent)}</small></div>
-    <p class="dauthor">gebraucht geschätzt ca. ${esc(euros(s.usedValueCents))}</p>
+    <p class="dauthor">privat verkauft ca. ${esc(euros(s.usedValueCents))} · an Ankaufportale ca. ${esc(euros(s.buybackValueCents))}</p>
     <div class="kpis">
       <div><b>${s.books}</b><span>Bücher</span></div>
       <div><b>${s.shelves}</b><span>Regale</span></div>
@@ -672,8 +673,11 @@ async function viewStats() {
       <div><b>${s.pages.toLocaleString('de-DE')}</b><span>Seiten</span></div>
       <div><b>${s.books - s.withPrice}</b><span>ohne bekannten Preis</span></div>
     </div>
+    <h3 class="sec">Für die Versicherung</h3>
+    <p class="note">Inventarliste mit Wiederbeschaffungswert (Neupreis), Standort, Covern und deinen Regalfotos als Nachweis für die Hausratversicherung.</p>
+    <div class="actions"><a class="btn" href="/api/export/inventory.pdf" download>${icons.book} Inventarliste (PDF)</a><a class="btn ghost" href="/api/export/inventory.csv" download>Tabelle (CSV)</a></div>
     ${s.topAuthors.length ? `<h3 class="sec">Am häufigsten</h3><div class="list">${s.topAuthors.map(a => `<div class="row"><div class="grow"><b>${esc(a.author)}</b></div><span class="tag">${a.books}</span></div>`).join('')}</div>` : ''}
-    <p class="note">Neupreise kommen aus der Deutschen Nationalbibliothek. Der Gebrauchtwert ist eine Faustregel: Taschenbücher ca. 30 %, Hardcover ca. 40 % vom Neupreis, Bücher der letzten zwei Jahre etwas mehr.</p>`);
+    <p class="note">Neupreise kommen aus der Deutschen Nationalbibliothek. Gebrauchtwerte sind eine Faustregel nach dem Markt 2026: privat (Kleinanzeigen, Booklooker) je nach Alter 6–35 % vom Neupreis, Ankaufportale zahlen davon nochmal nur 20–40 %, für alte Taschenbücher meist nichts.</p>`);
 }
 
 // ---------------------------------------------------------------- Start

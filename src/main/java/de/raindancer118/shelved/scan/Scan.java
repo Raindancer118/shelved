@@ -30,6 +30,7 @@ public class Scan {
     private String resultJson;
     private Instant createdAt = Instant.now();
     private Instant finishedAt;
+    private String photoFile;
 
     protected Scan() {
     }
@@ -57,6 +58,9 @@ public class Scan {
         this.status = Status.ACCEPTED;
     }
 
+    public String getPhotoFile() { return photoFile; }
+    public void setPhotoFile(String photoFile) { this.photoFile = photoFile; }
+    public Instant getFinishedAt() { return finishedAt; }
     public UUID getId() { return id; }
     public String getOwnerId() { return ownerId; }
     public Mode getMode() { return mode; }

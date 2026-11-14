@@ -45,10 +45,12 @@ public class ScanService {
     private final JsonMapper json;
     private final TransactionTemplate tx;
     private final Executor executor;
+    private final PhotoStore photos;
 
     public ScanService(ScanRepository scans, ShelfRepository shelves, LibraryAi ai, MetadataService metadata,
                        BookService books, RateLimiter limiter, JsonMapper json, TransactionTemplate tx,
-                       @Qualifier("aiExecutor") Executor executor) {
+                       @Qualifier("aiExecutor") Executor executor, PhotoStore photos) {
+        this.photos = photos;
         this.scans = scans;
         this.shelves = shelves;
         this.ai = ai;
@@ -91,6 +93,15 @@ public class ScanService {
         return n == null ? 0 : n;
     }
 
+    /** Photos of accepted shelf scans, newest first: what the books looked like on the shelf. */
+    public List<Scan> shelfPhotos(String owner) {
+        return scans.findByOwnerIdAndModeAndStatusAndPhotoFileNotNullOrderByCreatedAtDesc(owner, Scan.Mode.SHELF, Scan.Status.ACCEPTED);
+    }
+
+    public java.util.Optional<java.nio.file.Path> photo(String owner, UUID scanId) {
+        return scans.findByIdAndOwnerId(scanId, owner).map(Scan::getPhotoFile).flatMap(photos::path);
+    }
+
     public Scan get(String owner, UUID id) {
         return scans.findByIdAndOwnerId(id, owner).orElseThrow(() -> new NotFoundException("Scan"));
     }
@@ -101,6 +112,10 @@ public class ScanService {
 
     void process(UUID scanId, String owner, Scan.Mode mode, BufferedImage img) {
         try {
+            if (mode == Scan.Mode.SHELF) {
+                String file = photos.save(scanId, img);
+                tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(sc -> sc.setPhotoFile(file)));
+            }
             LibraryAi.ShelfReading reading = mode == Scan.Mode.SHELF
                     ? readShelf(img)
                     : ai.readSingleBook(ImageTiler.jpeg(ImageTiler.fit(img)));
