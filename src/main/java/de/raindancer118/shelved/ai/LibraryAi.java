@@ -37,9 +37,20 @@ public interface LibraryAi {
             int row) {
     }
 
+    record BoardReading(
+            @JsonPropertyDescription("Board number as used for the books' row: 1 = topmost visible board")
+            int row,
+            @JsonPropertyDescription("Fraction 0.0–1.0 of this board's usable width between its side walls that the books take up")
+            double fill,
+            @JsonPropertyDescription("true only if both side walls (left and right end) of this board are visible in the photo")
+            boolean bothEndsVisible) {
+    }
+
     record ShelfReading(
             @JsonPropertyDescription("Every visible book exactly once: top board first, each board left to right")
-            List<SpineReading> books) {
+            List<SpineReading> books,
+            @JsonPropertyDescription("One entry per board row that has books on it")
+            List<BoardReading> boards) {
     }
 
     record BookRef(String id, String title, String author, String publisher, Integer year) {

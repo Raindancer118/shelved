@@ -10,7 +10,8 @@ Bücherregal-Inventar: Regalfoto oder Barcode scannen, Bestand mit Covern ansehe
 | Klappentext, Cover, Seiten | Google Books (API-Key), DNB/MVB, Open Library | nein |
 | Reihe, Bandnummer, alle Bände einer Reihe | Wikidata | nein |
 | Barcode → ISBN | Browser (BarcodeDetector) oder ZXing auf dem Server | nein |
-| Buchrücken auf einem Regalfoto lesen | Claude (ein Aufruf pro Foto, ca. 3–10 Cent) | ja |
+| Buchrücken auf einem Regalfoto lesen | Claude Sonnet 5.5 (ein Aufruf pro Foto, ca. 2–6 Cent) | ja |
+| Brettbreite, wenn unbekannt | aus Füllgrad im Foto und Buchdicke (0,1 mm pro Seite) | nein, kommt im selben Aufruf mit |
 | Reihe/Bandliste, wenn Wikidata nichts weiß | Claude, gebündelt bzw. beim Öffnen der Reihe | ja, nur als Ersatz |
 
 ## Lokal starten

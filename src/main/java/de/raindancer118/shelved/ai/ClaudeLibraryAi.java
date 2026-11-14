@@ -52,12 +52,21 @@ public class ClaudeLibraryAi implements LibraryAi {
             You may complete a title or author only when you are sure which book it is. Never invent books.
             For series, name the literary series as readers know it, not a publisher imprint.""";
 
+    /** Token usage of the most recent call, for logs and the model comparison. */
+    public record Usage(String model, long inputTokens, long outputTokens) {
+    }
+
+    private volatile Usage lastUsage;
     private final ShelvedProperties.Anthropic config;
     private final AnthropicClient client;
 
     public ClaudeLibraryAi(ShelvedProperties props) {
         this.config = props.anthropic();
         this.client = config.configured() ? AnthropicOkHttpClient.builder().apiKey(config.apiKey()).build() : null;
+    }
+
+    public Usage lastUsage() {
+        return lastUsage;
     }
 
     @Override
@@ -129,9 +138,11 @@ public class ClaudeLibraryAi implements LibraryAi {
                     .model(config.model())
                     .maxTokens(maxTokens)
                     .outputConfig(StructuredOutputConfig.<T>builder().format(type).effort(effort).build())
-                    .addUserMessageOfContentBlockParams(content)
-                    .putAdditionalHeader("anthropic-beta", FALLBACK_BETA)
-                    .putAdditionalBodyProperty("fallbacks", JsonValue.from("default"));
+                    .addUserMessageOfContentBlockParams(content);
+            if (supportsServerFallback(config.model())) {
+                b.putAdditionalHeader("anthropic-beta", FALLBACK_BETA)
+                        .putAdditionalBodyProperty("fallbacks", JsonValue.from("default"));
+            }
             if (system != null) {
                 b.system(system);
             }
@@ -150,6 +161,7 @@ public class ClaudeLibraryAi implements LibraryAi {
             StopReason stop = response.stopReason().orElse(null);
             log.info("Claude {} round {}: stop={} in={} out={}", type.getSimpleName(), round, stop,
                     response.usage().inputTokens(), response.usage().outputTokens());
+            lastUsage = new Usage(config.model(), response.usage().inputTokens(), response.usage().outputTokens());
             if (StopReason.REFUSAL.equals(stop)) {
                 throw new AiException("Claude hat die Anfrage abgelehnt");
             }
@@ -167,6 +179,11 @@ public class ClaudeLibraryAi implements LibraryAi {
                     .orElseThrow(() -> new AiException("Claude hat keine auswertbare Antwort geliefert"));
         }
         throw new AiException("Claude ist nicht fertig geworden");
+    }
+
+    /** Haiku has no server-side refusal fallback; sending the parameter there is an error. */
+    static boolean supportsServerFallback(String model) {
+        return model.startsWith("claude-opus-5") || model.startsWith("claude-fable-5") || model.equals("claude-sonnet-5-5");
     }
 
     private static ContentBlockParam image(byte[] jpeg) {

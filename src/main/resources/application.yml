@@ -42,6 +42,6 @@ shelved:
   auth-mode: ${SHELVED_AUTH_MODE:oidc}
   anthropic:
     api-key: ${ANTHROPIC_API_KEY:}
-    model: ${SHELVED_MODEL:claude-opus-5-5}
+    model: ${SHELVED_MODEL:claude-sonnet-5-5}
   scans-per-hour: ${SHELVED_SCANS_PER_HOUR:40}
   google-books-api-key: ${GOOGLE_BOOKS_API_KEY:}
