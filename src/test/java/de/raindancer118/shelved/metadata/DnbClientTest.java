@@ -171,4 +171,21 @@ class DnbClientTest {
         assertThat(volumes.get(1).title()).isEqualTo("Der Weg des Schwertes");
         assertThat(volumes.get(7).title()).isEqualTo("Der Ring des Himmels");
     }
+
+    @Test
+    void aPartNumberUnderAnElidedOrdinalIsNoVolume() {
+        // "... Roman des Zyklus von der Scheibenwelt ; 1., Das Licht der Phantasie" is volume 2 in truth
+        String xml = """
+                <searchRetrieveResponse><records><record><recordData>
+                <record xmlns="http://www.loc.gov/MARC21/slim">
+                  <datafield tag="245" ind1="1" ind2="0">
+                    <subfield code="a">... Roman des Zyklus von der Scheibenwelt</subfield>
+                    <subfield code="n">1.</subfield>
+                    <subfield code="p">Das Licht der Phantasie</subfield>
+                  </datafield>
+                </record></recordData></record></records></searchRetrieveResponse>""";
+        BookMetadata m = DnbClient.parse(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8)).getFirst();
+        assertThat(m.title()).isEqualTo("Das Licht der Phantasie");
+        assertThat(m.seriesName()).isNull();
+    }
 }

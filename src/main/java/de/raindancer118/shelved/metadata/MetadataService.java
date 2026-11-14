@@ -35,7 +35,7 @@ public class MetadataService {
 
     /** DNB first (German editions, bound price), Google Books for blurb/cover/pages, Open Library as last resort. */
     public Optional<BookMetadata> byIsbn(String isbn13) {
-        Optional<BookMetadata> d = dnb.byIsbn(isbn13);
+        Optional<BookMetadata> d = orElse(() -> dnb.byIsbn(isbn13), Optional.empty());
         Optional<BookMetadata> g = google.byIsbn(isbn13);
         if (d.isPresent()) {
             BookMetadata m = g.map(x -> merge(d.get(), x)).orElse(d.get());
@@ -50,12 +50,21 @@ public class MetadataService {
         return openLibrary.byIsbn(isbn13);
     }
 
+    /** An unreachable DNB must not block adding a book: Google and Open Library still answer, the series resolver asks again. */
+    private static <T> T orElse(java.util.function.Supplier<T> lookup, T fallback) {
+        try {
+            return lookup.get();
+        } catch (CatalogUnavailableException e) {
+            return fallback;
+        }
+    }
+
     /** Candidates for a title/author we only know from a spine or a typed query, best first. */
     public List<BookMetadata> search(String title, String author, String publisherHint) {
         List<BookMetadata> fromGoogle = google.search(title, author);
         Set<String> googleIsbns = new HashSet<>();
         fromGoogle.forEach(m -> { if (m.isbn13() != null) googleIsbns.add(m.isbn13()); });
-        List<BookMetadata> all = new ArrayList<>(dnb.search(title, author));
+        List<BookMetadata> all = new ArrayList<>(orElse(() -> dnb.search(title, author), List.of()));
         all.addAll(fromGoogle);
         if (all.isEmpty()) {
             all.addAll(openLibrary.search(title, author));

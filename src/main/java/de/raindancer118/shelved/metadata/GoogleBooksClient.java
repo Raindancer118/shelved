@@ -98,7 +98,7 @@ public class GoogleBooksClient {
         List<String> authors = v.authors() == null ? List.of() : v.authors();
         return new BookMetadata(isbn, v.title(), Titles.sortForm(v.title()), v.subtitle(), authors,
                 authors.isEmpty() ? null : Names.sortForm(authors.getFirst()), v.publisher(),
-                DnbClient.year(v.publishedDate()), v.pageCount() == null || v.pageCount() <= 0 ? null : v.pageCount(),
+                MarcSruClient.year(v.publishedDate()), v.pageCount() == null || v.pageCount() <= 0 ? null : v.pageCount(),
                 null, null, v.language() == null ? null : LANG.getOrDefault(v.language(), v.language()), null, null,
                 plain(v.description()), cover(v.imageLinks()), "GOOGLE");
     }
