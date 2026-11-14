@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +28,8 @@ import java.util.List;
 
 @Configuration
 public class SecurityConfig {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SecurityConfig.class);
 
     static final String CSP = "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self'; "
             + "script-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; "
@@ -59,7 +60,11 @@ public class SecurityConfig {
             }
             http.exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
                             new LoginUrlAuthenticationEntryPoint("/oauth2/authorization/authentik"), AnyRequestMatcher.INSTANCE))
-                    .oauth2Login(Customizer.withDefaults())
+                    .oauth2Login(o -> o.failureHandler((request, response, ex) -> {
+                        // Spring only logs this at DEBUG; without it a broken IdP setup is invisible
+                        log.warn("OIDC login failed: {}", ex.getMessage());
+                        response.sendRedirect("/login?error");
+                    }))
                     .logout(l -> l.logoutSuccessUrl("/"));
         }
         return http.build();
