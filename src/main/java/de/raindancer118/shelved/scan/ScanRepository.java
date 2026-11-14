@@ -7,4 +7,6 @@ import java.util.UUID;
 
 public interface ScanRepository extends JpaRepository<Scan, UUID> {
     Optional<Scan> findByIdAndOwnerId(UUID id, String ownerId);
+
+    java.util.List<Scan> findByStatus(Scan.Status status);
 }

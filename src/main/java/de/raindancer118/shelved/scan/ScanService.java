@@ -77,6 +77,20 @@ public class ScanService {
         return scan;
     }
 
+    /** Scans run in memory; after a restart a PENDING scan will never finish, so it is closed with a clear message. */
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    public int failInterrupted() {
+        Integer n = tx.execute(s -> {
+            List<Scan> pending = scans.findByStatus(Scan.Status.PENDING);
+            pending.forEach(sc -> sc.failed("Durch einen Neustart unterbrochen, bitte das Foto noch einmal aufnehmen"));
+            return pending.size();
+        });
+        if (n != null && n > 0) {
+            log.info("Closed {} scan(s) interrupted by a restart", n);
+        }
+        return n == null ? 0 : n;
+    }
+
     public Scan get(String owner, UUID id) {
         return scans.findByIdAndOwnerId(id, owner).orElseThrow(() -> new NotFoundException("Scan"));
     }

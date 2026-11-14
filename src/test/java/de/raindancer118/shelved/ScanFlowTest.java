@@ -181,6 +181,20 @@ class ScanFlowTest extends IntegrationTestBase {
                 .andExpect(status().isNotFound());
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    de.raindancer118.shelved.scan.ScanRepository scanRepository;
+    @org.springframework.beans.factory.annotation.Autowired
+    de.raindancer118.shelved.scan.ScanService scanService;
+
+    @Test
+    void scansInterruptedByARestartEndAsFailedInsteadOfLoadingForever() throws Exception {
+        var stuck = scanRepository.save(new de.raindancer118.shelved.scan.Scan("local", de.raindancer118.shelved.scan.Scan.Mode.SHELF, null, null));
+        assertThat(scanService.failInterrupted()).isEqualTo(1);
+        mvc.perform(get("/api/scans/" + stuck.getId()))
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.error").value(org.hamcrest.Matchers.containsString("Neustart")));
+    }
+
     @Test
     void garbageUploadIsRejected() throws Exception {
         mvc.perform(multipart("/api/scans").file(new MockMultipartFile("image", "x.jpg", "image/jpeg", new byte[]{1, 2, 3})).with(csrf()))
