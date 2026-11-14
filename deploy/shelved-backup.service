@@ -1,0 +1,7 @@
+[Unit]
+Description=shelved backup (Postgres + covers) to the Storage Box
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/murthag/shelved/deploy/backup.sh
