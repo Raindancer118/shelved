@@ -1,0 +1,34 @@
+# Production stack. Secrets live in .env next to this file (never synced from a dev machine).
+services:
+  app:
+    image: ghcr.io/raindancer118/shelved:${SHELVED_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      SHELVED_DB_URL: jdbc:postgresql://db:5432/shelved
+      SHELVED_DB_USER: shelved
+    ports:
+      - "${SHELVED_BIND:-127.0.0.1}:${SHELVED_PORT:-8150}:8080"
+    volumes:
+      - covers:/data
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shelved
+      POSTGRES_USER: shelved
+      POSTGRES_PASSWORD: ${SHELVED_DB_PASSWORD}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shelved"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db:
+  covers:

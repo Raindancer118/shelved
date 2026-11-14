@@ -453,12 +453,13 @@ async function viewSeriesList() {
   paint(`
     <div class="head"><div><h1>Reihen</h1><small>${list.length} Reihen · ${missing} Bände fehlen</small></div></div>
     <div class="list">${list.map(r => {
-      const total = r.knownTotal ?? Math.max(r.ownedCount + r.missingCount, r.ownedCount);
+      const total = r.knownTotal ?? (r.ownedCount + r.missingCount);
       const pct = total ? Math.round(100 * r.ownedCount / total) : 100;
+      const state = r.missingCount ? '' : r.knownTotal ? 'done' : 'unknown';
       return `<a class="series-row" href="#/series/${encodeURIComponent(r.key)}">
-        <div class="top"><b>${esc(r.name)}</b><em class="${r.missingCount ? 'miss' : ''}">${r.ownedCount}${r.knownTotal ? ' / ' + r.knownTotal : ''}${r.missingCount ? ' · ' + r.missingCount + ' fehlen' : r.knownTotal ? ' komplett' : ''}</em></div>
+        <div class="top"><b>${esc(r.name)}</b><em class="${r.missingCount ? 'miss' : ''}">${r.ownedCount}${r.knownTotal ? ' / ' + r.knownTotal : ''}${r.missingCount ? ' · ' + r.missingCount + ' fehlen' : r.knownTotal ? ' komplett' : ' · Bandliste unbekannt'}</em></div>
         <small>${esc(r.author ?? '')}${r.catalogStatus === 'PENDING' ? ' · Bandliste wird geladen' : ''}</small>
-        <div class="track ${r.missingCount ? '' : 'done'}"><i data-vars='${esc(JSON.stringify({ '--p': pct + '%' }))}'></i></div></a>`;
+        <div class="track ${state}"><i data-vars='${esc(JSON.stringify({ '--p': pct + '%' }))}'></i></div></a>`;
     }).join('')}</div>`);
   if (list.some(r => r.catalogStatus === 'PENDING')) {
     const t = setTimeout(() => location.hash === '#/series' && route(), 4000);

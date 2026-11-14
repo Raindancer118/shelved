@@ -9,7 +9,7 @@ import java.util.concurrent.Executor;
 @Configuration
 public class AsyncConfig {
 
-    /** Claude calls take seconds to minutes; virtual threads, but capped so one user can't burn the budget in parallel. */
+    /** Background work (Claude calls, catalogue lookups, cover downloads) on virtual threads, capped so nothing floods an API. */
     @Bean
     Executor aiExecutor() {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("ai-");

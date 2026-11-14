@@ -32,8 +32,14 @@ public class BookService {
     private final CoverStore covers;
     private final MetadataService metadata;
     private final ApplicationEventPublisher events;
+    private final java.util.concurrent.Executor executor;
+    private final org.springframework.transaction.support.TransactionTemplate tx;
 
-    public BookService(BookRepository books, CoverStore covers, MetadataService metadata, ApplicationEventPublisher events) {
+    public BookService(BookRepository books, CoverStore covers, MetadataService metadata, ApplicationEventPublisher events,
+                       @org.springframework.beans.factory.annotation.Qualifier("aiExecutor") java.util.concurrent.Executor executor,
+                       org.springframework.transaction.support.TransactionTemplate tx) {
+        this.executor = executor;
+        this.tx = tx;
         this.books = books;
         this.covers = covers;
         this.metadata = metadata;
@@ -50,8 +56,16 @@ public class BookService {
         return books.findByIdAndOwnerId(id, owner).orElseThrow(() -> new NotFoundException("Buch"));
     }
 
-    /** Builds the book with cover and blurb (network, outside any transaction), then stores it. */
+    /** Single book: cover and blurb are fetched right away, so the detail page is complete when it opens. */
     public Book addFromMetadata(String owner, BookMetadata m, SeriesHint hint) {
+        return addFromMetadata(owner, m, hint, true);
+    }
+
+    /**
+     * Stores the book from catalogue data. With {@code enrichNow=false} (a whole shelf at once) cover and blurb
+     * are downloaded in the background, otherwise accepting 40 books would take minutes and hit proxy timeouts.
+     */
+    public Book addFromMetadata(String owner, BookMetadata m, SeriesHint hint, boolean enrichNow) {
         Book b = new Book(owner, m.title());
         b.setIsbn13(m.isbn13());
         b.setSubtitle(m.subtitle());
@@ -65,11 +79,32 @@ public class BookService {
         b.setListPriceCents(m.listPriceCents());
         b.setMetadataSource(m.source());
         applySeries(b, hint);
-        covers.fetch(b.getId(), CoverStore.candidates(m.isbn13(), m.coverUrl())).ifPresent(b::setCoverFile);
-        metadata.description(m).ifPresent(b::setDescription);
+        if (enrichNow) {
+            enrich(b, m);
+        }
         Book saved = books.save(b);
+        if (!enrichNow) {
+            UUID id = saved.getId();
+            executor.execute(() -> {
+                String cover = covers.fetch(id, CoverStore.candidates(m.isbn13(), m.coverUrl())).orElse(null);
+                String blurb = metadata.description(m).orElse(null);
+                tx.executeWithoutResult(s -> books.findById(id).ifPresent(x -> {
+                    if (x.getCoverFile() == null) {
+                        x.setCoverFile(cover);
+                    }
+                    if (x.getDescription() == null) {
+                        x.setDescription(blurb);
+                    }
+                }));
+            });
+        }
         events.publishEvent(new BooksAdded(owner));
         return saved;
+    }
+
+    private void enrich(Book target, BookMetadata m) {
+        covers.fetch(target.getId(), CoverStore.candidates(m.isbn13(), m.coverUrl())).ifPresent(target::setCoverFile);
+        metadata.description(m).ifPresent(target::setDescription);
     }
 
     public Book addManual(String owner, BookInput in, SeriesHint hint) {

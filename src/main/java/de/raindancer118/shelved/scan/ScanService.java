@@ -187,7 +187,7 @@ public class ScanService {
             chosen = item.candidate();
         }
         if (chosen != null) {
-            return books.addFromMetadata(owner, chosen, hint);
+            return books.addFromMetadata(owner, chosen, hint, false);
         }
         return books.addManual(owner, new de.raindancer118.shelved.book.BookInput(r.title(), null, r.authors(), null,
                 blank(r.publisher()), null, null, null, null, null, null, null, null), hint);

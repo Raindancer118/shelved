@@ -1,0 +1,7 @@
+target
+data
+.git
+.env*
+.vault-project*
+prototype
+.claude

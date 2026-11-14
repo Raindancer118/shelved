@@ -139,6 +139,7 @@ h3.sec { font: 600 15px var(--display); margin: 26px 0 8px; display: flex; justi
 .track { height: 6px; background: var(--soft); border-radius: 3px; margin: 10px 0 14px; overflow: hidden; }
 .track i { display: block; height: 100%; width: var(--p, 0%); background: var(--accent); border-radius: 3px; }
 .track.done i { background: var(--ok); }
+.track.unknown i { background: color-mix(in srgb, var(--muted) 45%, transparent); }
 .series-row { display: block; padding: 14px 0; }
 .series-row .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
 .series-row b { font: 600 15px var(--body); }
