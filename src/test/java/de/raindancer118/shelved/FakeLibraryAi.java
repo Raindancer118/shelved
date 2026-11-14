@@ -22,7 +22,7 @@ public class FakeLibraryAi implements LibraryAi {
     }
 
     @Override
-    public ShelfReading readShelf(List<byte[]> jpegTiles) {
+    public ShelfReading readShelf(List<byte[]> jpegTiles, boolean topToBottom) {
         tileCounts.add(jpegTiles.size());
         return nextShelf;
     }

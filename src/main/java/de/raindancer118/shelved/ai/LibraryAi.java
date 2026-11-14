@@ -9,7 +9,8 @@ public interface LibraryAi {
 
     boolean available();
 
-    ShelfReading readShelf(List<byte[]> jpegTiles);
+    /** @param topToBottom true if the tiles are the top and bottom half of one photo, false if left-to-right segments */
+    ShelfReading readShelf(List<byte[]> jpegTiles, boolean topToBottom);
 
     ShelfReading readSingleBook(byte[] jpeg);
 
@@ -24,18 +25,20 @@ public interface LibraryAi {
             List<String> authors,
             @JsonPropertyDescription("Name of the literary series as readers know it in this edition's language (e.g. 'Scheibenwelt'), not a publisher imprint. Empty string if standalone or unknown")
             String series,
-            @JsonPropertyDescription("Volume number within that series, 0 if none or unknown")
+            @JsonPropertyDescription("Volume number within that series: only if printed on the book or you are certain, else 0")
             int volume,
             @JsonPropertyDescription("Publisher name if visible, else empty string")
             String publisher,
             @JsonPropertyDescription("high = clearly readable, medium = partly readable but fairly sure, low = guess")
             String confidence,
-            @JsonPropertyDescription("The raw text you could actually read on this spine")
-            String spineText) {
+            @JsonPropertyDescription("Only when confidence is not high: the raw text you could actually read. Otherwise empty string")
+            String spineText,
+            @JsonPropertyDescription("Shelf board in the photo: 1 = topmost board visible, counting downwards")
+            int row) {
     }
 
     record ShelfReading(
-            @JsonPropertyDescription("Every visible book exactly once, from left to right")
+            @JsonPropertyDescription("Every visible book exactly once: top board first, each board left to right")
             List<SpineReading> books) {
     }
 

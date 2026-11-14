@@ -34,15 +34,17 @@ public class ClaudeLibraryAi implements LibraryAi {
     private static final String FALLBACK_BETA = "server-side-fallback-2026-07-01";
 
     private static final String SHELF_SYSTEM = """
-            You read book spines on photos of a private home bookshelf.
-            The images are consecutive, overlapping segments of ONE shelf board, ordered left to right.
-            List every book whose spine is visible, left to right, exactly once. Books in the overlap between two
-            segments appear twice in the images; list them once. Include books lying flat or partly hidden.
+            You read book spines on a photo of a private home bookcase. The photo may show one or several shelf boards.
+            Give every book the board it stands on: row 1 is the topmost board visible in the photo, counting downwards.
+            List every book exactly once, top board first, each board from left to right. Books in the overlap between
+            two image segments appear twice in the images; list them once. Include books lying flat or partly hidden.
+            Skip books that are cut off at the left or right edge of the photo and clearly stand in a neighbouring bookcase.
             Write titles in the language printed on the spine (German editions keep their German titles).
             You may complete a partly readable title or add an author that is not printed only when you are sure
             which book it is. Never invent books. If a spine is unreadable, still list it with confidence "low".
             For series, name the literary series as readers know it (e.g. "Scheibenwelt", "Harry Potter"),
             not a publisher imprint such as "Piper Fantasy" or "Fischer Taschenbuch".""";
+
 
     private static final String SINGLE_SYSTEM = """
             You identify books from a photo a user took of a book (cover, spine or title page) or a small stack.
@@ -64,14 +66,18 @@ public class ClaudeLibraryAi implements LibraryAi {
     }
 
     @Override
-    public ShelfReading readShelf(List<byte[]> jpegTiles) {
+    public ShelfReading readShelf(List<byte[]> jpegTiles, boolean topToBottom) {
         List<ContentBlockParam> content = new ArrayList<>();
         for (int i = 0; i < jpegTiles.size(); i++) {
-            content.add(text("Segment " + (i + 1) + " of " + jpegTiles.size() + ":"));
+            String label = jpegTiles.size() == 1 ? "The photo:"
+                    : topToBottom ? (i == 0 ? "Top half of the photo:" : "Bottom half of the photo (overlaps the top half):")
+                    : "Segment " + (i + 1) + " of " + jpegTiles.size() + ", left to right, overlapping:";
+            content.add(text(label));
             content.add(image(jpegTiles.get(i)));
         }
-        content.add(text("Read all spines on this shelf board, left to right."));
-        return call(ShelfReading.class, SHELF_SYSTEM, content, OutputConfig.Effort.MEDIUM, false, 16000);
+        content.add(text("Read all spines."));
+        // reading spines needs eyes, not deliberation: low effort keeps the cost per photo at a few cents
+        return call(ShelfReading.class, SHELF_SYSTEM, content, OutputConfig.Effort.LOW, false, 32000);
     }
 
     @Override

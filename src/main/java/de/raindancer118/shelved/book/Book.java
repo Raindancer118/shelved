@@ -9,13 +9,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/** Dynamic updates: background jobs (series lookup) must only write the columns they changed, not clobber a parallel move. */
 @Entity
+@DynamicUpdate
 @Table(name = "book")
 public class Book {
 

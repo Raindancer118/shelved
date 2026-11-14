@@ -37,7 +37,11 @@ class ScanFlowTest extends IntegrationTestBase {
     }
 
     static LibraryAi.SpineReading spine(String title, String author, String series, int vol, String confidence) {
-        return new LibraryAi.SpineReading(title, List.of(author), series, vol, "", confidence, title);
+        return spine(title, author, series, vol, confidence, 1);
+    }
+
+    static LibraryAi.SpineReading spine(String title, String author, String series, int vol, String confidence, int row) {
+        return new LibraryAi.SpineReading(title, List.of(author), series, vol, "", confidence, title, row);
     }
 
     static byte[] widePhoto() throws Exception {
@@ -99,6 +103,34 @@ class ScanFlowTest extends IntegrationTestBase {
         // accepting twice is refused
         mvc.perform(post("/api/scans/" + scan + "/accept").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"items\":[]}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    /** One photo of a whole bookcase: books on the second board in the photo land one board further down. */
+    @Test
+    void photoWithSeveralBoardsPlacesEachRowOnItsOwnBoard() throws Exception {
+        String shelf = JsonPath.read(mvc.perform(post("/api/shelves").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Billy\",\"boardWidthsMm\":[800,800,800,800]}"))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        ai.nextShelf = new LibraryAi.ShelfReading(List.of(
+                spine("Vortex", "Anna Benning", "Vortex", 1, "high", 1),
+                spine("Dark Sigils", "Anna Benning", "Dark Sigils", 1, "high", 1),
+                spine("City of Bones", "Cassandra Clare", "Chroniken der Unterwelt", 1, "high", 2),
+                spine("Ganz unten", "Niemand", "", 0, "high", 3)));
+        when(metadata.search(any(), any(), any())).thenAnswer(inv -> List.of(meta(null, inv.getArgument(0), inv.getArgument(1), "Verlag")));
+
+        String scan = JsonPath.read(mvc.perform(multipart("/api/scans")
+                        .file(new MockMultipartFile("image", "case.jpg", "image/jpeg", widePhoto()))
+                        .param("mode", "SHELF").param("shelfId", shelf).param("board", "2").with(csrf()))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        await().untilAsserted(() -> mvc.perform(get("/api/scans/" + scan)).andExpect(jsonPath("$.status").value("DONE")));
+        mvc.perform(post("/api/scans/" + scan + "/accept").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\":[{\"index\":0,\"take\":true},{\"index\":1,\"take\":true},{\"index\":2,\"take\":true},{\"index\":3,\"take\":true}]}"))
+                .andExpect(jsonPath("$.created", hasSize(4)))
+                .andExpect(jsonPath("$.placed", hasSize(4)));
+
+        mvc.perform(get("/api/books").param("q", "dark sigils")).andExpect(jsonPath("$[0].location").value("R1 · B2 · 02"));
+        mvc.perform(get("/api/books").param("q", "city of bones")).andExpect(jsonPath("$[0].location").value("R1 · B3 · 01"));
+        mvc.perform(get("/api/books").param("q", "ganz unten")).andExpect(jsonPath("$[0].location").value("R1 · B4 · 01"));
     }
 
     @Test
