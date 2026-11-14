@@ -10,10 +10,10 @@ import java.awt.image.BufferedImage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class BarcodeReaderTest {
+public class BarcodeReaderTest {
 
     /** A barcode somewhere on a bigger, slightly noisy photo, like a phone shot of a book's back. */
-    static BufferedImage photoWithBarcode(String ean) {
+    public static BufferedImage photoWithBarcode(String ean) {
         var matrix = new EAN13Writer().encode(ean, BarcodeFormat.EAN_13, 600, 240);
         BufferedImage img = new BufferedImage(1600, 1200, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();

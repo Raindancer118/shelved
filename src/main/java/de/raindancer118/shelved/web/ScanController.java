@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/scans")
+@RequestMapping("/api")
 public class ScanController {
 
     public record ScanView(UUID id, Scan.Mode mode, Scan.Status status, UUID shelfId, Integer boardNumber,
@@ -37,7 +37,7 @@ public class ScanController {
         this.scans = scans;
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/scans", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public ScanView submit(Authentication auth, @RequestParam("image") MultipartFile image,
                            @RequestParam(defaultValue = "SHELF") Scan.Mode mode,
@@ -47,12 +47,20 @@ public class ScanController {
         return view(s);
     }
 
-    @GetMapping("/{id}")
+    /** Fallback for browsers without live barcode scanning: decode a photo of the back cover locally. */
+    @PostMapping(value = "/barcode", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public java.util.Map<String, String> barcode(@RequestParam("image") MultipartFile image) throws IOException {
+        String isbn = de.raindancer118.shelved.scan.BarcodeReader.isbn(ScanService.decode(image.getBytes()))
+                .orElseThrow(() -> new de.raindancer118.shelved.book.NotFoundException("Barcode"));
+        return java.util.Map.of("isbn", isbn);
+    }
+
+    @GetMapping("/scans/{id}")
     public ScanView get(Authentication auth, @PathVariable UUID id) {
         return view(scans.get(Owner.of(auth), id));
     }
 
-    @PostMapping("/{id}/accept")
+    @PostMapping("/scans/{id}/accept")
     public ScanService.AcceptResult accept(Authentication auth, @PathVariable UUID id, @RequestBody AcceptRequest req) {
         return scans.accept(Owner.of(auth), id, req.items() == null ? List.of() : req.items());
     }

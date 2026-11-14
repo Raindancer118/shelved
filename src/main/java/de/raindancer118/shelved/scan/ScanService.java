@@ -182,7 +182,7 @@ public class ScanService {
         return s == null || s.isBlank() ? null : s;
     }
 
-    static BufferedImage decode(byte[] image) {
+    public static BufferedImage decode(byte[] image) {
         try {
             BufferedImage img = ImageIO.read(new ByteArrayInputStream(image));
             if (img == null) {

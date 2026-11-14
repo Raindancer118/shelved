@@ -102,6 +102,21 @@ class ScanFlowTest extends IntegrationTestBase {
     }
 
     @Test
+    void barcodePhotoGivesTheIsbnWithoutAnyAi() throws Exception {
+        var out = new ByteArrayOutputStream();
+        ImageIO.write(de.raindancer118.shelved.scan.BarcodeReaderTest.photoWithBarcode("9783492281980"), "png", out);
+        mvc.perform(multipart("/api/barcode").file(new MockMultipartFile("image", "b.png", "image/png", out.toByteArray())).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isbn").value("9783492281980"));
+        assertThat(ai.tileCounts).isEmpty();
+
+        var empty = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(300, 200, BufferedImage.TYPE_INT_RGB), "png", empty);
+        mvc.perform(multipart("/api/barcode").file(new MockMultipartFile("image", "e.png", "image/png", empty.toByteArray())).with(csrf()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void garbageUploadIsRejected() throws Exception {
         mvc.perform(multipart("/api/scans").file(new MockMultipartFile("image", "x.jpg", "image/jpeg", new byte[]{1, 2, 3})).with(csrf()))
                 .andExpect(status().isBadRequest());
