@@ -35,6 +35,8 @@ class OidcSecurityTest {
 
     @Autowired
     MockMvc mvc;
+    @Autowired
+    org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @Test
     void apiAnswers401WithoutLogin() throws Exception {
@@ -45,6 +47,15 @@ class OidcSecurityTest {
     void pagesRedirectToTheLogin() throws Exception {
         mvc.perform(get("/")).andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Location", containsString("/oauth2/authorization/authentik")));
+    }
+
+    /** Survives browser restarts (camera on Android) and server restarts (sessions live in Postgres). */
+    @Test
+    void loginSessionCookieIsPersistentAndStoredInTheDatabase() throws Exception {
+        var res = mvc.perform(get("/oauth2/authorization/authentik")).andExpect(status().is3xxRedirection()).andReturn().getResponse();
+        String cookie = res.getHeaders("Set-Cookie").stream().filter(c -> c.startsWith("SESSION=")).findFirst().orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(cookie).contains("Max-Age=2592000").contains("HttpOnly").contains("Secure").contains("SameSite=Lax");
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject("select count(*) from spring_session", Integer.class)).isPositive();
     }
 
     @Test

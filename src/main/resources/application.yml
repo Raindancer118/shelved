@@ -14,6 +14,16 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          # revalidate every time (cheap 304): after a deploy nobody keeps old JS/CSS
+          no-cache: true
+  session:
+    jdbc:
+      # tables come from Flyway (V5__spring_session.sql)
+      initialize-schema: never
   servlet:
     multipart:
       max-file-size: 25MB
@@ -25,6 +35,9 @@ server:
       cookie:
         same-site: lax
         secure: ${SHELVED_SECURE_COOKIES:true}
+        # a persistent cookie: Android kills the browser while the camera app is open, and a session-only
+        # cookie would be gone when it comes back
+        max-age: 30d
       timeout: 30d
 
 management:

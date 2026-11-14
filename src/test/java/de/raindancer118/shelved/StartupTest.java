@@ -27,6 +27,12 @@ class StartupTest extends IntegrationTestBase {
                 .andExpect(header().string("Permissions-Policy", containsString("camera=(self)")));
     }
 
+    @Test
+    void staticFilesAreRevalidatedSoDeploysReachEveryone() throws Exception {
+        mvc.perform(get("/js/app.js")).andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", containsString("no-cache")));
+    }
+
     /** Same dance the browser does: fetch the token cookie once, echo it back as header. */
     @Test
     void browserCsrfFlowWorks() throws Exception {
