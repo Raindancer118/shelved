@@ -1,4 +1,4 @@
-import { api, get, post, put, del, upload, poll } from './api.js';
+import { api, get, post, put, del, upload, poll, PUBLIC } from './api.js';
 import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor } from './ui.js';
 import { liveBarcodeSupported, scanBarcode, prepareImage, capturePhoto } from './camera.js';
 
@@ -25,12 +25,25 @@ const routes = [
   [/^\/shelves\/new$/, viewShelfForm, 'shelves'],
   [/^\/shelves\/([\w-]+)\/edit$/, viewShelfForm, 'shelves'],
   [/^\/stats$/, viewStats, 'stats'],
+  [/^\/login$/, viewLogin, null],
+  [/^\/register$/, viewRegister, null],
+  [/^\/verify$/, viewVerify, null],
+  [/^\/forgot$/, viewForgot, null],
+  [/^\/reset$/, viewReset, null],
+  [/^\/invite$/, viewInvite, null],
+  [/^\/account$/, viewAccount, null],
 ];
 
 async function route() {
   cleanup?.();
   cleanup = null;
-  const path = location.hash.replace(/^#/, '') || '/';
+  const full = location.hash.replace(/^#/, '') || '/';
+  const path = full.split('?')[0];
+  if (!state.me && !PUBLIC.test(full)) {
+    // not logged in (or not yet known): the login page, coming back here afterwards
+    try { state.me = await get('/api/me'); } catch { return; }
+  }
+  document.body.classList.toggle('auth', PUBLIC.test(full));
   const [re, view, tab] = routes.find(([r]) => r.test(path)) ?? routes[0];
   const args = (path.match(re) ?? []).slice(1).map(decodeURIComponent);
   document.querySelectorAll('.tabbar a').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
@@ -121,7 +134,7 @@ async function viewLibrary() {
   const name = state.me?.name ?? '';
   if (!list.length) {
     paint(`
-      <div class="head"><div><h1>Bibliothek</h1><small>Noch leer</small></div><div class="avatar">${esc(name.charAt(0).toUpperCase())}</div></div>
+      <div class="head"><div><h1>Bibliothek</h1><small>Noch leer</small></div><a class="avatar" href="#/account" aria-label="Konto und Bibliothek">${esc(name.charAt(0).toUpperCase())}</a></div>
       <div class="empty"><h2>Fang mit einem Regalbrett an</h2>
         <p>Foto vom Regal, Barcode scannen oder von Hand: shelved holt die Daten aus DNB, Google Books und Wikidata.</p>
         <a class="btn" href="#/add">${icons.plus} Bücher hinzufügen</a></div>`);
@@ -129,8 +142,8 @@ async function viewLibrary() {
   }
   const letters = [...new Set(list.map(b => surname(b).charAt(0).toUpperCase()).filter(l => /[A-ZÄÖÜ]/.test(l)))];
   paint(`
-    <div class="head"><div><h1>Bibliothek</h1><small>${list.length} Bücher · ${shelves.length} ${shelves.length === 1 ? 'Regal' : 'Regale'}</small></div>
-      <div class="avatar" title="${esc(name)}">${esc(name.charAt(0).toUpperCase())}</div></div>
+    <div class="head"><div><h1>Bibliothek</h1><small>${esc(state.me?.library?.name ?? '')} · ${list.length} Bücher · ${shelves.length} ${shelves.length === 1 ? 'Regal' : 'Regale'}</small></div>
+      <a class="avatar" href="#/account" title="${esc(name)}" aria-label="Konto und Bibliothek">${esc(name.charAt(0).toUpperCase())}</a></div>
     <div class="search" role="search">${icons.search}
       <input id="q" type="search" placeholder="Titel, Autor oder ISBN" value="${esc(state.query)}" autocomplete="off" aria-label="Bibliothek durchsuchen">
       <a class="cam" href="#/lookup" aria-label="Mit der Kamera nachschauen">${icons.cam}</a></div>
@@ -680,8 +693,228 @@ async function viewStats() {
     <p class="note">Neupreise kommen aus der Deutschen Nationalbibliothek. Gebrauchtwerte sind eine Faustregel nach dem Markt 2026: privat (Kleinanzeigen, Booklooker) je nach Alter 6–35 % vom Neupreis, Ankaufportale zahlen davon nochmal nur 20–40 %, für alte Taschenbücher meist nichts.</p>`);
 }
 
+// ---------------------------------------------------------------- Anmeldung & Konto
+
+const param = name => new URLSearchParams(location.hash.split('?')[1] ?? '').get(name);
+const ROLES = { OWNER: 'Eigentümer', ADMIN: 'Leitung', STAFF: 'Mitarbeit', VIEWER: 'Nur lesen' };
+const KINDS = { PRIVATE: 'Privat/geteilt', PUBLIC: 'Öffentliche Bücherei', COMPANY: 'Firma/Fachbibliothek' };
+const input = (name, label, type = 'text', extra = '', value = '') =>
+  `<div class="field"><label for="${name}">${label}</label><input id="${name}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></div>`;
+const brand = '<div class="brand">shelved<i>.</i></div>';
+
+/** Runs a form submit with a busy button and readable errors. */
+function onSubmit(id, fn) {
+  const f = document.getElementById(id);
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = f.querySelector('button[type=submit]');
+    btn.disabled = true;
+    try { await fn(Object.fromEntries(new FormData(f)), f); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; }
+  });
+}
+
+async function afterLogin() {
+  state.me = await get('/api/me');
+  state.books = null;
+  go(param('next') ?? '/');
+}
+
+async function viewLogin() {
+  const opts = await get('/api/auth/options').catch(() => ({}));
+  paint(`<div class="authbox">${brand}
+    <h1 class="dtitle">Anmelden</h1>
+    ${param('error') === 'sso' ? '<p class="note warn">Die Anmeldung über das Portal hat nicht geklappt.</p>' : ''}
+    <form class="form" id="f">
+      ${input('email', 'E-Mail', 'email', 'required autocomplete="username" autofocus')}
+      ${input('password', 'Passwort', 'password', 'required autocomplete="current-password"')}
+      <button class="btn block" type="submit">Anmelden</button>
+    </form>
+    ${opts.sso ? `<a class="btn ghost block sso" href="${esc(opts.ssoUrl)}">Mit tstieh-Portal anmelden</a>` : ''}
+    <p class="linkrow"><a href="#/forgot">Passwort vergessen?</a><a href="#/register${param('next') ? '?next=' + encodeURIComponent(param('next')) : ''}">Neu hier? Konto anlegen</a></p></div>`);
+  onSubmit('f', async v => { await post('/api/auth/login', v); await afterLogin(); });
+}
+
+async function viewRegister() {
+  const token = param('invite');
+  const inv = token ? await get(`/api/invitations/${encodeURIComponent(token)}`).catch(() => null) : null;
+  paint(`<div class="authbox">${brand}
+    <h1 class="dtitle">${inv ? `Mitmachen bei „${esc(inv.library)}“` : 'Konto anlegen'}</h1>
+    <form class="form" id="f">
+      ${input('name', 'Dein Name', 'text', 'required maxlength="120" autocomplete="name"')}
+      ${input('email', 'E-Mail', 'email', `required autocomplete="email" ${inv ? 'readonly' : ''}`, inv?.email ?? '')}
+      ${input('password', 'Passwort (mindestens 10 Zeichen)', 'password', 'required minlength="10" autocomplete="new-password"')}
+      ${inv ? '' : `${input('libraryName', 'Name deiner Bibliothek', 'text', 'required maxlength="120" placeholder="z. B. Gemeindebücherei Nord"')}
+      <div class="field"><label>Art</label><div class="chips" id="kinds">${Object.entries(KINDS).map(([k, v], i) =>
+        `<button type="button" class="chip ${i === 0 ? 'on' : ''}" data-kind="${k}">${v}</button>`).join('')}</div></div>`}
+      <button class="btn block" type="submit">Konto anlegen</button>
+    </form>
+    <p class="note">Mit dem Anlegen akzeptierst du, dass shelved deine Adresse für Anmeldung und Bestätigungsmails speichert. Du kannst dein Konto jederzeit löschen.</p>
+    <p class="linkrow"><a href="#/login">Schon ein Konto? Anmelden</a></p></div>`);
+  let kind = 'PRIVATE';
+  document.getElementById('kinds')?.addEventListener('click', e => {
+    const b = e.target.closest('[data-kind]');
+    if (!b) return;
+    kind = b.dataset.kind;
+    document.querySelectorAll('#kinds .chip').forEach(c => c.classList.toggle('on', c === b));
+  });
+  onSubmit('f', async v => {
+    await post('/api/auth/register', { ...v, kind, inviteToken: token });
+    if (inv) {
+      toast('Konto angelegt, du kannst dich jetzt anmelden');
+      go('/login');
+    } else {
+      paint(`<div class="authbox">${brand}<h1 class="dtitle">Fast geschafft</h1>
+        <p>Wir haben dir eine Mail an <b>${esc(v.email)}</b> geschickt. Klick auf den Link darin, dann kannst du dich anmelden.</p>
+        <p class="linkrow"><a href="#/login">Zur Anmeldung</a></p></div>`);
+    }
+  });
+}
+
+async function viewVerify() {
+  paint(`<div class="authbox">${brand}${pendingView('Adresse wird bestätigt …')}</div>`);
+  try {
+    await post('/api/auth/verify', { token: param('token') });
+    paint(`<div class="authbox">${brand}<h1 class="dtitle">Bestätigt</h1><p>Deine Adresse ist bestätigt.</p>
+      <a class="btn block" href="${state.me ? '#/account' : '#/login'}">${state.me ? 'Zum Konto' : 'Anmelden'}</a></div>`);
+  } catch (e) {
+    paint(`<div class="authbox">${brand}<h1 class="dtitle">Das hat nicht geklappt</h1><p>${esc(e.message)}</p>
+      <a class="btn ghost block" href="#/login">Zur Anmeldung</a></div>`);
+  }
+}
+
+async function viewForgot() {
+  paint(`<div class="authbox">${brand}<h1 class="dtitle">Passwort vergessen</h1>
+    <form class="form" id="f">${input('email', 'E-Mail', 'email', 'required autocomplete="email"')}
+      <button class="btn block" type="submit">Link schicken</button></form>
+    <p class="linkrow"><a href="#/login">Zurück zur Anmeldung</a></p></div>`);
+  onSubmit('f', async v => {
+    await post('/api/auth/forgot', v);
+    paint(`<div class="authbox">${brand}<h1 class="dtitle">Schau in dein Postfach</h1>
+      <p>Wenn es zu <b>${esc(v.email)}</b> ein Konto gibt, ist ein Link unterwegs. Er gilt eine Stunde.</p></div>`);
+  });
+}
+
+async function viewReset() {
+  paint(`<div class="authbox">${brand}<h1 class="dtitle">Neues Passwort</h1>
+    <form class="form" id="f">${input('password', 'Neues Passwort (mindestens 10 Zeichen)', 'password', 'required minlength="10" autocomplete="new-password"')}
+      <button class="btn block" type="submit">Speichern</button></form></div>`);
+  onSubmit('f', async v => {
+    await post('/api/auth/reset', { token: param('token'), password: v.password });
+    toast('Passwort gespeichert');
+    go('/login');
+  });
+}
+
+async function viewInvite() {
+  const token = param('token');
+  let inv;
+  try { inv = await get(`/api/invitations/${encodeURIComponent(token)}`); } catch (e) {
+    paint(`<div class="authbox">${brand}<h1 class="dtitle">Einladung</h1><p>${esc(e.message)}</p></div>`);
+    return;
+  }
+  if (!state.me) { try { state.me = await get('/api/me'); } catch { /* not logged in */ } }
+  const here = encodeURIComponent(`/invite?token=${token}`);
+  paint(`<div class="authbox">${brand}
+    <small class="dauthor">Einladung${inv.invitedBy ? ' von ' + esc(inv.invitedBy) : ''}</small>
+    <h1 class="dtitle">${esc(inv.library)}</h1>
+    <p>Rolle: <b>${ROLES[inv.role]}</b></p>
+    ${state.me ? '<button class="btn block" id="accept">Einladung annehmen</button>'
+      : `<a class="btn block" href="#/register?invite=${encodeURIComponent(token)}">Konto anlegen und mitmachen</a>
+         <a class="btn ghost block sso" href="#/login?next=${here}">Ich habe schon ein Konto</a>`}</div>`);
+  document.getElementById('accept')?.addEventListener('click', async () => {
+    await post(`/api/invitations/${encodeURIComponent(token)}/accept`, {});
+    state.me = await get('/api/me');
+    state.books = null;
+    toast(`Willkommen in „${inv.library}“`);
+    go('/');
+  });
+}
+
+async function viewAccount() {
+  const [acc, libs] = await Promise.all([get('/api/account'), get('/api/libraries')]);
+  const lib = state.me.library;
+  const manage = lib.role === 'OWNER' || lib.role === 'ADMIN';
+  const [members, invites] = manage ? await Promise.all([get('/api/library/members'), get('/api/library/invitations')]) : [[], []];
+  const roleSelect = (id, role) => `<select data-member="${id}" aria-label="Rolle">${Object.entries(ROLES)
+    .filter(([k]) => k !== 'OWNER' || lib.role === 'OWNER').map(([k, v]) => `<option value="${k}" ${k === role ? 'selected' : ''}>${v}</option>`).join('')}</select>`;
+  paint(`
+    ${backBar('#/')}
+    <small class="dauthor">${esc(KINDS[lib.kind])} · ${ROLES[lib.role]}</small>
+    <h1 class="dtitle">${esc(lib.name)}</h1>
+
+    <h3 class="sec">Bibliotheken</h3>
+    <div class="list">${libs.map(l => `<div class="row"><div class="grow"><b>${esc(l.name)}</b><small>${esc(KINDS[l.kind])} · ${ROLES[l.role]}</small></div>
+      ${l.current ? '<span class="tag">aktiv</span>' : `<button class="btn quiet" data-select="${l.id}">Wechseln</button>`}</div>`).join('')}</div>
+    <form class="inline" id="newlib">${input('name', 'Neue Bibliothek anlegen', 'text', 'required maxlength="120" placeholder="Name"')}<button class="btn ghost" type="submit">Anlegen</button></form>
+    ${manage ? `<form class="form" id="libform">${input('libname', 'Name dieser Bibliothek', 'text', 'required maxlength="120"', lib.name)}
+      <div class="field"><label for="kind">Art</label><select id="kind" name="kind">${Object.entries(KINDS).map(([k, v]) => `<option value="${k}" ${k === lib.kind ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+      <button class="btn ghost" type="submit">Speichern</button></form>` : ''}
+
+    ${manage ? `<h3 class="sec">Team</h3>
+    <div class="list">${members.map(m => `<div class="row"><div class="grow"><b>${esc(m.name ?? m.email ?? 'Ohne Namen')}</b><small>${esc(m.email ?? '')}</small></div>
+      ${m.accountId === undefined ? '' : roleSelect(m.accountId, m.role)}
+      <button class="round sm" data-remove="${m.accountId}" aria-label="Aus der Bibliothek entfernen">×</button></div>`).join('')}
+      ${invites.map(i => `<div class="row"><div class="grow"><b>${esc(i.email)}</b><small>eingeladen als ${ROLES[i.role]}</small></div>
+      <button class="round sm" data-withdraw="${i.id}" aria-label="Einladung zurückziehen">×</button></div>`).join('')}</div>
+    <form class="inline" id="invite">${input('email', 'Jemanden einladen', 'email', 'required placeholder="E-Mail-Adresse"')}
+      <select name="role" aria-label="Rolle">${Object.entries(ROLES).filter(([k]) => k !== 'OWNER' || lib.role === 'OWNER')
+        .map(([k, v]) => `<option value="${k}" ${k === 'STAFF' ? 'selected' : ''}>${v}</option>`).join('')}</select>
+      <button class="btn" type="submit">Einladen</button></form>` : `<p class="note">Du bist hier „${ROLES[lib.role]}“. Mitglieder verwaltet die Leitung.</p>`}
+
+    <h3 class="sec">Mein Konto</h3>
+    <form class="form" id="me">${input('name', 'Name', 'text', 'required maxlength="120"', acc.name ?? '')}<button class="btn ghost" type="submit">Name speichern</button></form>
+    <form class="form" id="mail">${input('email', `E-Mail${acc.email ? ' (jetzt: ' + esc(acc.email) + ')' : ''}`, 'email', 'required')}
+      ${acc.hasPassword ? input('password', 'Passwort zur Bestätigung', 'password', 'required autocomplete="current-password"') : ''}
+      <button class="btn ghost" type="submit">Adresse ändern</button></form>
+    <form class="form" id="pw">${acc.hasPassword ? input('current', 'Aktuelles Passwort', 'password', 'required autocomplete="current-password"') : ''}
+      ${input('password', acc.hasPassword ? 'Neues Passwort' : 'Passwort festlegen (für die Anmeldung ohne Portal)', 'password', 'required minlength="10" autocomplete="new-password"')}
+      <button class="btn ghost" type="submit">Passwort speichern</button></form>
+
+    <h3 class="sec">Daten</h3>
+    <p class="note">Eine Kopie aller Daten zu deinem Konto kommt als Datei per Mail an deine Adresse.</p>
+    <div class="actions"><button class="btn ghost" id="export">Datenauskunft anfordern</button><button class="btn quiet" id="logout">Abmelden</button></div>
+
+    <h3 class="sec">Konto löschen</h3>
+    <p class="note">Löscht dein Konto. Bibliotheken, in denen du allein bist, werden mit allen Büchern, Regalen und Fotos gelöscht. Das lässt sich nicht rückgängig machen.</p>
+    <form class="form" id="del">${acc.hasPassword ? input('password', 'Passwort zur Bestätigung', 'password', 'required autocomplete="current-password"') : ''}
+      <button class="btn danger" type="submit">Konto endgültig löschen</button></form>`);
+
+  const reload = async () => { state.me = await get('/api/me'); state.books = null; route(); };
+  const onClick = async e => {
+    const t = e.target.closest('button');
+    if (!t) return;
+    try {
+      if (t.dataset.select) { await post(`/api/libraries/${t.dataset.select}/select`, {}); await reload(); }
+      if (t.dataset.remove && confirm('Aus dieser Bibliothek entfernen?')) { await del(`/api/library/members/${t.dataset.remove}`); await reload(); }
+      if (t.dataset.withdraw) { await del(`/api/library/invitations/${t.dataset.withdraw}`); await reload(); }
+      if (t.id === 'export') { await post('/api/account/export', {}); toast('Die Auskunft ist per Mail unterwegs'); }
+      if (t.id === 'logout') { await post('/api/auth/logout', {}); state.me = null; state.books = null; go('/login'); }
+    } catch (err) { toast(err.message, true); }
+  };
+  app.addEventListener('click', onClick);
+  cleanup = () => app.removeEventListener('click', onClick);
+  app.querySelectorAll('select[data-member]').forEach(s => s.addEventListener('change', async () => {
+    try { await api(`/api/library/members/${s.dataset.member}`, { method: 'PATCH', json: { role: s.value } }); toast('Rolle geändert'); } catch (err) { toast(err.message, true); await reload(); }
+  }));
+  onSubmit('newlib', async v => { await post('/api/libraries', { name: v.name, kind: 'PRIVATE' }); await reload(); });
+  if (manage) {
+    onSubmit('libform', async v => { await api('/api/library', { method: 'PATCH', json: { name: v.libname, kind: v.kind } }); await reload(); });
+    onSubmit('invite', async (v, f) => { await post('/api/library/invitations', v); toast(`Einladung an ${v.email} verschickt`); f.reset(); await reload(); });
+  }
+  onSubmit('me', async v => { await api('/api/account', { method: 'PATCH', json: v }); toast('Gespeichert'); state.me = await get('/api/me'); });
+  onSubmit('mail', async v => { await post('/api/account/email', v); toast(`Bestätigungslink an ${v.email} geschickt`); });
+  onSubmit('pw', async (v, f) => { await post('/api/account/password', v); toast('Passwort gespeichert'); f.reset(); });
+  onSubmit('del', async v => {
+    if (!confirm('Konto wirklich endgültig löschen?')) return;
+    await api('/api/account', { method: 'DELETE', json: v });
+    state.me = null;
+    go('/login');
+    toast('Dein Konto ist gelöscht');
+  });
+}
+
 // ---------------------------------------------------------------- Start
 
 window.addEventListener('hashchange', route);
 window.addEventListener('unhandledrejection', e => toast(e.reason?.message ?? 'Fehler', true));
-get('/api/me').then(me => { state.me = me; }).catch(() => {}).finally(route);
+route();

@@ -233,3 +233,20 @@ h3.sec { font: 600 15px var(--display); margin: 26px 0 8px; display: flex; justi
 .camera-shutter[disabled] { opacity: 0.4; }
 .camera-torch { position: absolute; right: 16px; top: calc(env(safe-area-inset-top) + 52px); background: rgb(0 0 0 / 0.5); color: #fff; border: 1px solid rgb(255 255 255 / 0.4); border-radius: 10px; padding: 10px 14px; font: 600 13px var(--body); }
 .camera-torch.on { background: #fff; color: #000; }
+
+/* ---------------------------------------------------------------- Anmeldung & Konto */
+body.auth .tabbar { display: none; }
+.authbox { max-width: 420px; margin: 8vh auto 0; }
+.brand { font: 700 22px/1 var(--display); letter-spacing: -0.03em; margin-bottom: 28px; }
+.brand i { color: var(--accent); font-style: normal; }
+.authbox .dtitle { margin-bottom: 18px; }
+.authbox .btn.sso { margin-top: 10px; }
+.authbox p { margin: 14px 0; }
+.linkrow { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.linkrow a { color: var(--accent-ink); min-height: 44px; display: inline-flex; align-items: center; }
+.inline { display: flex; gap: 8px; align-items: flex-end; margin: 14px 0 6px; flex-wrap: wrap; }
+.inline .field { flex: 1 1 220px; }
+.inline select, .row select { border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; min-height: 48px; background: var(--bg); }
+.row select { min-height: 40px; }
+.row .btn.quiet { min-height: 40px; }
+a.avatar { text-decoration: none; }

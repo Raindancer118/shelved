@@ -11,4 +11,7 @@ fi
 set -a
 for f in .env.anthropic .env.google .env.hardcover; do [ -f "$f" ] && . "./$f"; done
 set +a
-exec mvn -q spring-boot:run -Dspring-boot.run.profiles=local -Dspring-boot.run.arguments=--server.port=${PORT:-8150}
+# extra arguments are passed on, e.g. --shelved.auth-mode=accounts to try the login pages
+args="$*"
+case " $args " in *" --server.port="*) ;; *) args="--server.port=${PORT:-8150} $args" ;; esac
+exec mvn -q spring-boot:run -Dspring-boot.run.profiles=local -Dspring-boot.run.arguments="$args"

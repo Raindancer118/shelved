@@ -1,4 +1,5 @@
 // Thin fetch wrapper: CSRF header, JSON, readable errors, login redirect.
+export const PUBLIC = /^\/(login|register|verify|forgot|reset|invite)(\?|$)/;
 let csrfReady = null;
 
 function cookie(name) {
@@ -26,9 +27,10 @@ export async function api(path, { method = 'GET', json, form } = {}) {
   if (json !== undefined) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(json); }
   if (form) body = form;
   const res = await fetch(path, { method, headers, body, credentials: 'same-origin' });
-  if (res.status === 401) {
-    location.href = '/oauth2/authorization/authentik';
-    throw new ApiError(401, 'Bitte neu anmelden');
+  if (res.status === 401 && !path.startsWith('/api/auth/')) {
+    const here = location.hash.replace(/^#/, '') || '/';
+    if (!PUBLIC.test(here)) location.hash = '#/login?next=' + encodeURIComponent(here);
+    throw new ApiError(401, 'Bitte melde dich an');
   }
   if (res.status === 204) return null;
   const text = await res.text();

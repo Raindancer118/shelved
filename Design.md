@@ -37,5 +37,11 @@ Warme Neutraltöne (leichter Gelbstich) statt kaltem Grau. Dark Mode über `pref
 - Tab-Leiste: Bibliothek · Reihen · Regale · Statistik. Aktives Icon orange.
 - Touch-Targets ≥ 48px.
 
+## Anmeldung & Konto (14.11.2026, Bibliotheks-Ausbau)
+- **Login-Seite** statt Sofort-Umleitung aufs Portal: Wortmarke „shelved" (Bricolage 700, Punkt in Orange), große Überschrift, Felder wie im Bearbeiten-Formular, ein oranger Primärknopf. Portal-Login („Mit tstieh-Portal") als Ghost-Button darunter, nur wenn konfiguriert. Keine Tab-Leiste auf Auth-Seiten (`body.auth`). Spalte max. 420px.
+- **Registrieren**: Name, E-Mail, Passwort (≥ 10 Zeichen), Name der Bibliothek, Art als Chips: *Privat/geteilt · Öffentliche Bücherei · Firma/Fachbibliothek*. Über einen Einladungslink entfällt die Bibliothek, die Adresse ist vorbelegt und fest.
+- **Konto-Seite** (`#/account`, erreichbar über den Avatar oben rechts in der Bibliothek): Abschnitte als Haarlinien-Listen wie Buchungen: Bibliothek (Name, Art, Wechseln, neue anlegen) · Team (nur Leitung: Mitglieder mit Rolle, Einladen, offene Einladungen) · Mein Konto (Name, E-Mail, Passwort) · Daten (Auskunft per Mail) · Abmelden · Konto löschen (Danger-Button, ganz unten).
+- **Rollen** heißen in der UI: Eigentümer · Leitung · Mitarbeit · Nur lesen.
+
 ## Motion
 View Transitions zwischen Screens (Cover → Detail morpht). `prefers-reduced-motion` → keine Transition.
