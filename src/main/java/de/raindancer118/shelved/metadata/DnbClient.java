@@ -52,7 +52,8 @@ public class DnbClient {
         if (!surname.isBlank()) {
             q.append(" and per=").append(clean(surname));
         }
-        return query(q.toString(), 20);
+        // mat=books drops audio books and e-books on the DNB side, so older paperbacks make it into the page
+        return query(q.append(" and mat=books").toString(), 30);
     }
 
     private List<BookMetadata> query(String cql, int max) {
@@ -200,7 +201,8 @@ public class DnbClient {
     }
 
     private static String clean(String s) {
-        return s == null ? "" : s.replaceAll("[\"()=<>/\\\\]", " ").replaceAll("\\s+", " ").trim();
+        // dashes, colons and quotes break CQL or narrow the match ("Mysteria – Das Tor des Feuers")
+        return s == null ? "" : s.replaceAll("[\"()=<>/\\\\–—:;,.!?„“”'&]", " ").replaceAll("\\s+", " ").trim();
     }
 
     private static String surnameOf(String author) {
@@ -249,6 +251,10 @@ public class DnbClient {
         }
 
         boolean isPrintedBook() {
+            String content = first("336", "b");
+            if (content != null && !"txt".equals(content)) {
+                return false; // "spw" = spoken word, i.e. audio book with a printed booklet
+            }
             String carrier = first("338", "b");
             if (carrier != null) {
                 return "nc".equals(carrier);

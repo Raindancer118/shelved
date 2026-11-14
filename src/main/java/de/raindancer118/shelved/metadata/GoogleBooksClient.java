@@ -61,7 +61,7 @@ public class GoogleBooksClient {
     }
 
     public List<BookMetadata> search(String title, String author) {
-        String q = "intitle:" + title + (author == null || author.isBlank() ? "" : " inauthor:" + surname(author));
+        String q = "intitle:" + title.replaceAll("[–—:;\"„“”]", " ").replaceAll("\\s+", " ").trim() + (author == null || author.isBlank() ? "" : " inauthor:" + surname(author));
         return query(q, 10).stream()
                 .filter(m -> m.publisher() == null || !m.publisher().toLowerCase().contains("ebook"))
                 .toList();

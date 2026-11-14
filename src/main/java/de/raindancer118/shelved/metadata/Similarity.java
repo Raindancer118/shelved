@@ -15,16 +15,31 @@ public final class Similarity {
 
     /** Token overlap of the sortable titles, 0..1. Robust against articles, case, umlauts and punctuation. */
     public static double title(String a, String b) {
-        Set<String> x = tokens(a);
-        Set<String> y = tokens(b);
-        if (x.isEmpty() || y.isEmpty()) {
-            return 0;
+        return jaccard(tokens(a), tokens(b));
+    }
+
+    /**
+     * What a spine says vs. what a catalogue has: spines often print "Title – Subtitle", catalogues split them,
+     * and catalogues sometimes carry long additions ("Die Queen und ich – aus dem Leben eines königlichen Corgis").
+     */
+    public static double title(String spine, String catalogueTitle, String catalogueSubtitle) {
+        Set<String> s = tokens(spine);
+        Set<String> t = tokens(catalogueTitle);
+        Set<String> full = new HashSet<>(t);
+        full.addAll(tokens(catalogueSubtitle));
+        double best = Math.max(jaccard(s, t), jaccard(s, full));
+        if (s.size() >= 2 && t.containsAll(s) || t.size() >= 2 && s.containsAll(t)) {
+            best = Math.max(best, 0.8);
         }
-        Set<String> inter = new HashSet<>(x);
-        inter.retainAll(y);
-        Set<String> union = new HashSet<>(x);
-        union.addAll(y);
-        return (double) inter.size() / union.size();
+        return best;
+    }
+
+    public static String mainTitle(String title) {
+        if (title == null) {
+            return null;
+        }
+        String[] parts = title.split("\\s+[–—-]\\s+|:\\s+", 2);
+        return parts[0].trim();
     }
 
     public static boolean surname(String a, String b) {
@@ -35,6 +50,17 @@ public final class Similarity {
         String sort = Names.sortForm(name);
         int comma = sort.indexOf(',');
         return Names.collationKey(comma > 0 ? sort.substring(0, comma) : sort);
+    }
+
+    private static double jaccard(Set<String> x, Set<String> y) {
+        if (x.isEmpty() || y.isEmpty()) {
+            return 0;
+        }
+        Set<String> inter = new HashSet<>(x);
+        inter.retainAll(y);
+        Set<String> union = new HashSet<>(x);
+        union.addAll(y);
+        return (double) inter.size() / union.size();
     }
 
     private static Set<String> tokens(String s) {

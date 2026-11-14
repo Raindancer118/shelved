@@ -17,6 +17,10 @@ import java.util.Set;
 @Service
 public class MetadataService {
 
+    private static final java.util.regex.Pattern REPRINT_OR_LEARNER = java.util.regex.Pattern.compile(
+            "books on demand|\\bbod\\b|independently published|createspace|klett sprachen|lesehefte|lektüre|schulausgabe",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+
     private final DnbClient dnb;
     private final GoogleBooksClient google;
     private final OpenLibraryClient openLibrary;
@@ -48,20 +52,24 @@ public class MetadataService {
 
     /** Candidates for a title/author we only know from a spine or a typed query, best first. */
     public List<BookMetadata> search(String title, String author, String publisherHint) {
+        List<BookMetadata> fromGoogle = google.search(title, author);
+        Set<String> googleIsbns = new HashSet<>();
+        fromGoogle.forEach(m -> { if (m.isbn13() != null) googleIsbns.add(m.isbn13()); });
         List<BookMetadata> all = new ArrayList<>(dnb.search(title, author));
-        all.addAll(google.search(title, author));
+        all.addAll(fromGoogle);
         if (all.isEmpty()) {
             all.addAll(openLibrary.search(title, author));
         }
         Set<String> seen = new HashSet<>();
         return all.stream()
                 .filter(m -> m.isbn13() == null || seen.add(m.isbn13()))
-                .sorted(Comparator.comparingDouble((BookMetadata m) -> score(m, title, author, publisherHint)).reversed())
+                .sorted(Comparator.comparingDouble((BookMetadata m) -> score(m, title, author, publisherHint)
+                        + (m.isbn13() != null && googleIsbns.contains(m.isbn13()) && "DNB".equals(m.source()) ? 0.5 : 0)).reversed())
                 .toList();
     }
 
     public static double score(BookMetadata m, String title, String author, String publisherHint) {
-        double s = Similarity.title(title, m.title()) * 3;
+        double s = Similarity.title(title, m.title(), m.subtitle()) * 3;
         if (author != null && !author.isBlank() && !m.authors().isEmpty()) {
             s += Similarity.surname(author, m.authors().getFirst()) ? 1.5 : 0;
         }
@@ -75,8 +83,14 @@ public class MetadataService {
         if (m.isbn13() != null) {
             s += 0.3;
         }
-        if (m.publishedYear() != null) {
-            s += Math.min(0.2, Math.max(0, (m.publishedYear() - 1950) / 500.0)); // newer editions are what people own
+        if (m.listPriceCents() != null) {
+            s += 0.3; // a bound German retail price marks the regular trade edition
+        }
+        if ("ger".equals(m.language())) {
+            s += 0.3;
+        }
+        if (m.publisher() != null && REPRINT_OR_LEARNER.matcher(m.publisher()).find()) {
+            s -= 0.6; // print-on-demand reprints and language-learner editions are rarely the copy on the shelf
         }
         return s;
     }

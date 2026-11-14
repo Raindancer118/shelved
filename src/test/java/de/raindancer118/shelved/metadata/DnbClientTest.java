@@ -57,7 +57,7 @@ class DnbClientTest {
     @Test
     void searchKeepsOnlyPrintedEditionsAndCleansTitles() {
         server.expect(requestTo(startsWith("https://services.dnb.de/sru/dnb")))
-                .andExpect(decodedQuery("query=tit=Die Farben der Magie and per=Pratchett"))
+                .andExpect(decodedQuery("query=tit=Die Farben der Magie and per=Pratchett and mat=books"))
                 .andRespond(withSuccess(new ClassPathResource("fixtures/dnb-search-farben.xml"), MediaType.APPLICATION_XML));
 
         var hits = client.search("Die Farben der Magie", "Terry Pratchett");
@@ -77,5 +77,16 @@ class DnbClientTest {
                         <?xml version="1.0" encoding="UTF-8"?><searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/"><version>1.1</version><numberOfRecords>0</numberOfRecords></searchRetrieveResponse>""",
                         MediaType.APPLICATION_XML));
         assertThat(client.byIsbn("9780000000002")).isEmpty();
+    }
+
+    @Test
+    void audioBooksAndOnlineResourcesAreNotBooksOnAShelf() {
+        server.expect(requestTo(startsWith("https://services.dnb.de/sru/dnb")))
+                .andRespond(withSuccess(new ClassPathResource("fixtures/dnb-search-schwarm.xml"), MediaType.APPLICATION_XML));
+
+        var hits = client.search("Der Schwarm", "Frank Schätzing");
+
+        assertThat(hits).extracting(BookMetadata::publisher).doesNotContain("Der Hörverlag");
+        assertThat(hits).extracting(BookMetadata::isbn13).contains("9783462005103").doesNotContain("9783844549041", "9783844511093");
     }
 }

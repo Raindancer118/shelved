@@ -1,0 +1,3125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/"><version>1.1</version><numberOfRecords>71</numberOfRecords><records><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1336759526</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20241127220107.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">240724s2024    fr ||||| |||| 00||||fre  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">24,A48</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1336759526</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9782266342766</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-2-266-34276-6</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1336759526</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1473826337</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1180</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">fre</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-FR</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Abysses </subfield>
+      <subfield code="c">Frank Schätzing ; traduit de l'allemand par Danièle Darneau</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">[Paris]</subfield>
+      <subfield code="b">Les Presses de la Cité</subfield>
+      <subfield code="c">juin 2024</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">1237 Seiten</subfield>
+      <subfield code="c">18 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Pocket</subfield>
+      <subfield code="v">7380</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="0">(DE-588)115262814</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115262814</subfield>
+      <subfield code="0">(DE-101)115262814</subfield>
+      <subfield code="a">Darneau, Danièle</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="830" ind1=" " ind2="0">
+      <subfield code="a">Pocket</subfield>
+      <subfield code="v">7380</subfield>
+      <subfield code="w">(DE-101)016933494</subfield>
+      <subfield code="w">(DE-600)1165290-1</subfield>
+      <subfield code="9">47380</subfield>
+      <subfield code="7">as</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20241119</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20241119</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20241121</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>1</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1321180969</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20240306220455.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">240221s2024    it ||||| |||| 00||||ita  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">24,A10</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1321180969</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9788842935513</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-88-429-3551-3</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1321180969</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1425132316</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1180</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ita</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-IT</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">&#152;Il&#156; quinto giorno</subfield>
+      <subfield code="b">romanzo</subfield>
+      <subfield code="c">Frank Schätzing ; traduzione di Sergio Vicini</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a"> I edizione Le stelle Nord</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">[Milano]</subfield>
+      <subfield code="b">Nord</subfield>
+      <subfield code="c">gennaio 2024</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">1032 Seiten</subfield>
+      <subfield code="c">23 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Le stelle Nord</subfield>
+      <subfield code="v">15</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">Vicini, Sergio</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+    </datafield>
+    <datafield tag="830" ind1=" " ind2="0">
+      <subfield code="a">&#152;Le&#156; stelle Nord</subfield>
+      <subfield code="v">15</subfield>
+      <subfield code="w">(DE-101)1321493487</subfield>
+      <subfield code="w">(DE-600)3179656-4</subfield>
+      <subfield code="9">215</subfield>
+      <subfield code="7">as</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">B:DE-101</subfield>
+      <subfield code="q">application/pdf</subfield>
+      <subfield code="u">https://d-nb.info/1321180969/04</subfield>
+      <subfield code="3">Inhaltsverzeichnis</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20240223</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20240223</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20240226</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>2</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1292522607</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20230913220137.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">230609s2023    fr ||||| |||| 00||||fre  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">23,A37</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1292522607</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9782258205345</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-2-258-20534-5</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1292522607</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1397015015</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1180</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">fre</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-FR</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Abysses</subfield>
+      <subfield code="c">Frank Schätzing ; traduit de l'allemand par Danièle Darneau</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Paris</subfield>
+      <subfield code="b">Les Presses de la Cité</subfield>
+      <subfield code="c">[2023]</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">884 Seiten</subfield>
+      <subfield code="c">24 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230830</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230904</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>3</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1273487699</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20230306182401.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">221123s2023    gw ||||| |||| 00||||ger  </controlfield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1273487699</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783844549041</subfield>
+      <subfield code="c">Broschur : EUR 84.03 (DE), EUR 100.00 (DE) (freier Preis), EUR 83.33 (AT), EUR 100.00 (AT) (freier Preis), CHF 130.92, CHF 141.00 (freier Preis)</subfield>
+      <subfield code="9">978-3-8445-4904-1</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">3844549048</subfield>
+      <subfield code="9">3-8445-4904-8</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783844549041</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1273487699</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1352252075</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1245</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE-BY</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">9\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="b">Limitierte Hörbuch-Box mit Download-Codes ohne CD. - Ungekürzte Lesung und Hörspiel, inklusive Bonusmaterial und einem besonderen »Der Schwarm«-Briefbeschwerer für Thriller-Fans</subfield>
+      <subfield code="c">Frank Schätzing</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">Limited special edition, ungekürzte Lesung, Hörspiel, ungekürzte Ausgabe</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">München</subfield>
+      <subfield code="b">Der Hörverlag</subfield>
+      <subfield code="c">2023</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">44 Seiten</subfield>
+      <subfield code="c">13.4 cm x 13.4 cm, 750 g</subfield>
+      <subfield code="e">$d3110 Min., 1 Auge (Halbkugel)</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">gesprochenes Wort</subfield>
+      <subfield code="b">spw</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Book</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform (spezifisch))CD standard audio format</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Hörspiel</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Hörbuch</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">ungekürzte Lesung</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Hörbuch-Box</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Wissenschaftsthriller</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Ökothriller</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Meer</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Meeresbiologie</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Wal</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Discless</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Sammlerausgabe</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Download Code</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">vollständige Lesung</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">HBGENTHR: Thriller</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)9120: Nonbooks, PBS / Belletristik/Spannung</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874004</subfield>
+      <subfield code="a">Spannung</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">Zapatka, Manfred</subfield>
+      <subfield code="e">Erzähler</subfield>
+      <subfield code="4">nrt</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">Martin, Thomas Balou</subfield>
+      <subfield code="e">Erzähler</subfield>
+      <subfield code="4">nrt</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">Tscharre, Ulrike C.</subfield>
+      <subfield code="e">Erzähler</subfield>
+      <subfield code="4">nrt</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">5\p</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="e">Erzähler</subfield>
+      <subfield code="4">nrt</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">6\p</subfield>
+      <subfield code="a">Kaminski, Stefan</subfield>
+      <subfield code="e">Erzähler</subfield>
+      <subfield code="4">nrt</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">7\p</subfield>
+      <subfield code="a">Wesselburg, Loy</subfield>
+      <subfield code="e">Regisseur</subfield>
+      <subfield code="4">drt</subfield>
+    </datafield>
+    <datafield tag="710" ind1="2" ind2=" ">
+      <subfield code="8">8\p</subfield>
+      <subfield code="0">(DE-588)1065498713</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1065498713</subfield>
+      <subfield code="0">(DE-101)1065498713</subfield>
+      <subfield code="a">Der Hörverlag</subfield>
+      <subfield code="e">Verlag</subfield>
+      <subfield code="4">pbl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="787" ind1="0" ind2="8">
+      <subfield code="i">In Beziehung stehende Ressource</subfield>
+      <subfield code="z">9783462300260</subfield>
+    </datafield>
+    <datafield tag="787" ind1="0" ind2="8">
+      <subfield code="i">In Beziehung stehende Ressource</subfield>
+      <subfield code="z">9783844511093</subfield>
+    </datafield>
+    <datafield tag="787" ind1="0" ind2="8">
+      <subfield code="i">In Beziehung stehende Ressource</subfield>
+      <subfield code="z">9783867173100</subfield>
+    </datafield>
+    <datafield tag="787" ind1="0" ind2="8">
+      <subfield code="i">In Beziehung stehende Ressource</subfield>
+      <subfield code="z">9783899408218</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/1273487699/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">vlb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#vlb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">vlb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#vlb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">vlb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#vlb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">vlb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#vlb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">5\p</subfield>
+      <subfield code="a">vlb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#vlb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">6\p</subfield>
+      <subfield code="a">vlb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#vlb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">7\p</subfield>
+      <subfield code="a">vlb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#vlb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">8\p</subfield>
+      <subfield code="a">adb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#adb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">9\p</subfield>
+      <subfield code="a">vlb</subfield>
+      <subfield code="d">20221123</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#vlb</subfield>
+    </datafield>
+    <datafield tag="926" ind1="1" ind2=" ">
+      <subfield code="a">FH</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Thriller / Spannung</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">FDB</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Dystopische und utopische Literatur</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">FLQ</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Science-Fiction: Apokalypse/Postapokalypse</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">FXE</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Belletristik: Themen, Stoffe, Motive: Umwelt / Natur</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">RNR</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Naturkatastrophen</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">1QS</subfield>
+      <subfield code="o">94</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Ozeane und Meere</subfield>
+    </datafield>
+  </record></recordData><recordPosition>4</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000pam a2200000 c 4500</leader>
+    <controlfield tag="001">1271898152</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20240104174135.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">221103s2023    gw ||||| |||| 00||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">23,A18</subfield>
+      <subfield code="z">22,N45</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1271898152</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783462005103</subfield>
+      <subfield code="c">Festeinband: EUR 50.00 (DE), EUR 51.40 (AT)</subfield>
+      <subfield code="9">978-3-462-00510-3</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">3462005103</subfield>
+      <subfield code="9">3-462-00510-3</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783462005103</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1271898152</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1378158418</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1145</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1250</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE-NW</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="b">Roman</subfield>
+      <subfield code="c">Frank Schätzing</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">1. Auflage</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Köln</subfield>
+      <subfield code="b">Kiepenheuer &amp; Witsch</subfield>
+      <subfield code="c">2023</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">1048 Seiten</subfield>
+      <subfield code="c">22 cm, 1216 g</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Hardback</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform (spezifisch))With printed dust jacket</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Klimakrise</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">ZDF-Serie</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Klimawandel</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Endzeit-Thriller</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Ökologie</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Ozean</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Tod und Teufel</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Dystopie</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Hochwasser-Katastrophe</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Romanverfilmung</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Klaas Heufer-Umlauf</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Sonderausgabe</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Was, wenn wir einfach die Welt retten?</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Schmuckausgabe</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)1121: Hardcover, Softcover / Belletristik/Krimis, Thriller, Spionage</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-FS)Katastrophenszenario</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="710" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="0">(DE-588)2025675-9</subfield>
+      <subfield code="0">https://d-nb.info/gnd/2025675-9</subfield>
+      <subfield code="0">(DE-101)004827147</subfield>
+      <subfield code="a">Verlag Kiepenheuer &amp; Witsch</subfield>
+      <subfield code="e">Verlag</subfield>
+      <subfield code="4">pbl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="776" ind1="0" ind2="8">
+      <subfield code="i">Erscheint auch als</subfield>
+      <subfield code="n">Online-Ausgabe</subfield>
+      <subfield code="a">Schätzing, Frank, 1957-</subfield>
+      <subfield code="t">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="d">Köln : eBook by Kiepenheuer&amp;Witsch, 2009</subfield>
+      <subfield code="h">Online-Ressource</subfield>
+      <subfield code="w">(DE-101)1058790811</subfield>
+      <subfield code="b">1. Aufl.</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/1271898152/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230420</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">adb</subfield>
+      <subfield code="d">20221103</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#adb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230424</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ra</subfield>
+    </datafield>
+    <datafield tag="926" ind1="1" ind2=" ">
+      <subfield code="a">FH</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Thriller / Spannung</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">FBA</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Moderne und zeitgenössische Belletristik: allgemein und literarisch</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">FLQ</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Science-Fiction: Apokalypse/Postapokalypse</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">JPFA</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Grüne Politik / Ökopolitik / Umweltschutz</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">1QS</subfield>
+      <subfield code="o">94</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.5</subfield>
+      <subfield code="x">Ozeane und Meere</subfield>
+    </datafield>
+  </record></recordData><recordPosition>5</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 cb4500</leader>
+    <controlfield tag="001">1282577220</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20230614220306.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">230306s2023    xr ||||| |||| 00||||cze  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">23,A24</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1282577220</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9788024283951</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-80-242-8395-1</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1282577220</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1382397621</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1180</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">cze</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-CZ</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Lidstvo ohrožuje neznámá civilizace</subfield>
+      <subfield code="c">Frank Schätzing ; přeložil Vítězslav Čížek</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">Vydání druhé</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Praha</subfield>
+      <subfield code="b">Euromedia Group, edici Laser</subfield>
+      <subfield code="c">[2023]</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">598 Seiten</subfield>
+      <subfield code="c">23 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Vzpoura oceánů</subfield>
+      <subfield code="v">1 část</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="800" ind1="1" ind2=" ">
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="t">Vzpoura oceánů</subfield>
+      <subfield code="v">1 část</subfield>
+      <subfield code="w">(DE-101)129163178X</subfield>
+      <subfield code="9">11</subfield>
+      <subfield code="7">am</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230602</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230607</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>6</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 ca4500</leader>
+    <controlfield tag="001">136399252X</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20250507220025.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">250425m20232023ja ||||| |||| 00||||jpno </controlfield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">136399252X</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB136399252X</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1518694379</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1140</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">jpn</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XB-JP</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Shinkai no Yrr</subfield>
+      <subfield code="b">= &#152;Der&#156; Schwarm</subfield>
+      <subfield code="c">Shettsingu, Furanku ; Kitagawa Kazuyo yaku</subfield>
+    </datafield>
+    <datafield tag="246" ind1="1" ind2="1">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+    </datafield>
+    <datafield tag="246" ind1="3" ind2=" ">
+      <subfield code="a">Shinkai no īru</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">Shinpan</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Tōkyōto</subfield>
+      <subfield code="b">Hayakawa Shobō</subfield>
+      <subfield code="c">nisen nijūsannen nigatsu nijūgonichi-nisen nijūsannen sangatsu nijūgonichi [2023]</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">4 Bände</subfield>
+      <subfield code="c">16 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="0" ind2=" ">
+      <subfield code="a">Tokyo Hayakawa books</subfield>
+    </datafield>
+    <datafield tag="546" ind1=" " ind2=" ">
+      <subfield code="a">Japanisch (Kanji, Hiragana und Katakana)</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="0">(DE-588)1073292754</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1073292754</subfield>
+      <subfield code="0">(DE-101)1073292754</subfield>
+      <subfield code="a">Kitagawa, Kazuyo</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20250425</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20250425</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20250428</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+  </record></recordData><recordPosition>7</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1306297257</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20231108220041.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">231017s2023    dk ||||| |||| 00||||dan  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">23,A45</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1306297257</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9788793895638</subfield>
+      <subfield code="c">Festeinband</subfield>
+      <subfield code="9">978-87-93895-63-8</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">8793895631</subfield>
+      <subfield code="9">87-93895-63-1</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1306297257</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1408415135</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1180</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">dan</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DK</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">84-26</subfield>
+      <subfield code="2">dk5s</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Sværmen</subfield>
+      <subfield code="c">Frank Schätzing ; på dansk ved Jan Teuber og Lene Teuber</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">1. udgave, 1. oplag</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">København</subfield>
+      <subfield code="b">A Mock Book</subfield>
+      <subfield code="c">[2023]</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">941 Seiten</subfield>
+      <subfield code="c">23 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="0">(DE-588)123593433</subfield>
+      <subfield code="0">https://d-nb.info/gnd/123593433</subfield>
+      <subfield code="0">(DE-101)123593433</subfield>
+      <subfield code="a">Teuber, Jan</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">Teuber, Lene</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20231026</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20231026</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">3\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20231026</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">4\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20231102</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>8</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 ca4500</leader>
+    <controlfield tag="001">129163178X</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20230614220206.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">230602s2023    xr ||||| |||| 00||||cze  </controlfield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">129163178X</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="c">Broschur</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB129163178X</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1382396049</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1140</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">cze</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-CZ</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Vzpoura oceánů</subfield>
+      <subfield code="c">Frank Schätzing</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Praha</subfield>
+      <subfield code="b">Euromedia Group, edici Laser</subfield>
+      <subfield code="c">[2023]-</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">2 Bände</subfield>
+      <subfield code="c">23 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230602</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230607</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+  </record></recordData><recordPosition>9</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 cb4500</leader>
+    <controlfield tag="001">1283602415</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20230705220230.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">230316s2023    xr ||||| |||| 00||||cze  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">23,A27</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1283602415</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9788024285078</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-80-242-8507-8</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1283602415</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1389392602</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1180</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">cze</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-CZ</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Zkáza lidstva přichází z hlubin</subfield>
+      <subfield code="c">Frank Schätzing ; přeložil Vítězslav Čížek</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">Vydání druhé</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Praha</subfield>
+      <subfield code="b">Euromedia Group, edici Laser</subfield>
+      <subfield code="c">2023</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">319 Seiten</subfield>
+      <subfield code="c">23 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">#11#!129163178X!Schätzing, Frank [Tp1]$BVerfasser: Vzpoura oceánů</subfield>
+      <subfield code="v">2 část</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="830" ind1=" " ind2="0">
+      <subfield code="a">#11#!129163178X!Schätzing, Frank [Tp1]$BVerfasser: Vzpoura oceánů</subfield>
+      <subfield code="v">2 část</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230621</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20230627</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>10</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nim a2200000 c 4500</leader>
+    <controlfield tag="001">1264396570</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20230320091322.0</controlfield>
+    <controlfield tag="007">s|||||||||||||</controlfield>
+    <controlfield tag="007">cr||||||||||||</controlfield>
+    <controlfield tag="008">220804r20222014gw |||||o|||||||||||ger  </controlfield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1264396570</subfield>
+    </datafield>
+    <datafield tag="024" ind1="7" ind2=" ">
+      <subfield code="2">urn</subfield>
+      <subfield code="a">urn:nbn:de:101:1-2022103004285997936239</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1264396570</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1576950503</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1140</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1166</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="245" ind1="0" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="b">vollständige Lesung</subfield>
+      <subfield code="c">Frank Schätzing. Gelesen von Stefan Kaminski. Regie: Marie-Luise Goerke</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Leipzig</subfield>
+      <subfield code="a">Frankfurt am Main</subfield>
+      <subfield code="b">Deutsche Nationalbibliothek</subfield>
+      <subfield code="c">2022</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">1 Online-Ressource (4 CDs (MP3, 38 Std. 7 Min.))</subfield>
+      <subfield code="b">mono, Komprimierungsrate 128 kbit/sek.</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">gesprochenes Wort</subfield>
+      <subfield code="b">spw</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">Computermedien</subfield>
+      <subfield code="b">c</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource</subfield>
+      <subfield code="b">cr</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="583" ind1="1" ind2=" ">
+      <subfield code="a">Archivierung/Langzeitarchivierung gewährleistet</subfield>
+      <subfield code="5">DE-101</subfield>
+      <subfield code="2">pdager</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Ökothriller</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)128794771</subfield>
+      <subfield code="0">https://d-nb.info/gnd/128794771</subfield>
+      <subfield code="0">(DE-101)128794771</subfield>
+      <subfield code="a">Kaminski, Stefan</subfield>
+      <subfield code="d">1974-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)128356790</subfield>
+      <subfield code="0">https://d-nb.info/gnd/128356790</subfield>
+      <subfield code="0">(DE-101)128356790</subfield>
+      <subfield code="a">Goerke, Marie-Luise</subfield>
+      <subfield code="d">1964-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="775" ind1="0" ind2="8">
+      <subfield code="i">Digitale Übertragung von</subfield>
+      <subfield code="t">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="d">München : Der @Hörverl., 2014</subfield>
+      <subfield code="h">4 CDs (MP3, 38 Std. 7 Min.), mono, Komprimierungsrate 128 kbit/sek.</subfield>
+      <subfield code="w">(DE-101)1045791601</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="0">
+      <subfield code="u">https://nbn-resolving.org/urn:nbn:de:101:1-2022103004285997936239</subfield>
+      <subfield code="x">Resolving-System</subfield>
+    </datafield>
+    <datafield tag="856" ind1=" " ind2="0">
+      <subfield code="u">https://d-nb.info/1264396570/34</subfield>
+      <subfield code="x">Langzeitarchivierung Nationalbibliothek</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20260313</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="d" ind2=" ">
+      <subfield code="a">i002</subfield>
+    </datafield>
+    <datafield tag="927" ind1=" " ind2=" ">
+      <subfield code="a">424574976</subfield>
+    </datafield>
+  </record></recordData><recordPosition>11</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1282997319</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20230630164705.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">230310s2022    sp ||||| |||| 00||||spa  </controlfield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1282997319</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9788408260776</subfield>
+      <subfield code="c">EUR 15.96</subfield>
+      <subfield code="9">978-84-08-26077-6</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">8408260774</subfield>
+      <subfield code="9">84-08-26077-4</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1282997319</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1130</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">spa</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-ES</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">821.112.2-31"19"</subfield>
+      <subfield code="2">udc</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="g">Español</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">&#152;El&#156; quinto día</subfield>
+      <subfield code="c">Frank Schätzing ; traducción de Griselda Mársico</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">Primera edición en esta presentación en colección Booket: julio de 2022</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="4">
+      <subfield code="c">©2022</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">[Barcelona (España)]</subfield>
+      <subfield code="b">Booket</subfield>
+      <subfield code="c">[2022]</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">1176 páginas</subfield>
+      <subfield code="c">20 cm</subfield>
+    </datafield>
+    <datafield tag="490" ind1="0" ind2=" ">
+      <subfield code="a">Bestseller</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+      <subfield code="a">En la portada: Planeta</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2="6">
+      <subfield code="a">(tgfbne)Novelas de suspense</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">Mársico, Griselda</subfield>
+      <subfield code="4">ctb</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">cgwrk</subfield>
+      <subfield code="d">20230609</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#cgwrk</subfield>
+    </datafield>
+    <datafield tag="883" ind1="1" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">bcs</subfield>
+      <subfield code="d">20230310</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#bcs</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>12</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nim a2200000 c 4500</leader>
+    <controlfield tag="001">1264382391</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20230324105746.0</controlfield>
+    <controlfield tag="007">s|||||||||||||</controlfield>
+    <controlfield tag="007">cr||||||||||||</controlfield>
+    <controlfield tag="008">220804r20222011gw |||||o|||||||||||ger  </controlfield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1264382391</subfield>
+    </datafield>
+    <datafield tag="024" ind1="7" ind2=" ">
+      <subfield code="2">urn</subfield>
+      <subfield code="a">urn:nbn:de:101:1-2022091420343723536386</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1264382391</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1576564009</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1140</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1166</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="245" ind1="0" ind2="0">
+      <subfield code="a">Frank Schätzing XXL</subfield>
+      <subfield code="b">Limit ; der Schwarm, Mordshunger, der Puppenspieler, ein Zeichen der Liebe ; Lesungen/Hörspiel</subfield>
+      <subfield code="c">Frank Schätzing</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Leipzig</subfield>
+      <subfield code="a">Frankfurt am Main</subfield>
+      <subfield code="b">Deutsche Nationalbibliothek</subfield>
+      <subfield code="c">2022</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">1 Online-Ressource (6 CDs (MP3, 2878 Min.))</subfield>
+      <subfield code="b">mono, stereo, Komprimierungsrate 128 kbit/sek</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">gesprochenes Wort</subfield>
+      <subfield code="b">spw</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">Computermedien</subfield>
+      <subfield code="b">c</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource</subfield>
+      <subfield code="b">cr</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+      <subfield code="a">Produktionsjahre: 2006 - 2009</subfield>
+    </datafield>
+    <datafield tag="583" ind1="1" ind2=" ">
+      <subfield code="a">Archivierung/Langzeitarchivierung gewährleistet</subfield>
+      <subfield code="5">DE-101</subfield>
+      <subfield code="2">pdager</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="e">Komponist</subfield>
+      <subfield code="4">cmp</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="a">Liefers, Jan Josef</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="a">Großmann, Mechthild</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="a">Zapatka, Manfred</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="a">Kerzel, Joachim</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+    </datafield>
+    <datafield tag="775" ind1="0" ind2="8">
+      <subfield code="i">Digitale Übertragung von</subfield>
+      <subfield code="t">Frank Schätzing XXL</subfield>
+      <subfield code="d">München : Der @Hörverl., 2011</subfield>
+      <subfield code="h">6 CDs (MP3, 2878 Min.), mono, stereo, Komprimierungsrate 128 kbit/sek</subfield>
+      <subfield code="w">(DE-101)101455392X</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="0">
+      <subfield code="u">https://nbn-resolving.org/urn:nbn:de:101:1-2022091420343723536386</subfield>
+      <subfield code="x">Resolving-System</subfield>
+    </datafield>
+    <datafield tag="856" ind1=" " ind2="0">
+      <subfield code="u">https://d-nb.info/1264382391/34</subfield>
+      <subfield code="x">Langzeitarchivierung Nationalbibliothek</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20260313</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="d" ind2=" ">
+      <subfield code="a">i002</subfield>
+    </datafield>
+    <datafield tag="927" ind1=" " ind2=" ">
+      <subfield code="a">424574976</subfield>
+    </datafield>
+  </record></recordData><recordPosition>13</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nim a2200000 cb4500</leader>
+    <controlfield tag="001">1205511415</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20251027105438.0</controlfield>
+    <controlfield tag="007">s|||||||||||||</controlfield>
+    <controlfield tag="007">cr||||||||||||</controlfield>
+    <controlfield tag="008">200227r20202008gw |||||o|||||||||||ger  </controlfield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1205511415</subfield>
+    </datafield>
+    <datafield tag="024" ind1="7" ind2=" ">
+      <subfield code="2">urn</subfield>
+      <subfield code="a">urn:nbn:de:101:1-2020030713075533104170</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1205511415</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1197343561</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1166</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1247</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="245" ind1="0" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="c">Frank Schätzing. Regie und Musik: Loy Wesselburg/Frank Schätzing. Die Sprecher: Erzähler: Manfred Zapatka ; Judith Li: Frauke Poolman ; Samantha Crowe: Mechthild Grossmann ...</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Leipzig</subfield>
+      <subfield code="a">Frankfurt am Main</subfield>
+      <subfield code="b">Deutsche Nationalbibliothek</subfield>
+      <subfield code="c">2020</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">1 Online-Ressource (10 CDs)</subfield>
+      <subfield code="b">stereo</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">gesprochenes Wort</subfield>
+      <subfield code="b">spw</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">Computermedien</subfield>
+      <subfield code="b">c</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource</subfield>
+      <subfield code="b">cr</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Die ganze Meeres-Box</subfield>
+    </datafield>
+    <datafield tag="583" ind1="1" ind2=" ">
+      <subfield code="a">Archivierung/Langzeitarchivierung gewährleistet</subfield>
+      <subfield code="5">DE-101</subfield>
+      <subfield code="2">pdager</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)13474120X</subfield>
+      <subfield code="0">https://d-nb.info/gnd/13474120X</subfield>
+      <subfield code="0">(DE-101)13474120X</subfield>
+      <subfield code="a">Wesselburg, Loy</subfield>
+      <subfield code="d">1960-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)134841565</subfield>
+      <subfield code="0">https://d-nb.info/gnd/134841565</subfield>
+      <subfield code="0">(DE-101)134841565</subfield>
+      <subfield code="a">Zapatka, Manfred</subfield>
+      <subfield code="d">1942-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)123612276</subfield>
+      <subfield code="0">https://d-nb.info/gnd/123612276</subfield>
+      <subfield code="0">(DE-101)123612276</subfield>
+      <subfield code="a">Poolman, Frauke</subfield>
+      <subfield code="d">1961-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)129907324</subfield>
+      <subfield code="0">https://d-nb.info/gnd/129907324</subfield>
+      <subfield code="0">(DE-101)129907324</subfield>
+      <subfield code="a">Großmann, Mechthild</subfield>
+      <subfield code="d">1948-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="775" ind1="0" ind2="8">
+      <subfield code="i">Digitale Übertragung von</subfield>
+      <subfield code="t">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="d">München : Der @Hörverl., 2008</subfield>
+      <subfield code="h">10 CDs, stereo</subfield>
+      <subfield code="w">(DE-101)988746700</subfield>
+    </datafield>
+    <datafield tag="830" ind1=" " ind2="0">
+      <subfield code="a">&#152;Die&#156; ganze Meeres-Box</subfield>
+      <subfield code="w">(DE-101)1205511393</subfield>
+      <subfield code="9">sc</subfield>
+      <subfield code="7">am</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="0">
+      <subfield code="u">https://nbn-resolving.org/urn:nbn:de:101:1-2020030713075533104170</subfield>
+      <subfield code="x">Resolving-System</subfield>
+    </datafield>
+    <datafield tag="856" ind1=" " ind2="0">
+      <subfield code="u">https://d-nb.info/1205511415/34</subfield>
+      <subfield code="x">Langzeitarchivierung Nationalbibliothek</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20251027</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="d" ind2=" ">
+      <subfield code="a">m006</subfield>
+    </datafield>
+    <datafield tag="927" ind1=" " ind2=" ">
+      <subfield code="a">424574976</subfield>
+    </datafield>
+  </record></recordData><recordPosition>14</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a22000008c 4500</leader>
+    <controlfield tag="001">1189951460</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20220925030809.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">190705s2019    ch ||||| |||| 00||||chi  </controlfield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1189951460</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9789863843511</subfield>
+      <subfield code="c">Broschur : ca. EUR 25.00</subfield>
+      <subfield code="9">978-986-3843-51-1</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1189951460</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1131</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">chi</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XB-TW</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm, chinesisch</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Taiwan</subfield>
+      <subfield code="b">Yěrén</subfield>
+      <subfield code="c">2019</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+      <subfield code="a">Lizenz des Verlag Kiepenheuer und Witsch, Köln</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">B:DE-101</subfield>
+      <subfield code="q">application/pdf</subfield>
+      <subfield code="u">https://d-nb.info/1189951460/04</subfield>
+      <subfield code="3">Inhaltsverzeichnis</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">cgwrk</subfield>
+      <subfield code="d">20220812</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#cgwrk</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+    <datafield tag="925" ind1="w" ind2=" ">
+      <subfield code="a">f</subfield>
+    </datafield>
+  </record></recordData><recordPosition>15</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1172517088</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20191029064247.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">181130s2018    pl ||||| |||| 00||||pol  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">18,A50</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1172517088</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9788327158826</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-83-271-5882-6</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="z">9788327158816</subfield>
+      <subfield code="9">978-83-271-5881-6</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1172517088</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1189051671</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1180</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1130</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">pol</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-PL</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="090" ind1=" " ind2=" ">
+      <subfield code="a">b</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Odwet oceanu</subfield>
+      <subfield code="c">Frank Schätzing ; przełożyła z niemieckiego Anna Wziątek</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Poznań</subfield>
+      <subfield code="b">Wydawnictwo Dolnośląskie</subfield>
+      <subfield code="c">[2018]</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">951 Seiten</subfield>
+      <subfield code="c">22 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20181205</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>16</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1168607175</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20231026172816.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">181008s2018    xx ||||| |||| 00||||chio </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">18,A43</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1168607175</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9787220106491</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-7-220-10649-1</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1168607175</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)1187805541</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1180</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1140</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">chi</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XB-CN</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="090" ind1=" " ind2=" ">
+      <subfield code="a">b</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Qun</subfield>
+      <subfield code="b">= &#152;Der&#156; Schwarm</subfield>
+      <subfield code="c">(De) Fu lan ke Shi ci ting zhu ; Zhu Liu hua, Yan Hui ling yi</subfield>
+    </datafield>
+    <datafield tag="246" ind1="1" ind2="1">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">Di 1 ban di 1 ci</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">Cheng du</subfield>
+      <subfield code="b">Si chuan ren min chu ban she</subfield>
+      <subfield code="c">2018 nian 7 yue</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">931 Seiten</subfield>
+      <subfield code="c">21 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="546" ind1=" " ind2=" ">
+      <subfield code="a">Chinesisch (Kurzzeichen)</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)1038251788</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1038251788</subfield>
+      <subfield code="0">(DE-101)1038251788</subfield>
+      <subfield code="a">Zhu, Liuhua</subfield>
+      <subfield code="d">1966-</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">B:DE-101</subfield>
+      <subfield code="q">application/pdf</subfield>
+      <subfield code="u">https://d-nb.info/1168607175/04</subfield>
+      <subfield code="3">Inhaltsverzeichnis</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20181018</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>17</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nam a2200000 c 4500</leader>
+    <controlfield tag="001">1078082081</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20231026172827.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">151028s2015    tu ||||| |||| 00||||tur  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">16,A07</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1078082081</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9786053436539</subfield>
+      <subfield code="c">Broschur</subfield>
+      <subfield code="9">978-605-343-653-9</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1078082081</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)939658104</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1131</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1140</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">tur</subfield>
+      <subfield code="h">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XB-TR</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="0">(DE-588)1172776172</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1172776172</subfield>
+      <subfield code="0">(DE-101)1172776172</subfield>
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">Sürü</subfield>
+      <subfield code="c">Frank Schätzing ; İngilizceden çeviren: Anıl Bilge, Damla Özlüer Meriç</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">1. baskı</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">İstanbul</subfield>
+      <subfield code="b">Pegasus Yayınları</subfield>
+      <subfield code="c">Eylül 2015</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">842 Seiten</subfield>
+      <subfield code="b">Illustrationen</subfield>
+      <subfield code="c">21 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Pegasus yayınları</subfield>
+      <subfield code="v">1150</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Pegasus yayınları : [...], Bestseller roman</subfield>
+      <subfield code="v">514</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010884220</subfield>
+      <subfield code="a">Science Fiction</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="830" ind1=" " ind2="0">
+      <subfield code="a">Pegasus yayınları</subfield>
+      <subfield code="v">1150</subfield>
+      <subfield code="w">(DE-101)989487571</subfield>
+      <subfield code="w">(DE-600)2435995-6</subfield>
+      <subfield code="9">41150</subfield>
+      <subfield code="7">as</subfield>
+    </datafield>
+    <datafield tag="830" ind1=" " ind2="0">
+      <subfield code="a">Pegasus yayınları / Bestseller roman</subfield>
+      <subfield code="n">[...]</subfield>
+      <subfield code="p">Bestseller roman</subfield>
+      <subfield code="t">Pegasus yayınları</subfield>
+      <subfield code="v">514</subfield>
+      <subfield code="w">(DE-101)1000401227</subfield>
+      <subfield code="w">(DE-600)2540933-5</subfield>
+      <subfield code="9">3514</subfield>
+      <subfield code="7">as</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20160229</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ru</subfield>
+    </datafield>
+  </record></recordData><recordPosition>18</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000nim a2200000uc 4500</leader>
+    <controlfield tag="001">1073224759</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20251028071833.0</controlfield>
+    <controlfield tag="007">s|||||||||||||</controlfield>
+    <controlfield tag="007">cr||||||||||||</controlfield>
+    <controlfield tag="008">150701s2014    gw |||||o|||||||||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">15,O08</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1073224759</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783844511116</subfield>
+      <subfield code="9">978-3-8445-1111-6</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783844511116</subfield>
+    </datafield>
+    <datafield tag="024" ind1="7" ind2=" ">
+      <subfield code="2">urn</subfield>
+      <subfield code="a">urn:nbn:de:101:1-201507013589</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1073224759</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)916023230</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1240</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">9999</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE-BY</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="c">Frank Schätzing</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">ungekürzte Lesung, ungek. Ausg.</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">München</subfield>
+      <subfield code="b">&#152;der&#156; Hörverlag</subfield>
+      <subfield code="c">2014</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource 2287 Min.</subfield>
+      <subfield code="b">373 Tracks</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">gesprochenes Wort</subfield>
+      <subfield code="b">spw</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">Computermedien</subfield>
+      <subfield code="b">c</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Online-Ressource</subfield>
+      <subfield code="b">cr</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+      <subfield code="a">Lizenzpflichtig</subfield>
+    </datafield>
+    <datafield tag="583" ind1="1" ind2=" ">
+      <subfield code="a">Archivierung/Langzeitarchivierung gewährleistet</subfield>
+      <subfield code="5">DE-101</subfield>
+      <subfield code="2">pdager</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Downloadable audio file</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform (spezifisch))MP3 format</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktgruppe)7069: Downloadtitel Hörverlag</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Ökothriller</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Lesung</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Stefan Kaminski</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">HBGENSCF: Science Fiction</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)9112</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010008188</subfield>
+      <subfield code="a">Erzählende Literatur: Gegenwartsliteratur ab 1945</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)128794771</subfield>
+      <subfield code="0">https://d-nb.info/gnd/128794771</subfield>
+      <subfield code="0">(DE-101)128794771</subfield>
+      <subfield code="a">Kaminski, Stefan</subfield>
+      <subfield code="d">1974-</subfield>
+      <subfield code="e">Erzähler</subfield>
+      <subfield code="4">nrt</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="776" ind1="0" ind2="8">
+      <subfield code="i">Erscheint auch als</subfield>
+      <subfield code="n">Druck-Ausgabe</subfield>
+      <subfield code="z">9783844511093</subfield>
+    </datafield>
+    <datafield tag="776" ind1="0" ind2="8">
+      <subfield code="i">Erscheint auch als</subfield>
+      <subfield code="n">Druck-Ausgabe</subfield>
+      <subfield code="z">9783844511093</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="0">
+      <subfield code="u">https://nbn-resolving.org/urn:nbn:de:101:1-201507013589</subfield>
+      <subfield code="x">Resolving-System</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/1073224759/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="856" ind1=" " ind2="0">
+      <subfield code="u">https://d-nb.info/1073224759/34</subfield>
+      <subfield code="x">Langzeitarchivierung Nationalbibliothek</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2=" ">
+      <subfield code="q">mp3</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb-cgwrk</subfield>
+      <subfield code="d">20251028</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb-cgwrk</subfield>
+    </datafield>
+    <datafield tag="889" ind1=" " ind2=" ">
+      <subfield code="w">(DE-101)1096793210</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ro</subfield>
+      <subfield code="a">ra</subfield>
+    </datafield>
+    <datafield tag="927" ind1=" " ind2=" ">
+      <subfield code="a">303071270</subfield>
+    </datafield>
+  </record></recordData><recordPosition>19</recordPosition></record><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000pim a2200000 c 4500</leader>
+    <controlfield tag="001">1045791601</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20220804130820.0</controlfield>
+    <controlfield tag="007">sd||||||||||||</controlfield>
+    <controlfield tag="007">co||||||||||||</controlfield>
+    <controlfield tag="008">131220s2014    gw |||||q|||||||||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">14,A24</subfield>
+      <subfield code="z">14,N01</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1045791601</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783844511093</subfield>
+      <subfield code="c">: EUR 24.99 (DE) (freier Pr.), EUR 24.99 (AT) (freier Pr.), sfr 36.90 (freier Pr.)</subfield>
+      <subfield code="9">978-3-8445-1109-3</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">3844511091</subfield>
+      <subfield code="9">3-8445-1109-1</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783844511093</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1045791601</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)881384766</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1245</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1140</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE-BY</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">830</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="245" ind1="0" ind2="0">
+      <subfield code="a">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="b">vollständige Lesung</subfield>
+      <subfield code="c">Frank Schätzing. Gelesen von Stefan Kaminski. Regie: Marie-Luise Goerke</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">München</subfield>
+      <subfield code="b">&#152;Der&#156; Hörverl.</subfield>
+      <subfield code="c">2014</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">[Hamburg]</subfield>
+      <subfield code="b">Edel: Kultur [Vertrieb]</subfield>
+      <subfield code="c">2014</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">4 CDs (MP3, 38 Std. 7 Min.)</subfield>
+      <subfield code="b">mono, Komprimierungsrate 128 kbit/sek.</subfield>
+      <subfield code="c">12 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">gesprochenes Wort</subfield>
+      <subfield code="b">spw</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">audio</subfield>
+      <subfield code="b">s</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Audiodisk</subfield>
+      <subfield code="b">sd</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Other audio format</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform (spezifisch))MP3 format</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Ökothriller</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)5112: Audio-CD, Kassette / Belletristik/Gegenwartsliteratur (ab 1945)</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)4522869-3</subfield>
+      <subfield code="0">https://d-nb.info/gnd/4522869-3</subfield>
+      <subfield code="0">(DE-101)955174880</subfield>
+      <subfield code="a">CD</subfield>
+      <subfield code="2">gnd-carrier</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010874802</subfield>
+      <subfield code="a">Krimis, Thriller, Spionage</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)115647058</subfield>
+      <subfield code="0">https://d-nb.info/gnd/115647058</subfield>
+      <subfield code="0">(DE-101)115647058</subfield>
+      <subfield code="a">Schätzing, Frank</subfield>
+      <subfield code="d">1957-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)128794771</subfield>
+      <subfield code="0">https://d-nb.info/gnd/128794771</subfield>
+      <subfield code="0">(DE-101)128794771</subfield>
+      <subfield code="a">Kaminski, Stefan</subfield>
+      <subfield code="d">1974-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)128356790</subfield>
+      <subfield code="0">https://d-nb.info/gnd/128356790</subfield>
+      <subfield code="0">(DE-101)128356790</subfield>
+      <subfield code="a">Goerke, Marie-Luise</subfield>
+      <subfield code="d">1964-</subfield>
+      <subfield code="e">Mitwirkender</subfield>
+      <subfield code="4">ctb</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="775" ind1="0" ind2="8">
+      <subfield code="i">Digitale Übertragung</subfield>
+      <subfield code="t">&#152;Der&#156; Schwarm</subfield>
+      <subfield code="d">Leipzig ; Frankfurt am Main : Deutsche Nationalbibliothek, 2022</subfield>
+      <subfield code="h">1 Online-Ressource (4 CDs (MP3, 38 Std. 7 Min.)), mono, Komprimierungsrate 128 kbit/sek.</subfield>
+      <subfield code="w">(DE-101)1264396570</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/1045791601/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20160229</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ra</subfield>
+    </datafield>
+  </record></recordData><recordPosition>20</recordPosition></record></records><nextRecordPosition>21</nextRecordPosition><echoedSearchRetrieveRequest><version>1.1</version><query>tit=Der Schwarm and per=Schätzing</query><xQuery xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/><maximumRecords>20</maximumRecords><recordSchema>MARC21-xml</recordSchema></echoedSearchRetrieveRequest></searchRetrieveResponse>
