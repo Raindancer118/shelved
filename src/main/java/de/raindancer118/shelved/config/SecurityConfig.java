@@ -17,10 +17,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -37,35 +35,39 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, ShelvedProperties props,
-                                    ObjectProvider<ClientRegistrationRepository> registrations) throws Exception {
+                                    ObjectProvider<ClientRegistrationRepository> registrations,
+                                    de.raindancer118.shelved.library.LibraryService libraries) throws Exception {
         http.authorizeHttpRequests(a -> a
-                        .requestMatchers("/actuator/health", "/actuator/health/**", "/manifest.webmanifest",
-                                "/icons/**", "/fonts/**", "/favicon.svg")
-                        .permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/csrf").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/invitations/*").permitAll()
+                        .requestMatchers("/api/**", "/actuator/**").authenticated()
+                        // the app shell itself is public; it shows the login page when /api answers 401
+                        .anyRequest().permitAll())
                 .csrf(c -> c.spa())
                 .headers(h -> h
                         .contentSecurityPolicy(csp -> csp.policyDirectives(CSP))
                         .referrerPolicy(r -> r.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN))
                         .permissionsPolicyHeader(p -> p.policy("camera=(self), microphone=(), geolocation=(), payment=()")))
                 .exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
-                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                        PathPatternRequestMatcher.withDefaults().matcher("/api/**")));
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), AnyRequestMatcher.INSTANCE))
+                .logout(l -> l.logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value())))
+                .addFilterAfter(new de.raindancer118.shelved.library.TenantFilter(libraries), AuthorizationFilter.class);
 
         if (props.localAuth()) {
             http.addFilterBefore(new LocalUserFilter(), AuthorizationFilter.class);
-        } else {
+        } else if (props.oidcAuth()) {
             if (registrations.getIfAvailable() == null) {
-                throw new IllegalStateException("shelved.auth-mode=oidc but no OIDC client is configured (use profile 'prod' or 'local')");
+                throw new IllegalStateException("shelved.auth-mode=oidc but no OIDC client is configured (use profile 'prod', 'accounts' or 'local')");
             }
-            http.exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
-                            new LoginUrlAuthenticationEntryPoint("/oauth2/authorization/authentik"), AnyRequestMatcher.INSTANCE))
-                    .oauth2Login(o -> o.failureHandler((request, response, ex) -> {
+            http.oauth2Login(o -> o
+                    .defaultSuccessUrl("/", true)
+                    .failureHandler((request, response, ex) -> {
                         // Spring only logs this at DEBUG; without it a broken IdP setup is invisible
                         log.warn("OIDC login failed: {}", ex.getMessage());
-                        response.sendRedirect("/login?error");
-                    }))
-                    .logout(l -> l.logoutSuccessUrl("/"));
+                        response.sendRedirect("/#/login?error=sso");
+                    }));
         }
         return http.build();
     }

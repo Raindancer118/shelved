@@ -203,9 +203,10 @@ class SeriesPipelineTest extends IntegrationTestBase {
         // the spine said "Werkausgabe 7", as a shelf scan hands it over
         BookMetadata physiker = new BookMetadata(null, "Die Physiker", "Physiker", null, List.of("Friedrich Dürrenmatt"),
                 "Dürrenmatt, Friedrich", "Diogenes", 1998, 96, 180, BookFormat.PAPERBACK, "ger", 1200, null, null, null, "DNB", null, null);
-        String id = bookService.createFromMetadata("local", physiker,
+        String library = JsonPath.read(mvc.perform(get("/api/me")).andReturn().getResponse().getContentAsString(), "$.library.id");
+        String id = bookService.createFromMetadata(library, physiker,
                 new de.raindancer118.shelved.book.BookService.SeriesHint("Werkausgabe", 7), false).getId().toString();
-        seriesService.resolvePending("local");
+        seriesService.resolvePending(library);
         await().untilAsserted(() -> mvc.perform(get("/api/books/" + id)).andExpect(jsonPath("$.seriesName").doesNotExist()));
     }
 

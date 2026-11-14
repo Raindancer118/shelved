@@ -43,10 +43,13 @@ class OidcSecurityTest {
         mvc.perform(get("/api/books")).andExpect(status().isUnauthorized());
     }
 
+    /** The app shell loads without login and shows its own login page with the portal as one option. */
     @Test
-    void pagesRedirectToTheLogin() throws Exception {
-        mvc.perform(get("/")).andExpect(status().is3xxRedirection())
-                .andExpect(header().string("Location", containsString("/oauth2/authorization/authentik")));
+    void theAppShellIsPublicAndOffersThePortal() throws Exception {
+        mvc.perform(get("/")).andExpect(status().isOk());
+        mvc.perform(get("/api/auth/options")).andExpect(jsonPath("$.sso").value(true));
+        mvc.perform(get("/oauth2/authorization/authentik")).andExpect(status().is3xxRedirection())
+                .andExpect(header().string("Location", containsString("idp.test/authorize")));
     }
 
     /** Survives browser restarts (camera on Android) and server restarts (sessions live in Postgres). */

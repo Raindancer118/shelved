@@ -16,6 +16,8 @@ public class AsyncConfig {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("ai-");
         executor.setVirtualThreads(true);
         executor.setConcurrencyLimit(4);
+        // on shutdown (deploys) running lookups finish instead of dying against a closed database pool
+        executor.setTaskTerminationTimeout(10_000);
         return executor;
     }
 }

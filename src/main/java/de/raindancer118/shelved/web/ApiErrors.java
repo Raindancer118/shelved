@@ -52,6 +52,11 @@ public class ApiErrors {
         return error(HttpStatus.BAD_GATEWAY, e.getMessage());
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    ResponseEntity<Map<String, String>> status(org.springframework.web.server.ResponseStatusException e) {
+        return error(HttpStatus.valueOf(e.getStatusCode().value()), e.getReason());
+    }
+
     private static ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("error", message == null ? status.getReasonPhrase() : message));
     }

@@ -1,17 +1,15 @@
 package de.raindancer118.shelved.web;
 
+import de.raindancer118.shelved.library.CurrentUser;
 import org.springframework.security.core.Authentication;
 
-final class Owner {
+public final class Owner {
 
     private Owner() {
     }
 
-    /** OIDC subject (or "local" in dev mode). All data is scoped by it. */
-    static String of(Authentication auth) {
-        if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Nicht angemeldet");
-        }
-        return auth.getName();
+    /** Id of the library the current user works in; all books, shelves and scans are scoped by it. */
+    public static String of(Authentication auth) {
+        return CurrentUser.get().owner();
     }
 }

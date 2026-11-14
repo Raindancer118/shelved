@@ -24,7 +24,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class LibraryController {
 
-    public record Me(String name, boolean aiAvailable) {
+    public record CurrentLibrary(UUID id, String name, de.raindancer118.shelved.library.Library.Kind kind,
+                                 de.raindancer118.shelved.library.Membership.Role role) {
+    }
+
+    public record Me(String name, String email, boolean aiAvailable, CurrentLibrary library) {
     }
 
     public record VolumeView(int number, String title, Views.BookSummary book) {
@@ -49,7 +53,13 @@ public class LibraryController {
     private final ShelfRepository shelves;
     private final LibraryAi ai;
 
-    public LibraryController(SeriesService series, PlacementService placement, StatsService stats, ShelfRepository shelves, LibraryAi ai) {
+    private final de.raindancer118.shelved.account.AccountService accounts;
+    private final de.raindancer118.shelved.library.LibraryService libraries;
+
+    public LibraryController(SeriesService series, PlacementService placement, StatsService stats, ShelfRepository shelves, LibraryAi ai,
+                             de.raindancer118.shelved.account.AccountService accounts, de.raindancer118.shelved.library.LibraryService libraries) {
+        this.accounts = accounts;
+        this.libraries = libraries;
         this.series = series;
         this.placement = placement;
         this.stats = stats;
@@ -65,10 +75,13 @@ public class LibraryController {
 
     @GetMapping("/me")
     public Me me(Authentication auth) {
-        String name = auth.getPrincipal() instanceof OidcUser u && u.getGivenName() != null ? u.getGivenName()
-                : auth.getPrincipal() instanceof OidcUser u2 && u2.getPreferredUsername() != null ? u2.getPreferredUsername()
-                : Owner.of(auth);
-        return new Me(name, ai.available());
+        var user = de.raindancer118.shelved.library.CurrentUser.get();
+        var account = accounts.get(user.accountId());
+        var library = libraries.library(user.libraryId());
+        String name = account.getDisplayName() != null ? account.getDisplayName()
+                : auth.getPrincipal() instanceof OidcUser u && u.getGivenName() != null ? u.getGivenName() : account.getEmail();
+        return new Me(name, account.getEmail(), ai.available(),
+                new CurrentLibrary(library.getId(), library.getName(), library.getKind(), user.role()));
     }
 
     private Map<UUID, Integer> numbers(String owner) {

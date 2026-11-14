@@ -1,4 +1,4 @@
-# Production: login via Authentik (portal.tstieh.de).
+# Production: own accounts plus login via Authentik (portal.tstieh.de).
 spring:
   security:
     oauth2:
@@ -15,3 +15,15 @@ spring:
             issuer-uri: ${SHELVED_OIDC_ISSUER:https://portal.tstieh.de/application/o/shelved/}
             user-name-attribute: sub
 
+  # confirmation, reset and invitation mails; the sender must be the mailbox itself (Mailcow sender check)
+  mail:
+    host: ${SHELVED_MAIL_HOST:mx.volantic.de}
+    port: ${SHELVED_MAIL_PORT:587}
+    username: ${SHELVED_MAIL_USER:noreply@tstieh.de}
+    password: ${SHELVED_MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 15000

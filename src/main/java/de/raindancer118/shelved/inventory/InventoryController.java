@@ -29,8 +29,11 @@ public class InventoryController {
     private final InventoryService inventory;
     private final ScanService scans;
     private final CoverStore covers;
+    private final de.raindancer118.shelved.account.AccountService accounts;
 
-    public InventoryController(InventoryService inventory, ScanService scans, CoverStore covers) {
+    public InventoryController(InventoryService inventory, ScanService scans, CoverStore covers,
+                               de.raindancer118.shelved.account.AccountService accounts) {
+        this.accounts = accounts;
         this.inventory = inventory;
         this.scans = scans;
         this.covers = covers;
@@ -72,16 +75,14 @@ public class InventoryController {
     }
 
     private static String owner(Authentication auth) {
-        if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Nicht angemeldet");
-        }
-        return auth.getName();
+        return de.raindancer118.shelved.web.Owner.of(auth);
     }
 
-    private static String displayName(Authentication auth) {
-        if (auth.getPrincipal() instanceof OidcUser u) {
-            return u.getFullName() != null ? u.getFullName() : u.getPreferredUsername();
+    private String displayName(Authentication auth) {
+        var account = accounts.get(de.raindancer118.shelved.library.CurrentUser.get().accountId());
+        if (account.getDisplayName() != null) {
+            return account.getDisplayName();
         }
-        return null;
+        return auth.getPrincipal() instanceof OidcUser u ? u.getFullName() : null;
     }
 }

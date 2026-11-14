@@ -59,6 +59,16 @@ public class PhotoStore {
         return Files.isRegularFile(p) ? Optional.of(p) : Optional.empty();
     }
 
+    public void delete(String file) {
+        path(file).ifPresent(p -> {
+            try {
+                Files.deleteIfExists(p);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
+
     static BufferedImage scaled(BufferedImage src) {
         double f = Math.min(1.0, (double) MAX_EDGE / Math.max(src.getWidth(), src.getHeight()));
         int w = (int) Math.round(src.getWidth() * f);
