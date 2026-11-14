@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -88,7 +85,7 @@ public class ScanService {
     void process(UUID scanId, String owner, Scan.Mode mode, BufferedImage img) {
         try {
             LibraryAi.ShelfReading reading = mode == Scan.Mode.SHELF
-                    ? ai.readShelf(ImageTiler.tiles(img).stream().map(ImageTiler::jpeg).toList())
+                    ? readShelf(img)
                     : ai.readSingleBook(ImageTiler.jpeg(ImageTiler.fit(img)));
             List<ScanItem> items = new ArrayList<>();
             List<LibraryAi.SpineReading> spines = reading.books() == null ? List.of() : reading.books();
@@ -103,15 +100,22 @@ public class ScanService {
         }
     }
 
+    private LibraryAi.ShelfReading readShelf(BufferedImage img) {
+        ImageTiler.Split split = ImageTiler.split(img);
+        return ai.readShelf(split.images().stream().map(ImageTiler::jpeg).toList(),
+                split.direction() == ImageTiler.Direction.TOP_TO_BOTTOM);
+    }
+
     ScanItem match(String owner, int index, LibraryAi.SpineReading r) {
         String author = r.authors() == null || r.authors().isEmpty() ? null : r.authors().getFirst();
         if (r.title() == null || r.title().isBlank()) {
             return new ScanItem(index, r, ScanItem.Status.UNSURE, null, List.of(), null);
         }
-        List<BookMetadata> found = metadata.search(r.title(), author, r.publisher()).stream()
-                .filter(m -> Similarity.title(r.title(), m.title()) >= MIN_TITLE_MATCH)
-                .limit(4)
-                .toList();
+        List<BookMetadata> found = candidates(r.title(), author, r.publisher());
+        if (found.isEmpty() && !Similarity.mainTitle(r.title()).equals(r.title())) {
+            // "Zessalonn – Die Legenden der Samerier" is catalogued as "Zessalonn", sometimes with another author spelling
+            found = candidates(Similarity.mainTitle(r.title()), null, r.publisher());
+        }
         BookMetadata best = found.isEmpty() ? null : found.getFirst();
         List<Book> owned = books.findOwned(owner, best == null ? null : best.isbn13(), r.title(), author);
         ScanItem.Status status;
@@ -126,6 +130,13 @@ public class ScanService {
                 owned.isEmpty() ? null : owned.getFirst().getId());
     }
 
+    private List<BookMetadata> candidates(String title, String author, String publisher) {
+        return metadata.search(title, author, publisher).stream()
+                .filter(m -> Similarity.title(title, m.title(), m.subtitle()) >= MIN_TITLE_MATCH)
+                .limit(4)
+                .toList();
+    }
+
     /**
      * Adds the chosen books. For a shelf scan, every book on the photo (new or already owned)
      * gets that board and its position on the photo as its current place.
@@ -138,7 +149,9 @@ public class ScanService {
         List<ScanItem> items = result(scan).items();
         List<UUID> created = new ArrayList<>();
         List<UUID> placed = new ArrayList<>();
-        int position = 0;
+        int boards = scan.getShelfId() == null ? 0
+                : shelves.findById(scan.getShelfId()).map(sh -> sh.getBoardWidthsMm().size()).orElse(0);
+        java.util.Map<Integer, Integer> positionInRow = new java.util.HashMap<>();
         for (ScanItem item : items) {
             Decision d = decisions.stream().filter(x -> x.index() == item.index()).findFirst().orElse(null);
             UUID bookId = item.ownedBookId();
@@ -146,10 +159,12 @@ public class ScanService {
                 bookId = add(owner, item, d.isbn13()).getId();
                 created.add(bookId);
             }
-            if (bookId != null) {
-                position++;
-                if (scan.getShelfId() != null) {
-                    books.move(owner, bookId, scan.getShelfId(), scan.getBoardNumber(), position);
+            if (bookId != null && scan.getShelfId() != null) {
+                int row = Math.max(1, item.reading().row());
+                int board = scan.getBoardNumber() + row - 1;
+                if (board <= boards) {
+                    int position = positionInRow.merge(row, 1, Integer::sum);
+                    books.move(owner, bookId, scan.getShelfId(), board, position);
                     placed.add(bookId);
                 }
             }
@@ -183,17 +198,6 @@ public class ScanService {
     }
 
     public static BufferedImage decode(byte[] image) {
-        try {
-            BufferedImage img = ImageIO.read(new ByteArrayInputStream(image));
-            if (img == null) {
-                throw new IllegalArgumentException("Bildformat nicht erkannt (JPEG oder PNG)");
-            }
-            if ((long) img.getWidth() * img.getHeight() > 60_000_000L) {
-                throw new IllegalArgumentException("Bild ist zu groß");
-            }
-            return img;
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Bild konnte nicht gelesen werden");
-        }
+        return Images.decode(image);
     }
 }
