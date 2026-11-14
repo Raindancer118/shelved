@@ -1,0 +1,64 @@
+{
+  "head" : {
+    "vars" : [ "book", "bookLabel", "series", "seriesLabel", "ord", "size" ]
+  },
+  "results" : {
+    "bindings" : [ {
+      "book" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q32136"
+      },
+      "bookLabel" : {
+        "xml:lang" : "de",
+        "type" : "literal",
+        "value" : "Die Farben der Magie"
+      },
+      "series" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q3257270"
+      },
+      "seriesLabel" : {
+        "xml:lang" : "de",
+        "type" : "literal",
+        "value" : "Scheibenwelt-Romane"
+      },
+      "ord" : {
+        "type" : "literal",
+        "value" : "1"
+      },
+      "size" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "63"
+      }
+    }, {
+      "book" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q32136"
+      },
+      "bookLabel" : {
+        "xml:lang" : "de",
+        "type" : "literal",
+        "value" : "Die Farben der Magie"
+      },
+      "series" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q54875383"
+      },
+      "seriesLabel" : {
+        "xml:lang" : "de",
+        "type" : "literal",
+        "value" : "Rincewind"
+      },
+      "ord" : {
+        "type" : "literal",
+        "value" : "1"
+      },
+      "size" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "8"
+      }
+    } ]
+  }
+}

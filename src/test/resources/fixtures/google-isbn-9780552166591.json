@@ -1,0 +1,80 @@
+{
+  "kind": "books#volumes",
+  "totalItems": 1,
+  "items": [
+    {
+      "kind": "books#volume",
+      "id": "kfeNEAAAQBAJ",
+      "etag": "G3NRN/daVdY",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/kfeNEAAAQBAJ",
+      "volumeInfo": {
+        "title": "The Colour of Magic",
+        "subtitle": "Discworld Novel 1",
+        "authors": [
+          "Terry Pratchett"
+        ],
+        "publisher": "National Geographic Books",
+        "publishedDate": "2012-07-09",
+        "description": "'His spectacular inventiveness makes the Discworld series one of the perennial joys of modern fiction' Mail on Sunday NAMED AS ONE OF THE BBC'S 100 MOST INSPIRING NOVELS The Discworld is very much like our own - if our own were to consist of a flat planet balanced on the back of four elephants which stand on the back of a giant turtle, that is . . . ____________________ In the beginning there was…a turtle. Somewhere on the frontier between thought and reality exists the Discworld, a parallel time and place which might sound and smell very much like our own, but which looks completely different. Particularly as it’s carried though space on the back of a giant turtle (sex unknown). It plays by different rules. But then, some things are the same everywhere. The Disc’s very existence is about to be threatened by a strange new blight: the world’s first tourist, upon whose survival rests the peace and prosperity of the land. Unfortunately, the person charged with maintaining that survival in the face of robbers, mercenaries and, well, Death, is a spectacularly inept wizard… ____________________ The Discworld novels can be read in any order but The Colour of Magic is the first book in the Wizards series.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9780552166591"
+          },
+          {
+            "type": "ISBN_10",
+            "identifier": "0552166596"
+          }
+        ],
+        "readingModes": {
+          "text": true,
+          "image": false
+        },
+        "pageCount": 0,
+        "printType": "BOOK",
+        "categories": [
+          "Fiction"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=kfeNEAAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=kfeNEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.de/books?id=kfeNEAAAQBAJ&dq=isbn:9780552166591&hl=&cd=1&source=gbs_api",
+        "infoLink": "http://books.google.de/books?id=kfeNEAAAQBAJ&dq=isbn:9780552166591&hl=&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/The_Colour_of_Magic.html?hl=&id=kfeNEAAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "DE",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "DE",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=kfeNEAAAQBAJ&hl=&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "&#39;His spectacular inventiveness makes the Discworld series one of the perennial joys of modern fiction&#39; Mail on Sunday NAMED AS ONE OF THE BBC&#39;S 100 MOST INSPIRING NOVELS The Discworld is very much like our own - if our own were to consist ..."
+      }
+    }
+  ]
+}

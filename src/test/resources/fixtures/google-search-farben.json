@@ -1,0 +1,362 @@
+{
+  "kind": "books#volumes",
+  "totalItems": 107,
+  "items": [
+    {
+      "kind": "books#volume",
+      "id": "Ds9vCQAAQBAJ",
+      "etag": "T7lkyaKypQs",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/Ds9vCQAAQBAJ",
+      "volumeInfo": {
+        "title": "Die Farben der Magie",
+        "subtitle": "Ein Roman von der bizarren Scheibenwelt",
+        "authors": [
+          "Terry Pratchett"
+        ],
+        "publisher": "Piper ebooks",
+        "publishedDate": "2015-06-08",
+        "description": "Seit mehr als dreißig Jahren begeistern Terry Pratchetts Romane von der bizarren Scheibenwelt Millionen Leser weltweit. Die neun ersten Scheibenweltbände zählen unbestritten zu den besten. Sie liegen nun vollständig neu bearbeitet und aktualisiert vom Originalübersetzer Andreas Brandhorst vor - mit Sammelcover und in einzigartiger Ausstattung, die das Regal jedes Fans zum Pratchett-Schrein werden lässt.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_13",
+            "identifier": "9783492972222"
+          },
+          {
+            "type": "ISBN_10",
+            "identifier": "3492972225"
+          }
+        ],
+        "readingModes": {
+          "text": true,
+          "image": true
+        },
+        "pageCount": 252,
+        "printType": "BOOK",
+        "categories": [
+          "Fiction"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": true,
+        "contentVersion": "1.32.35.0.preview.3",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=Ds9vCQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=Ds9vCQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+        },
+        "language": "de",
+        "previewLink": "http://books.google.de/books?id=Ds9vCQAAQBAJ&printsec=frontcover&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&cd=1&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=Ds9vCQAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=Ds9vCQAAQBAJ"
+      },
+      "saleInfo": {
+        "country": "DE",
+        "saleability": "FOR_SALE",
+        "isEbook": true,
+        "listPrice": {
+          "amount": 8.99,
+          "currencyCode": "EUR"
+        },
+        "retailPrice": {
+          "amount": 8.99,
+          "currencyCode": "EUR"
+        },
+        "buyLink": "https://play.google.com/store/books/details?id=Ds9vCQAAQBAJ&rdid=book-Ds9vCQAAQBAJ&rdot=1&source=gbs_api",
+        "offers": [
+          {
+            "finskyOfferType": 1,
+            "listPrice": {
+              "amountInMicros": 8990000,
+              "currencyCode": "EUR"
+            },
+            "retailPrice": {
+              "amountInMicros": 8990000,
+              "currencyCode": "EUR"
+            },
+            "giftable": true
+          }
+        ]
+      },
+      "accessInfo": {
+        "country": "DE",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.de/books/download/Die_Farben_der_Magie-sample-epub.acsm?id=Ds9vCQAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "pdf": {
+          "isAvailable": true,
+          "acsTokenLink": "http://books.google.de/books/download/Die_Farben_der_Magie-sample-pdf.acsm?id=Ds9vCQAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=Ds9vCQAAQBAJ&hl=&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Seit mehr als dreißig Jahren begeistern Terry Pratchetts Romane von der bizarren Scheibenwelt Millionen Leser weltweit."
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "HGYOkAEACAAJ",
+      "etag": "ck6Gm1DIfMc",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/HGYOkAEACAAJ",
+      "volumeInfo": {
+        "title": "Die Farben der Magie",
+        "subtitle": "Der Zauberhut : zwei Scheibenwelt-Romane",
+        "publishedDate": "1998",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "OCLC:940078033"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 358,
+        "printType": "BOOK",
+        "categories": [
+          "Discworld (Imaginary place)"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "de",
+        "previewLink": "http://books.google.de/books?id=HGYOkAEACAAJ&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&cd=2&source=gbs_api",
+        "infoLink": "http://books.google.de/books?id=HGYOkAEACAAJ&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Die_Farben_der_Magie.html?hl=&id=HGYOkAEACAAJ"
+      },
+      "saleInfo": {
+        "country": "DE",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "DE",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=HGYOkAEACAAJ&hl=&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "l_9aswEACAAJ",
+      "etag": "hgaxwvrYUXM",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/l_9aswEACAAJ",
+      "volumeInfo": {
+        "title": "Die Farben der Magie . Eric",
+        "subtitle": "Zwei Romane in einem Band",
+        "authors": [
+          "Terry Pratchett"
+        ],
+        "publishedDate": "2018-01-12",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "3492280269"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9783492280266"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "printType": "BOOK",
+        "categories": [
+          "Fiction"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=l_9aswEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=l_9aswEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "de",
+        "previewLink": "http://books.google.de/books?id=l_9aswEACAAJ&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&cd=3&source=gbs_api",
+        "infoLink": "http://books.google.de/books?id=l_9aswEACAAJ&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Die_Farben_der_Magie_Eric.html?hl=&id=l_9aswEACAAJ"
+      },
+      "saleInfo": {
+        "country": "DE",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "DE",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=l_9aswEACAAJ&hl=&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "muD1jwEACAAJ",
+      "etag": "D1mYJ6RmLJ4",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/muD1jwEACAAJ",
+      "volumeInfo": {
+        "title": "Die Farben der Magie",
+        "subtitle": "ein Scheibenwelt-Roman",
+        "publishedDate": "2001",
+        "industryIdentifiers": [
+          {
+            "type": "OTHER",
+            "identifier": "OCLC:940058386"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 263,
+        "printType": "BOOK",
+        "categories": [
+          "Discworld (Imaginary place)"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "language": "de",
+        "previewLink": "http://books.google.de/books?id=muD1jwEACAAJ&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&cd=4&source=gbs_api",
+        "infoLink": "http://books.google.de/books?id=muD1jwEACAAJ&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Die_Farben_der_Magie.html?hl=&id=muD1jwEACAAJ"
+      },
+      "saleInfo": {
+        "country": "DE",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "DE",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=muD1jwEACAAJ&hl=&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      }
+    },
+    {
+      "kind": "books#volume",
+      "id": "3O5AvgAACAAJ",
+      "etag": "bR8a647jOyQ",
+      "selfLink": "https://www.googleapis.com/books/v1/volumes/3O5AvgAACAAJ",
+      "volumeInfo": {
+        "title": "Die Farben der Magie",
+        "subtitle": "ein Roman von der bizarren Scheibenwelt",
+        "authors": [
+          "Terry Pratchett"
+        ],
+        "publishedDate": "2004",
+        "description": "Der Magier Rincewind ist vom Pech verfolgt - erst wird er von einem geltungssüchtigen Zauberspruch befallen, dann verliert er seine Stelle an der Unsichtbaren Universität. Fortan verdingt er sich als Fremdenführer für den ersten Touristen auf der Scheibenwelt. Und natürlich geht auf der Reise so ziemlich alles schief - - Mit diesem Band beginnt Terry Pratchetts legendärer ”Scheibenwelt“-Zyklus.",
+        "industryIdentifiers": [
+          {
+            "type": "ISBN_10",
+            "identifier": "3492285104"
+          },
+          {
+            "type": "ISBN_13",
+            "identifier": "9783492285100"
+          }
+        ],
+        "readingModes": {
+          "text": false,
+          "image": false
+        },
+        "pageCount": 269,
+        "printType": "BOOK",
+        "categories": [
+          "Discworld (Imaginary place)"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+          "containsEpubBubbles": false,
+          "containsImageBubbles": false
+        },
+        "imageLinks": {
+          "smallThumbnail": "http://books.google.com/books/content?id=3O5AvgAACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+          "thumbnail": "http://books.google.com/books/content?id=3O5AvgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+        },
+        "language": "de",
+        "previewLink": "http://books.google.de/books?id=3O5AvgAACAAJ&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&cd=5&source=gbs_api",
+        "infoLink": "http://books.google.de/books?id=3O5AvgAACAAJ&dq=intitle:Die+Farben+der+Magie+inauthor:Pratchett&hl=&source=gbs_api",
+        "canonicalVolumeLink": "https://books.google.com/books/about/Die_Farben_der_Magie.html?hl=&id=3O5AvgAACAAJ"
+      },
+      "saleInfo": {
+        "country": "DE",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+      },
+      "accessInfo": {
+        "country": "DE",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+          "isAvailable": false
+        },
+        "pdf": {
+          "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=3O5AvgAACAAJ&hl=&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+      },
+      "searchInfo": {
+        "textSnippet": "Fortan verdingt er sich als Fremdenführer für den ersten Touristen auf der Scheibenwelt. Und natürlich geht auf der Reise so ziemlich alles schief ... - Mit diesem Band beginnt Terry Pratchetts legendärer »Scheibenwelt«-Zyklus."
+      }
+    }
+  ]
+}
