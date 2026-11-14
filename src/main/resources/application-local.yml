@@ -1,0 +1,8 @@
+# Local development: no SSO, everything belongs to the user "local".
+shelved:
+  auth-mode: local
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false

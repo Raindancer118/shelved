@@ -1,0 +1,17 @@
+# Production: login via Authentik (portal.tstieh.de).
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          authentik:
+            client-id: ${SHELVED_OIDC_CLIENT_ID}
+            client-secret: ${SHELVED_OIDC_CLIENT_SECRET}
+            scope: openid,profile,email
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          authentik:
+            issuer-uri: ${SHELVED_OIDC_ISSUER:https://portal.tstieh.de/application/o/shelved/}
+            user-name-attribute: sub
+

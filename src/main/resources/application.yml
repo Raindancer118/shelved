@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: shelved
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${SHELVED_DB_URL:jdbc:postgresql://localhost:5433/shelved}
+    username: ${SHELVED_DB_USER:shelved}
+    password: ${SHELVED_DB_PASSWORD:shelved}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+server:
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+        secure: ${SHELVED_SECURE_COOKIES:true}
+      timeout: 30d
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+shelved:
+  data-dir: ${SHELVED_DATA_DIR:./data}
+  auth-mode: ${SHELVED_AUTH_MODE:oidc}
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: ${SHELVED_MODEL:claude-opus-5-5}
+  scans-per-hour: ${SHELVED_SCANS_PER_HOUR:40}
+  google-books-api-key: ${GOOGLE_BOOKS_API_KEY:}
