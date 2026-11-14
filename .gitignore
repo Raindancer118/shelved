@@ -1,0 +1,12 @@
+target/
+*.iml
+.idea/
+.vscode/
+.env
+.env.*
+!.env.example
+Project.md
+data/
+*.log
+prototype/covers/
+prototype/signal-v2.png
