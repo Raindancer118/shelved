@@ -54,6 +54,14 @@ public abstract class IntegrationTestBase {
     protected WikidataClient wikidata;
     @MockitoBean
     protected de.raindancer118.shelved.metadata.DnbClient dnb;
+    @MockitoBean
+    protected de.raindancer118.shelved.metadata.K10plusClient k10plus;
+    @MockitoBean
+    protected de.raindancer118.shelved.metadata.LocClient loc;
+    @MockitoBean
+    protected de.raindancer118.shelved.metadata.OpenLibraryClient openLibrary;
+    @MockitoBean
+    protected de.raindancer118.shelved.metadata.HardcoverClient hardcover;
 
 
     @BeforeEach

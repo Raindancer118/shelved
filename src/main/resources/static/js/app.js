@@ -498,7 +498,7 @@ async function viewSeriesList() {
     }).join('')}</div>`);
   document.getElementById('recheck').addEventListener('click', async () => {
     const r = await post('/api/series/recheck');
-    toast(`${r.books} Bücher werden neu geprüft (Nationalbibliothek, Wikidata)`);
+    toast(`${r.books} Bücher werden neu geprüft (Bibliotheken, Wikidata, Open Library, Hardcover)`);
     setTimeout(() => location.hash === '#/series' && route(), 6000);
   });
   if (list.some(r => r.catalogStatus === 'PENDING')) {
@@ -511,7 +511,7 @@ async function viewSeries(key) {
   const s = await get(`/api/series/${encodeURIComponent(key)}`);
   const total = s.knownTotal;
   const pct = total ? Math.round(100 * s.ownedCount / total) : 0;
-  const source = { WIKIDATA: 'Bandliste aus Wikidata', CLAUDE: 'Bandliste per KI-Recherche' }[s.catalogSource];
+  const source = { CATALOG: 'Bandliste aus Bibliothekskatalogen', WIKIDATA: 'Bandliste aus Wikidata', HARDCOVER: 'Bandliste von Hardcover', CLAUDE: 'Bandliste per KI-Recherche' }[s.catalogSource];
   const statusNote = s.catalogStatus === 'PENDING' ? '<p class="note">Bandliste wird geladen …</p>'
     : s.catalogStatus === 'FAILED' ? `<p class="note warn">${esc(s.catalogNote ?? 'Keine Bandliste gefunden')}. Lücken zwischen deinen Bänden siehst du trotzdem.</p>`
     : `<p class="note">${esc(source ?? '')}${s.catalogNote ? ' · ' + esc(s.catalogNote) : ''}</p>`;

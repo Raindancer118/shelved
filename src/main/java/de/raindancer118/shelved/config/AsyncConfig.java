@@ -7,6 +7,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import java.util.concurrent.Executor;
 
 @Configuration
+@org.springframework.scheduling.annotation.EnableScheduling
 public class AsyncConfig {
 
     /** Background work (Claude calls, catalogue lookups, cover downloads) on virtual threads, capped so nothing floods an API. */

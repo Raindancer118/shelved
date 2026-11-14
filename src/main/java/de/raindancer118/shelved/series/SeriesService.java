@@ -33,8 +33,9 @@ import java.util.stream.Collectors;
 
 /**
  * Which series a book belongs to and which volumes exist.
- * Wikidata answers first (free, our own processing). Claude is only asked for what Wikidata doesn't know,
- * batched into one call for books, and one call per unknown series when the user opens it.
+ * Free sources answer first: library catalogues (DNB, K10plus, Library of Congress), Wikidata, Open Library and
+ * Hardcover. Claude is only asked for what none of them knows, batched into one call for books,
+ * and one call per unknown series when the user opens it.
  */
 @Service
 public class SeriesService {
@@ -44,6 +45,8 @@ public class SeriesService {
     static final String WIKIDATA = "WIKIDATA";
     static final String CATALOG = "CATALOG";
     static final String CLAUDE = "CLAUDE";
+    static final String HARDCOVER = "HARDCOVER";
+    private static final String HARDCOVER_REF = "hardcover:";
 
     public record Volume(int number, String title, Book book) {
     }
@@ -57,6 +60,10 @@ public class SeriesService {
     private final SeriesCatalogRepository catalogs;
     private final WikidataClient wikidata;
     private final de.raindancer118.shelved.metadata.DnbClient dnb;
+    private final de.raindancer118.shelved.metadata.K10plusClient k10plus;
+    private final de.raindancer118.shelved.metadata.LocClient loc;
+    private final de.raindancer118.shelved.metadata.OpenLibraryClient openLibrary;
+    private final de.raindancer118.shelved.metadata.HardcoverClient hardcover;
     private final LibraryAi ai;
     private final JsonMapper json;
     private final TransactionTemplate tx;
@@ -64,9 +71,17 @@ public class SeriesService {
     private final Set<String> busy = ConcurrentHashMap.newKeySet();
 
     public SeriesService(BookRepository books, SeriesCatalogRepository catalogs, WikidataClient wikidata,
-                         de.raindancer118.shelved.metadata.DnbClient dnb, LibraryAi ai,
+                         de.raindancer118.shelved.metadata.DnbClient dnb,
+                         de.raindancer118.shelved.metadata.K10plusClient k10plus,
+                         de.raindancer118.shelved.metadata.LocClient loc,
+                         de.raindancer118.shelved.metadata.OpenLibraryClient openLibrary,
+                         de.raindancer118.shelved.metadata.HardcoverClient hardcover, LibraryAi ai,
                          JsonMapper json, TransactionTemplate tx, @Qualifier("aiExecutor") Executor executor) {
         this.dnb = dnb;
+        this.k10plus = k10plus;
+        this.loc = loc;
+        this.openLibrary = openLibrary;
+        this.hardcover = hardcover;
         this.books = books;
         this.catalogs = catalogs;
         this.wikidata = wikidata;
@@ -112,6 +127,7 @@ public class SeriesService {
         return b.getSeriesSource() == de.raindancer118.shelved.book.SeriesSource.MANUAL
                 || b.getSeriesSource() == de.raindancer118.shelved.book.SeriesSource.CATALOG
                 || b.getSeriesSource() == de.raindancer118.shelved.book.SeriesSource.WIKIDATA
+                || b.getSeriesSource() == de.raindancer118.shelved.book.SeriesSource.COMMUNITY
                 || (b.getSeriesVolume() != null && b.getSeriesVolume() > 1);
     }
 
@@ -160,7 +176,7 @@ public class SeriesService {
 
     private boolean isStale(String key) {
         return catalogs.findById(key)
-                .filter(c -> WIKIDATA.equals(c.getSource()) || c.getStatus() == SeriesCatalogEntry.Status.FAILED)
+                .filter(c -> WIKIDATA.equals(c.getSource()) || HARDCOVER.equals(c.getSource()) || c.getStatus() == SeriesCatalogEntry.Status.FAILED)
                 .map(c -> c.getFetchedAt().isBefore(Instant.now().minus(WIKIDATA_REFRESH)))
                 .orElse(false);
     }
@@ -195,7 +211,9 @@ public class SeriesService {
         if (!busy.add(v.key())) {
             return;
         }
-        String ref = v.owned().stream().map(Book::getSeriesRef).filter(Objects::nonNull).findFirst().orElse(null);
+        String ref = v.owned().stream().map(Book::getSeriesRef).filter(r -> r != null && !r.startsWith(HARDCOVER_REF)).findFirst().orElse(null);
+        String hcRef = v.owned().stream().map(Book::getSeriesRef).filter(r -> r != null && r.startsWith(HARDCOVER_REF)).findFirst().orElse(null);
+        List<String> isbns = v.owned().stream().map(Book::getIsbn13).filter(Objects::nonNull).limit(2).toList();
         String language = v.owned().stream().map(Book::getLanguage).filter(Objects::nonNull).findFirst().orElse("ger");
         tx.executeWithoutResult(s -> {
             SeriesCatalogEntry e = catalogs.findById(v.key()).orElseGet(() -> new SeriesCatalogEntry(v.key(), v.name(), v.author()));
@@ -205,27 +223,34 @@ public class SeriesService {
         });
         executor.execute(() -> {
             try {
-                fetchCatalog(v.key(), v.name(), v.author(), ref, language, claudeAllowed);
+                fetchCatalog(v.key(), v.name(), v.author(), ref, hcRef, isbns, language, claudeAllowed);
             } finally {
                 busy.remove(v.key());
             }
         });
     }
 
-    void fetchCatalog(String key, String name, String author, String ref, String language, boolean claudeAllowed) {
+    void fetchCatalog(String key, String name, String author, String ref, String hardcoverRef, List<String> isbns,
+                      String language, boolean claudeAllowed) {
         try {
-            // both free: the national library (German titles, publisher numbering) and Wikidata; the fuller one wins
-            List<SeriesCatalogVolume> fromDnb = dnb.seriesCatalog(name, author);
-            List<SeriesCatalogVolume> fromWikidata = ref == null ? List.of() : wikidata.catalog(ref, language);
             boolean german = language == null || language.startsWith("ger") || language.startsWith("de");
+            // libraries know German titles and publisher numbering, Wikidata and Hardcover often know more volumes
+            List<SeriesCatalogVolume> fromDnb = dnb.seriesCatalog(name, author);
+            List<SeriesCatalogVolume> fromK10plus = k10plus.seriesCatalog(name, author);
+            List<SeriesCatalogVolume> library = fromK10plus.size() > fromDnb.size() ? fromK10plus : fromDnb;
+            List<SeriesCatalogVolume> fromWikidata = ref == null ? List.of() : wikidata.catalog(ref, language);
+            List<SeriesCatalogVolume> fromHardcover = hardcoverSeries(name, author, hardcoverRef, isbns)
+                    .map(id -> hardcover.catalog(id, german)).orElse(List.of());
+            boolean hardcoverWins = fromHardcover.size() > fromWikidata.size();
+            List<SeriesCatalogVolume> community = hardcoverWins ? fromHardcover : fromWikidata;
             List<SeriesCatalogVolume> vols;
             String source;
-            if (!fromDnb.isEmpty() && (fromDnb.size() >= fromWikidata.size() || german && fromDnb.size() * 4 >= fromWikidata.size() * 3)) {
-                vols = fromDnb;
+            if (!library.isEmpty() && (library.size() >= community.size() || german && library.size() * 4 >= community.size() * 3)) {
+                vols = library;
                 source = CATALOG;
             } else {
-                vols = fromWikidata;
-                source = WIKIDATA;
+                vols = community;
+                source = hardcoverWins ? HARDCOVER : WIKIDATA;
             }
             String note = null;
             if (vols.isEmpty() && claudeAllowed && ai.available()) {
@@ -252,6 +277,20 @@ public class SeriesService {
             log.warn("Series catalog for {} failed: {}", name, e.getMessage());
             tx.executeWithoutResult(s -> catalogs.findById(key).ifPresent(en -> en.failed(e.getMessage())));
         }
+    }
+
+    /** Hardcover's series id: remembered from a book, found through an owned edition, or searched by name. */
+    private Optional<Long> hardcoverSeries(String name, String author, String hardcoverRef, List<String> isbns) {
+        if (hardcoverRef != null) {
+            return Optional.of(Long.parseLong(hardcoverRef.substring(HARDCOVER_REF.length())));
+        }
+        for (String isbn : isbns) {
+            Optional<de.raindancer118.shelved.metadata.HardcoverClient.SeriesMatch> m = hardcover.seriesByIsbn(isbn);
+            if (m.isPresent()) {
+                return Optional.of(m.get().seriesId());
+            }
+        }
+        return hardcover.findSeries(name, author);
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -284,6 +323,12 @@ public class SeriesService {
     /** After an update every owner's unchecked books (e.g. the one-time re-check of V6) are resolved again. */
     @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
     public void resolveAllOnStartup() {
+        retryOpenBooks();
+    }
+
+    /** Books left open because a catalogue was unreachable get another round. */
+    @org.springframework.scheduling.annotation.Scheduled(initialDelayString = "PT20M", fixedDelayString = "PT20M")
+    public void retryOpenBooks() {
         List<String> owners = tx.execute(s -> books.findAll().stream().filter(b -> !b.isSeriesChecked())
                 .map(Book::getOwnerId).distinct().toList());
         if (owners != null) {
@@ -301,15 +346,26 @@ public class SeriesService {
             return;
         }
         try {
+            Set<java.util.UUID> attempted = new java.util.HashSet<>();
             List<Book> pending;
-            while (!(pending = tx.execute(s -> books.findByOwnerIdAndSeriesCheckedFalse(owner).stream().limit(40).toList())).isEmpty()) {
+            while (!(pending = tx.execute(s -> books.findByOwnerIdAndSeriesCheckedFalse(owner).stream()
+                    .filter(b -> !attempted.contains(b.getId())).limit(40).toList())).isEmpty()) {
+                pending.forEach(b -> attempted.add(b.getId()));
                 Map<String, Resolution> found = new LinkedHashMap<>();
+                Set<String> deferred = new java.util.HashSet<>();
                 List<Book> unknown = new ArrayList<>();
                 for (Book b : pending) {
                     if (b.seriesSettled()) {
                         continue;
                     }
-                    Optional<Resolution> r = fromCatalogue(b).or(() -> fromWikidata(b));
+                    Optional<Resolution> r;
+                    try {
+                        r = fromCatalogue(b).or(() -> fromWikidata(b)).or(() -> fromCommunity(b));
+                    } catch (de.raindancer118.shelved.metadata.CatalogUnavailableException e) {
+                        // a weaker source must not win just because the library didn't answer: try again later
+                        deferred.add(b.getId().toString());
+                        continue;
+                    }
                     r.ifPresent(x -> found.put(b.getId().toString(), x));
                     boolean germanBook = b.getLanguage() == null || b.getLanguage().startsWith("ger");
                     boolean onlyEnglishName = r.isPresent() && r.get().keepGermanName() && b.getSeriesName() == null && germanBook;
@@ -328,20 +384,25 @@ public class SeriesService {
                     }
                 }
                 List<Book> batch = pending;
-                tx.executeWithoutResult(s -> batch.forEach(p -> books.findById(p.getId()).ifPresent(b -> {
+                tx.executeWithoutResult(s -> batch.stream().filter(p -> !deferred.contains(p.getId().toString()))
+                        .forEach(p -> books.findById(p.getId()).ifPresent(b -> {
                     if (!b.seriesSettled()) {
                         Resolution r = found.get(b.getId().toString());
                         LibraryAi.SeriesGuess g = guesses.get(b.getId().toString());
                         if (r != null && g != null && r.keepGermanName() && b.getSeriesName() == null
                                 && g.series() != null && !g.series().isBlank()) {
                             b.setSeries(g.series(), r.volume() != null ? r.volume() : (g.volume() > 0 ? g.volume() : null),
-                                    de.raindancer118.shelved.book.SeriesSource.WIKIDATA);
+                                    r.source());
                             b.setSeriesRef(r.ref());
                         } else if (r != null) {
                             r.applyTo(b);
                         } else if (g != null && g.series() != null && !g.series().isBlank() && g.volume() > 0
                                 && b.getSeriesName() == null) {
                             b.setSeries(g.series(), g.volume(), de.raindancer118.shelved.book.SeriesSource.AI);
+                        } else if (b.getSeriesName() != null && de.raindancer118.shelved.metadata.MarcSruClient.notALiterarySeries(b.getSeriesName())
+                                && b.getSeriesSource() != de.raindancer118.shelved.book.SeriesSource.MANUAL) {
+                            // "Werkausgabe 7", "Klassiker in leichter Sprache" read from a spine: numbered, but no series
+                            b.setSeries(null, null, null);
                         } else if (b.getSeriesName() != null && b.getSeriesSource() == null) {
                             // recognised before sources were tracked and confirmed by nothing now: a guess
                             b.setSeries(b.getSeriesName(), b.getSeriesVolume(), de.raindancer118.shelved.book.SeriesSource.PHOTO);
@@ -369,15 +430,39 @@ public class SeriesService {
 
     private Optional<Resolution> fromCatalogue(Book b) {
         String author = b.getAuthors().isEmpty() ? null : b.getAuthors().getFirst();
-        Optional<de.raindancer118.shelved.metadata.BookMetadata> record = b.getIsbn13() == null ? Optional.empty()
-                : dnb.byIsbn(b.getIsbn13()).filter(m -> m.seriesName() != null);
+        String isbn = b.getIsbn13();
+        Optional<de.raindancer118.shelved.metadata.BookMetadata> record = isbn == null ? Optional.empty()
+                : dnb.byIsbn(isbn).filter(m -> m.seriesName() != null)
+                .or(() -> k10plus.byIsbn(isbn).filter(m -> m.seriesName() != null))
+                // German-language ISBNs (978-3) are practically never in the Library of Congress
+                .or(() -> isbn.startsWith("9783") ? Optional.empty() : loc.byIsbn(isbn).filter(m -> m.seriesName() != null));
         if (record.isEmpty()) {
             // e-book ISBN or no ISBN: the printed edition with the same title tells the series too
-            record = dnb.search(b.getTitle(), author).stream()
-                    .filter(m -> m.seriesName() != null && de.raindancer118.shelved.metadata.Similarity.edition(b.getTitle(), m) >= 0.8)
-                    .findFirst();
+            record = sameTitle(dnb.search(b.getTitle(), author), b)
+                    .or(() -> sameTitle(k10plus.search(b.getTitle(), author), b));
         }
         return record.map(m -> new Resolution(m.seriesName(), m.seriesVolume(), null, de.raindancer118.shelved.book.SeriesSource.CATALOG, false));
+    }
+
+    private static Optional<de.raindancer118.shelved.metadata.BookMetadata> sameTitle(
+            List<de.raindancer118.shelved.metadata.BookMetadata> hits, Book b) {
+        return hits.stream()
+                .filter(m -> m.seriesName() != null && de.raindancer118.shelved.metadata.Similarity.edition(b.getTitle(), m) >= 0.8)
+                .findFirst();
+    }
+
+    /** Reader communities, by ISBN only: a title search there matches too loosely. */
+    private Optional<Resolution> fromCommunity(Book b) {
+        String isbn = b.getIsbn13();
+        if (isbn == null) {
+            return Optional.empty();
+        }
+        boolean germanBook = b.getLanguage() == null || b.getLanguage().startsWith("ger");
+        return openLibrary.seriesByIsbn(isbn)
+                .map(h -> new Resolution(h.name(), h.volume(), null, de.raindancer118.shelved.book.SeriesSource.COMMUNITY, false))
+                // Hardcover names series after the original work, mostly English
+                .or(() -> hardcover.seriesByIsbn(isbn).map(m -> new Resolution(m.name(), m.volume(), HARDCOVER_REF + m.seriesId(),
+                        de.raindancer118.shelved.book.SeriesSource.COMMUNITY, germanBook)));
     }
 
     private Optional<Resolution> fromWikidata(Book b) {
