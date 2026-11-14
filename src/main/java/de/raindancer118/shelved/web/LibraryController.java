@@ -90,6 +90,12 @@ public class LibraryController {
         return view(series.detail(owner, key), numbers(owner), true);
     }
 
+    @PostMapping("/series/recheck")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Map<String, Integer> recheck(Authentication auth) {
+        return Map.of("books", series.recheck(Owner.of(auth)));
+    }
+
     @PostMapping("/series/{key}/catalog")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public SeriesView refreshCatalog(Authentication auth, @PathVariable String key) {

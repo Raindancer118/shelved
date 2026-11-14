@@ -89,7 +89,12 @@ public class BookService {
         b.setLanguage(m.language());
         b.setListPriceCents(m.listPriceCents());
         b.setMetadataSource(m.source());
-        applySeries(b, hint);
+        if (m.seriesName() != null) {
+            b.setSeries(m.seriesName(), m.seriesVolume(), SeriesSource.CATALOG);
+            b.setSeriesChecked(true);
+        } else {
+            applySeries(b, hint);
+        }
         if (enrichNow) {
             enrich(b, m);
         }
@@ -212,8 +217,7 @@ public class BookService {
 
     private static void applySeries(Book b, SeriesHint hint) {
         if (hint != null && hint.present()) {
-            b.setSeriesName(hint.name());
-            b.setSeriesVolume(hint.volume());
+            b.setSeries(hint.name(), hint.volume(), SeriesSource.PHOTO);
         }
     }
 
@@ -230,9 +234,12 @@ public class BookService {
         b.setListPriceCents(in.listPriceCents());
         b.setDescription(blankToNull(in.description()));
         if (in.seriesName() != null) {
-            b.setSeriesName(in.seriesName());
-            b.setSeriesVolume(in.seriesVolume());
-            b.setSeriesChecked(true);
+            // only an actual change is the user's decision; saving the form unchanged keeps the source
+            String name = in.seriesName().isBlank() ? null : de.raindancer118.shelved.series.SeriesNames.normalize(in.seriesName());
+            Integer volume = name == null || in.seriesVolume() == null || in.seriesVolume() <= 0 ? null : in.seriesVolume();
+            if (!java.util.Objects.equals(name, b.getSeriesName()) || !java.util.Objects.equals(volume, b.getSeriesVolume())) {
+                b.setSeriesManually(name, volume);
+            }
         }
     }
 

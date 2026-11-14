@@ -42,6 +42,7 @@ public class SeriesService {
     private static final Logger log = LoggerFactory.getLogger(SeriesService.class);
     private static final Duration WIKIDATA_REFRESH = Duration.ofDays(30);
     static final String WIKIDATA = "WIKIDATA";
+    static final String CATALOG = "CATALOG";
     static final String CLAUDE = "CLAUDE";
 
     public record Volume(int number, String title, Book book) {
@@ -55,14 +56,17 @@ public class SeriesService {
     private final BookRepository books;
     private final SeriesCatalogRepository catalogs;
     private final WikidataClient wikidata;
+    private final de.raindancer118.shelved.metadata.DnbClient dnb;
     private final LibraryAi ai;
     private final JsonMapper json;
     private final TransactionTemplate tx;
     private final Executor executor;
     private final Set<String> busy = ConcurrentHashMap.newKeySet();
 
-    public SeriesService(BookRepository books, SeriesCatalogRepository catalogs, WikidataClient wikidata, LibraryAi ai,
+    public SeriesService(BookRepository books, SeriesCatalogRepository catalogs, WikidataClient wikidata,
+                         de.raindancer118.shelved.metadata.DnbClient dnb, LibraryAi ai,
                          JsonMapper json, TransactionTemplate tx, @Qualifier("aiExecutor") Executor executor) {
+        this.dnb = dnb;
         this.books = books;
         this.catalogs = catalogs;
         this.wikidata = wikidata;
@@ -85,18 +89,36 @@ public class SeriesService {
         Map<String, List<Book>> grouped = books.findByOwnerId(owner).stream()
                 .filter(b -> b.getSeriesName() != null)
                 .collect(Collectors.groupingBy(SeriesService::key, LinkedHashMap::new, Collectors.toList()));
-        List<SeriesView> views = grouped.entrySet().stream().map(e -> view(e.getKey(), e.getValue())).toList();
-        // Wikidata catalogues are free: fetch the missing ones in the background so gap counts become complete
-        views.stream().filter(v -> v.catalogStatus() == null).forEach(v -> requestCatalog(v, false));
+        List<SeriesView> views = grouped.entrySet().stream()
+                .filter(e -> confirmed(e.getValue()))
+                .map(e -> view(e.getKey(), e.getValue())).toList();
+        // catalogues from DNB and Wikidata are free: fetch missing or failed ones in the background
+        views.stream().filter(v -> v.catalogStatus() == null || retryDue(v.key())).forEach(v -> requestCatalog(v, false));
         return views.stream()
                 .sorted(Comparator.comparing((SeriesView v) -> v.missingCount() == 0).thenComparing(v -> Names.collationKey(v.name())))
                 .toList();
     }
 
+    /**
+     * A single book that only a photo or Claude put into a series is not shown as a series:
+     * those guesses produced dozens of one-book "series". Catalogue, Wikidata, the user, a second book
+     * or a volume number above 1 make it real.
+     */
+    static boolean confirmed(List<Book> owned) {
+        if (owned.size() > 1) {
+            return true;
+        }
+        Book b = owned.getFirst();
+        return b.getSeriesSource() == de.raindancer118.shelved.book.SeriesSource.MANUAL
+                || b.getSeriesSource() == de.raindancer118.shelved.book.SeriesSource.CATALOG
+                || b.getSeriesSource() == de.raindancer118.shelved.book.SeriesSource.WIKIDATA
+                || (b.getSeriesVolume() != null && b.getSeriesVolume() > 1);
+    }
+
     /** Opening a series is the moment where an unknown catalogue may be completed by Claude. */
     public SeriesView detail(String owner, String key) {
         SeriesView v = view(key, owned(owner, key));
-        if (v.catalogStatus() == null || isStale(key)) {
+        if (v.catalogStatus() == null || isStale(key) || retryDue(key)) {
             requestCatalog(v, true);
             v = view(key, owned(owner, key));
         }
@@ -118,6 +140,22 @@ public class SeriesService {
             throw new NotFoundException("Reihe");
         }
         return owned;
+    }
+
+    private List<SeriesView> overviewViews(String owner) {
+        return books.findByOwnerId(owner).stream()
+                .filter(b -> b.getSeriesName() != null)
+                .collect(Collectors.groupingBy(SeriesService::key, LinkedHashMap::new, Collectors.toList()))
+                .entrySet().stream().filter(e -> confirmed(e.getValue()))
+                .map(e -> view(e.getKey(), e.getValue())).toList();
+    }
+
+    /** A failed lookup is tried again after an hour (sources and rules change); a found list after 30 days. */
+    private boolean retryDue(String key) {
+        return catalogs.findById(key)
+                .filter(c -> c.getStatus() == SeriesCatalogEntry.Status.FAILED)
+                .map(c -> c.getFetchedAt().isBefore(Instant.now().minus(Duration.ofHours(1))))
+                .orElse(false);
     }
 
     private boolean isStale(String key) {
@@ -176,8 +214,19 @@ public class SeriesService {
 
     void fetchCatalog(String key, String name, String author, String ref, String language, boolean claudeAllowed) {
         try {
-            List<SeriesCatalogVolume> vols = ref == null ? List.of() : wikidata.catalog(ref, language);
-            String source = WIKIDATA;
+            // both free: the national library (German titles, publisher numbering) and Wikidata; the fuller one wins
+            List<SeriesCatalogVolume> fromDnb = dnb.seriesCatalog(name, author);
+            List<SeriesCatalogVolume> fromWikidata = ref == null ? List.of() : wikidata.catalog(ref, language);
+            boolean german = language == null || language.startsWith("ger") || language.startsWith("de");
+            List<SeriesCatalogVolume> vols;
+            String source;
+            if (!fromDnb.isEmpty() && (fromDnb.size() >= fromWikidata.size() || german && fromDnb.size() * 4 >= fromWikidata.size() * 3)) {
+                vols = fromDnb;
+                source = CATALOG;
+            } else {
+                vols = fromWikidata;
+                source = WIKIDATA;
+            }
             String note = null;
             if (vols.isEmpty() && claudeAllowed && ai.available()) {
                 LibraryAi.SeriesCatalog c = ai.seriesCatalog(name, author, language);
@@ -192,7 +241,7 @@ public class SeriesService {
             }
             if (vols.isEmpty()) {
                 tx.executeWithoutResult(s -> catalogs.findById(key).ifPresent(e -> e.failed(
-                        claudeAllowed ? "Keine Bandliste gefunden" : "Wikidata kennt diese Reihe nicht")));
+                        claudeAllowed ? "Keine Bandliste gefunden" : "Bandliste noch unbekannt")));
                 return;
             }
             String volumesJson = json.writeValueAsString(vols);
@@ -210,9 +259,42 @@ public class SeriesService {
         executor.execute(() -> resolvePending(event.ownerId()));
     }
 
+    /** "Check series again": everything the user didn't set goes through the sources once more. */
+    public int recheck(String owner) {
+        Integer n = tx.execute(s -> {
+            List<Book> open = books.findByOwnerId(owner).stream()
+                    .filter(b -> b.getSeriesSource() != de.raindancer118.shelved.book.SeriesSource.MANUAL).toList();
+            open.forEach(b -> {
+                if (b.getSeriesSource() == de.raindancer118.shelved.book.SeriesSource.CATALOG) {
+                    // catalogue values are reproducible: if the current rules don't confirm them, they were wrong
+                    b.setSeries(null, null, null);
+                }
+                b.setSeriesChecked(false);
+            });
+            return open.size();
+        });
+        executor.execute(() -> {
+            resolvePending(owner);
+            // fresh look at every series list too (free sources only)
+            overviewViews(owner).forEach(v -> requestCatalog(v, false));
+        });
+        return n == null ? 0 : n;
+    }
+
+    /** After an update every owner's unchecked books (e.g. the one-time re-check of V6) are resolved again. */
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    public void resolveAllOnStartup() {
+        List<String> owners = tx.execute(s -> books.findAll().stream().filter(b -> !b.isSeriesChecked())
+                .map(Book::getOwnerId).distinct().toList());
+        if (owners != null) {
+            owners.forEach(o -> executor.execute(() -> resolvePending(o)));
+        }
+    }
+
     /**
-     * Finds the series of new books: Wikidata per book, then a single batched Claude call
-     * for the books that neither Wikidata nor the shelf photo could place.
+     * Finds the series of unchecked books, most trustworthy source first:
+     * the national library's record of the edition, Wikidata, the photo's reading, and Claude last
+     * (one batched call, only numbered answers count). Catalogued and hand-made series are never changed.
      */
     public void resolvePending(String owner) {
         if (!busy.add("resolve:" + owner)) {
@@ -221,15 +303,18 @@ public class SeriesService {
         try {
             List<Book> pending;
             while (!(pending = tx.execute(s -> books.findByOwnerIdAndSeriesCheckedFalse(owner).stream().limit(40).toList())).isEmpty()) {
-                Map<String, WikidataClient.SeriesMatch> found = new LinkedHashMap<>();
+                Map<String, Resolution> found = new LinkedHashMap<>();
                 List<Book> unknown = new ArrayList<>();
                 for (Book b : pending) {
-                    String author = b.getAuthors().isEmpty() ? null : b.getAuthors().getFirst();
-                    Optional<WikidataClient.SeriesMatch> m = wikidata.findSeries(b.getTitle(), author);
-                    if (m.isPresent()) {
-                        found.put(b.getId().toString(), m.get());
-                    } else if (b.getSeriesName() == null) {
-                        unknown.add(b);
+                    if (b.seriesSettled()) {
+                        continue;
+                    }
+                    Optional<Resolution> r = fromCatalogue(b).or(() -> fromWikidata(b));
+                    r.ifPresent(x -> found.put(b.getId().toString(), x));
+                    boolean germanBook = b.getLanguage() == null || b.getLanguage().startsWith("ger");
+                    boolean onlyEnglishName = r.isPresent() && r.get().keepGermanName() && b.getSeriesName() == null && germanBook;
+                    if (r.isEmpty() && b.getSeriesName() == null || onlyEnglishName) {
+                        unknown.add(b); // for an English-only Wikidata name Claude just supplies the German one
                     }
                 }
                 Map<String, LibraryAi.SeriesGuess> guesses = new LinkedHashMap<>();
@@ -244,16 +329,23 @@ public class SeriesService {
                 }
                 List<Book> batch = pending;
                 tx.executeWithoutResult(s -> batch.forEach(p -> books.findById(p.getId()).ifPresent(b -> {
-                    String id = b.getId().toString();
-                    WikidataClient.SeriesMatch m = found.get(id);
-                    LibraryAi.SeriesGuess g = guesses.get(id);
-                    if (m != null) {
-                        b.setSeriesName(m.seriesName());
-                        b.setSeriesVolume(m.volume());
-                        b.setSeriesRef(m.seriesId());
-                    } else if (g != null && g.series() != null && !g.series().isBlank() && b.getSeriesName() == null) {
-                        b.setSeriesName(g.series());
-                        b.setSeriesVolume(g.volume());
+                    if (!b.seriesSettled()) {
+                        Resolution r = found.get(b.getId().toString());
+                        LibraryAi.SeriesGuess g = guesses.get(b.getId().toString());
+                        if (r != null && g != null && r.keepGermanName() && b.getSeriesName() == null
+                                && g.series() != null && !g.series().isBlank()) {
+                            b.setSeries(g.series(), r.volume() != null ? r.volume() : (g.volume() > 0 ? g.volume() : null),
+                                    de.raindancer118.shelved.book.SeriesSource.WIKIDATA);
+                            b.setSeriesRef(r.ref());
+                        } else if (r != null) {
+                            r.applyTo(b);
+                        } else if (g != null && g.series() != null && !g.series().isBlank() && g.volume() > 0
+                                && b.getSeriesName() == null) {
+                            b.setSeries(g.series(), g.volume(), de.raindancer118.shelved.book.SeriesSource.AI);
+                        } else if (b.getSeriesName() != null && b.getSeriesSource() == null) {
+                            // recognised before sources were tracked and confirmed by nothing now: a guess
+                            b.setSeries(b.getSeriesName(), b.getSeriesVolume(), de.raindancer118.shelved.book.SeriesSource.PHOTO);
+                        }
                     }
                     b.setSeriesChecked(true);
                 })));
@@ -261,5 +353,37 @@ public class SeriesService {
         } finally {
             busy.remove("resolve:" + owner);
         }
+    }
+
+    record Resolution(String name, Integer volume, String ref, de.raindancer118.shelved.book.SeriesSource source, boolean keepGermanName) {
+        void applyTo(Book b) {
+            // an English Wikidata label must not replace a German name read from the spine
+            String n = keepGermanName && b.getSeriesName() != null ? b.getSeriesName() : name;
+            Integer v = volume != null ? volume : b.getSeriesVolume();
+            b.setSeries(n, v, source);
+            if (ref != null) {
+                b.setSeriesRef(ref);
+            }
+        }
+    }
+
+    private Optional<Resolution> fromCatalogue(Book b) {
+        String author = b.getAuthors().isEmpty() ? null : b.getAuthors().getFirst();
+        Optional<de.raindancer118.shelved.metadata.BookMetadata> record = b.getIsbn13() == null ? Optional.empty()
+                : dnb.byIsbn(b.getIsbn13()).filter(m -> m.seriesName() != null);
+        if (record.isEmpty()) {
+            // e-book ISBN or no ISBN: the printed edition with the same title tells the series too
+            record = dnb.search(b.getTitle(), author).stream()
+                    .filter(m -> m.seriesName() != null && de.raindancer118.shelved.metadata.Similarity.edition(b.getTitle(), m) >= 0.8)
+                    .findFirst();
+        }
+        return record.map(m -> new Resolution(m.seriesName(), m.seriesVolume(), null, de.raindancer118.shelved.book.SeriesSource.CATALOG, false));
+    }
+
+    private Optional<Resolution> fromWikidata(Book b) {
+        String author = b.getAuthors().isEmpty() ? null : b.getAuthors().getFirst();
+        return wikidata.findSeries(b.getTitle(), author)
+                .map(m -> new Resolution(m.seriesName(), m.volume(), m.seriesId(), de.raindancer118.shelved.book.SeriesSource.WIKIDATA,
+                        !m.german()));
     }
 }

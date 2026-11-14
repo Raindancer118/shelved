@@ -48,6 +48,8 @@ public class Book {
     private Integer seriesVolume;
     /** Wikidata item of the series, when known. */
     private String seriesRef;
+    @Enumerated(EnumType.STRING)
+    private SeriesSource seriesSource;
     private Integer listPriceCents;
     private String coverFile;
     private String metadataSource;
@@ -121,7 +123,28 @@ public class Book {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
     public String getSeriesName() { return seriesName; }
-    public void setSeriesName(String seriesName) { this.seriesName = seriesName == null || seriesName.isBlank() ? null : seriesName.trim(); }
+    public void setSeriesName(String seriesName) {
+        this.seriesName = seriesName == null || seriesName.isBlank() ? null
+                : de.raindancer118.shelved.series.SeriesNames.normalize(seriesName);
+    }
+    public SeriesSource getSeriesSource() { return seriesSource; }
+    public void setSeries(String name, Integer volume, SeriesSource source) {
+        setSeriesName(name);
+        setSeriesVolume(volume);
+        this.seriesSource = this.seriesName == null ? null : source; // null = recognised earlier, origin unknown
+    }
+    /** Also "no series" can be the user's decision; then no source may add one again. */
+    public void setSeriesManually(String name, Integer volume) {
+        setSeriesName(name);
+        setSeriesVolume(volume);
+        this.seriesSource = SeriesSource.MANUAL;
+        this.seriesChecked = true;
+    }
+
+    /** A hand-made or catalogued series is final; guesses may be improved by better sources. */
+    public boolean seriesSettled() {
+        return seriesSource == SeriesSource.MANUAL || seriesSource == SeriesSource.CATALOG;
+    }
     public Integer getSeriesVolume() { return seriesVolume; }
     public void setSeriesVolume(Integer seriesVolume) { this.seriesVolume = seriesVolume != null && seriesVolume > 0 ? seriesVolume : null; }
     public String getSeriesRef() { return seriesRef; }

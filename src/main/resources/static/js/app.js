@@ -485,7 +485,8 @@ async function viewSeriesList() {
   }
   const missing = list.reduce((s, r) => s + r.missingCount, 0);
   paint(`
-    <div class="head"><div><h1>Reihen</h1><small>${list.length} Reihen · ${missing} Bände fehlen</small></div></div>
+    <div class="head"><div><h1>Reihen</h1><small>${list.length} Reihen · ${missing} Bände fehlen</small></div>
+      <button class="round" id="recheck" aria-label="Reihen neu prüfen" title="Reihen neu prüfen">↻</button></div>
     <div class="list">${list.map(r => {
       const total = r.knownTotal ?? (r.ownedCount + r.missingCount);
       const pct = total ? Math.round(100 * r.ownedCount / total) : 100;
@@ -495,6 +496,11 @@ async function viewSeriesList() {
         <small>${esc(r.author ?? '')}${r.catalogStatus === 'PENDING' ? ' · Bandliste wird geladen' : ''}</small>
         <div class="track ${state}"><i data-vars='${esc(JSON.stringify({ '--p': pct + '%' }))}'></i></div></a>`;
     }).join('')}</div>`);
+  document.getElementById('recheck').addEventListener('click', async () => {
+    const r = await post('/api/series/recheck');
+    toast(`${r.books} Bücher werden neu geprüft (Nationalbibliothek, Wikidata)`);
+    setTimeout(() => location.hash === '#/series' && route(), 6000);
+  });
   if (list.some(r => r.catalogStatus === 'PENDING')) {
     const t = setTimeout(() => location.hash === '#/series' && route(), 4000);
     cleanup = () => clearTimeout(t);

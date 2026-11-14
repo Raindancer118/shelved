@@ -52,6 +52,8 @@ public abstract class IntegrationTestBase {
     protected CoverStore covers;
     @MockitoBean
     protected WikidataClient wikidata;
+    @MockitoBean
+    protected de.raindancer118.shelved.metadata.DnbClient dnb;
 
 
     @BeforeEach

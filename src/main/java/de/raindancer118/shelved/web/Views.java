@@ -26,7 +26,7 @@ public final class Views {
     public record BookDetail(UUID id, String isbn13, String title, String subtitle, List<String> authors,
                              String publisher, Integer publishedYear, Integer pageCount, Integer heightMm,
                              Integer thicknessMm, int estimatedThicknessMm, BookFormat format, String language,
-                             String description, String seriesName, Integer seriesVolume, String seriesKey,
+                             String description, String seriesName, Integer seriesVolume, String seriesKey, de.raindancer118.shelved.book.SeriesSource seriesSource,
                              Integer listPriceCents, Integer usedPriceCents, String cover, UUID shelfId,
                              Integer boardNumber, Integer boardPosition, String location, String metadataSource,
                              int copies, Instant createdAt) {
@@ -46,7 +46,7 @@ public final class Views {
                 b.getPublishedYear(), b.getPageCount(), b.getHeightMm(), b.getThicknessMm(),
                 ThicknessEstimator.estimateMm(b.getThicknessMm(), b.getPageCount(), b.getFormat()), b.getFormat(),
                 b.getLanguage(), b.getDescription(), b.getSeriesName(), b.getSeriesVolume(),
-                b.getSeriesName() == null ? null : SeriesService.key(b), b.getListPriceCents(),
+                b.getSeriesName() == null ? null : SeriesService.key(b), b.getSeriesSource(), b.getListPriceCents(),
                 UsedPriceEstimator.estimateCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 cover(b), b.getShelfId(), b.getBoardNumber(), b.getBoardPosition(), location(b, shelfNumbers),
                 b.getMetadataSource(), b.getCopies(), b.getCreatedAt());

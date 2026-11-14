@@ -162,7 +162,7 @@ public class ScanService {
 
     private List<BookMetadata> candidates(String title, String author, String publisher) {
         return metadata.search(title, author, publisher).stream()
-                .filter(m -> Similarity.title(title, m.title(), m.subtitle()) >= MIN_TITLE_MATCH)
+                .filter(m -> Similarity.edition(title, m) >= MIN_TITLE_MATCH)
                 .limit(4)
                 .toList();
     }

@@ -44,7 +44,7 @@ class LibraryFlowTest extends IntegrationTestBase {
         // add by ISBN (catalogue lookup) and by hand
         when(metadata.byIsbn("9783492281980")).thenReturn(Optional.of(gevatterTod()));
         when(wikidata.findSeries("Gevatter Tod", "Terry Pratchett"))
-                .thenReturn(Optional.of(new WikidataClient.SeriesMatch("Q3257270", "Scheibenwelt", 4)));
+                .thenReturn(Optional.of(new WikidataClient.SeriesMatch("Q3257270", "Scheibenwelt", 4, true)));
         when(wikidata.catalog("Q3257270", "ger")).thenReturn(List.of(
                 new SeriesCatalogVolume(1, "Die Farben der Magie"), new SeriesCatalogVolume(2, "Das Licht der Phantasie"),
                 new SeriesCatalogVolume(3, "Das Erbe des Zauberers"), new SeriesCatalogVolume(4, "Gevatter Tod"),
@@ -99,7 +99,8 @@ class LibraryFlowTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.missingCount").value(4))
                 .andExpect(jsonPath("$.volumes[2].title").value("Das Erbe des Zauberers"))
                 .andExpect(jsonPath("$.volumes[3].book.title").value("Gevatter Tod")));
-        assertThat(ai.seriesQuestions).isEmpty();
+        // Gevatter Tod was placed by Wikidata; only the book nobody knew went to Claude
+        assertThat(ai.seriesQuestions.stream().flatMap(List::stream)).doesNotContain("Gevatter Tod");
         assertThat(ai.catalogQuestions).isEmpty();
 
         // stats
