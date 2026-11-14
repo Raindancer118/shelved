@@ -10,3 +10,4 @@ data/
 *.log
 prototype/covers/
 prototype/signal-v2.png
+.claude/
