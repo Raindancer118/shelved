@@ -31,4 +31,4 @@ Braucht Docker (Testcontainers). Die Katalog-Clients werden gegen echte, als Fix
 
 ## Betrieb
 
-`docker-compose.yml` mit App und Postgres, Image aus `ghcr.io/raindancer118/shelved`. Variablen siehe `.env.example`. Login per OIDC (Authentik), Profil `prod`.
+Läuft auf umaroth (VM apps) unter https://shelf.tstieh.de. Push auf `main` → CI testet → selbst gehosteter Runner baut und startet `docker-compose.yml` (App + Postgres). Server-`.env` wird nie überschrieben, Vorlage `.env.example`, anlegen mit `scripts/prepare-server.sh`. Login per OIDC (Authentik), Profil `prod`.

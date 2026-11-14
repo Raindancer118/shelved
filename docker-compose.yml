@@ -1,7 +1,26 @@
-# Production stack. Secrets live in .env next to this file (never synced from a dev machine).
+# Production stack on umaroth/apps. The .env next to this file holds the secrets and is never synced.
 services:
+  db:
+    image: postgres:17-alpine
+    container_name: shelved-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shelved
+      POSTGRES_USER: shelved
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD missing}
+    volumes:
+      - shelved-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shelved -d shelved"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [shelved]
+
   app:
-    image: ghcr.io/raindancer118/shelved:${SHELVED_VERSION:-latest}
+    build: .
+    image: shelved:latest
+    container_name: shelved-app
     restart: unless-stopped
     depends_on:
       db:
@@ -10,25 +29,23 @@ services:
     environment:
       SHELVED_DB_URL: jdbc:postgresql://db:5432/shelved
       SHELVED_DB_USER: shelved
+      SHELVED_DB_PASSWORD: ${DB_PASSWORD}
+      TZ: Europe/Berlin
+    mem_limit: 768m
+    # Only the reverse proxy reaches this (internal network).
     ports:
-      - "${SHELVED_BIND:-127.0.0.1}:${SHELVED_PORT:-8150}:8080"
+      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-8151}:8080"
     volumes:
-      - covers:/data
-  db:
-    image: postgres:17-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: shelved
-      POSTGRES_USER: shelved
-      POSTGRES_PASSWORD: ${SHELVED_DB_PASSWORD}
-    volumes:
-      - db:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shelved"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - shelved-covers:/data
+    networks: [shelved]
 
 volumes:
-  db:
-  covers:
+  shelved-db:
+  shelved-covers:
+
+networks:
+  shelved:
+    # Docker's default address pools on apps are used up, so the subnet is fixed.
+    ipam:
+      config:
+        - subnet: 10.252.0.0/24

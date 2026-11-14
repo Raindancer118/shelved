@@ -1,52 +1,74 @@
-name: CI
+name: CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
     tags: ['*.*.*']
   pull_request:
+  workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
         with:
-          distribution: temurin
           java-version: '25'
+          distribution: temurin
           cache: maven
-      - name: Build and test (incl. Testcontainers startup tests)
+      - name: Tests (incl. startup tests against PostgreSQL via Testcontainers)
         run: mvn -B verify
+      - name: Docker image builds
+        run: docker build -t shelved:ci .
 
-  image:
+  deploy:
+    name: Deploy
     needs: test
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    # Runs once the self-hosted runner exists:
+    #   gh variable set DEPLOY_ENABLED --body true --repo Raindancer118/shelved
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: [self-hosted, shelved]
     steps:
       - uses: actions/checkout@v5
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/raindancer118/shelved
-          tags: |
-            type=semver,pattern={{version}}
-            type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+
+      # The server .env holds production secrets and is NEVER overwritten.
+      - name: Sync sources
+        run: |
+          rsync -a --delete \
+            --exclude '.git' \
+            --exclude '.env' --exclude '*.env' --exclude '.env.*' \
+            --exclude 'target' --exclude 'data' --exclude 'Project.md' \
+            --exclude '.vault-project.enc' --exclude 'prototype' \
+            ./ /home/murthag/shelved/
+
+      - name: Production .env exists
+        run: test -f /home/murthag/shelved/.env
+
+      - name: Build and start containers
+        working-directory: /home/murthag/shelved
+        run: |
+          docker compose build app
+          docker compose up -d
+
+      - name: Health-Check
+        working-directory: /home/murthag/shelved
+        run: |
+          PORT=$(grep -E '^APP_PORT=' .env | cut -d= -f2); PORT=${PORT:-8151}
+          for i in $(seq 1 60); do
+            if curl -fsS "http://127.0.0.1:${PORT}/actuator/health" | grep -q '"status":"UP"'; then
+              echo "shelved is UP"; exit 0
+            fi
+            sleep 3
+          done
+          docker logs --tail 150 shelved-app
+          exit 1
+
+      - name: Trim build cache
+        if: always()
+        run: docker builder prune -f --filter until=48h || true
