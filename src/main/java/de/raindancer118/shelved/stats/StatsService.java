@@ -19,7 +19,7 @@ public class StatsService {
     public record AuthorCount(String author, long books) {
     }
 
-    public record Stats(long books, long withPrice, long listValueCents, long usedValueCents, int shelves,
+    public record Stats(long books, long withPrice, long listValueCents, long usedValueCents, long buybackValueCents, int shelves,
                         int series, int completeSeries, int missingVolumes, long pages, List<AuthorCount> topAuthors) {
     }
 
@@ -38,11 +38,15 @@ public class StatsService {
         List<Book> all = books.findByOwnerId(owner);
         int year = Year.now().getValue();
         long list = all.stream().filter(b -> b.getListPriceCents() != null).mapToLong(b -> (long) b.getListPriceCents() * b.getCopies()).sum();
-        long used = all.stream()
-                .mapToLong(b -> {
-                    Integer u = UsedPriceEstimator.estimateCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), year);
-                    return u == null ? 0 : (long) u * b.getCopies();
-                }).sum();
+        long used = 0;
+        long buyback = 0;
+        for (Book b : all) {
+            UsedPriceEstimator.UsedValue v = UsedPriceEstimator.estimate(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), year);
+            if (v != null) {
+                used += (long) v.privateCents() * b.getCopies();
+                buyback += (long) v.buybackCents() * b.getCopies();
+            }
+        }
         long withPrice = all.stream().filter(b -> b.getListPriceCents() != null).count();
         var seriesViews = series.overview(owner);
         Map<String, Long> byAuthor = all.stream().filter(b -> !b.getAuthors().isEmpty())
@@ -50,7 +54,7 @@ public class StatsService {
         List<AuthorCount> top = byAuthor.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
                 .limit(5).map(e -> new AuthorCount(e.getKey(), e.getValue())).toList();
-        return new Stats(all.stream().mapToLong(Book::getCopies).sum(), withPrice, list, used, shelves.findByOwnerIdOrderByPosition(owner).size(),
+        return new Stats(all.stream().mapToLong(Book::getCopies).sum(), withPrice, list, used, buyback, shelves.findByOwnerIdOrderByPosition(owner).size(),
                 seriesViews.size(), (int) seriesViews.stream().filter(v -> v.missingCount() == 0 && v.knownTotal() != null).count(),
                 seriesViews.stream().mapToInt(SeriesService.SeriesView::missingCount).sum(),
                 all.stream().map(Book::getPageCount).filter(p -> p != null).mapToLong(Integer::longValue).sum(),

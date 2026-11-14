@@ -54,7 +54,8 @@ class LibraryFlowTest extends IntegrationTestBase {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Gevatter Tod"))
                 .andExpect(jsonPath("$.listPriceCents").value(1200))
-                .andExpect(jsonPath("$.usedPriceCents").value(350))
+                .andExpect(jsonPath("$.usedPriceCents").value(200))
+                .andExpect(jsonPath("$.buybackPriceCents").value(40))
                 .andReturn().getResponse().getContentAsString();
         String tod = JsonPath.read(created, "$.id");
 
