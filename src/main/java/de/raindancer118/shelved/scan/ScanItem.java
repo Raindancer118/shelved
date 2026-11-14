@@ -20,6 +20,9 @@ public record ScanItem(int index, LibraryAi.SpineReading reading, Status status,
         DUPLICATE
     }
 
-    public record Result(List<ScanItem> items) {
+    public record Result(List<ScanItem> items, List<LibraryAi.BoardReading> boards) {
+        public Result {
+            boards = boards == null ? List.of() : boards;
+        }
     }
 }

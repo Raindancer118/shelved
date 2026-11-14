@@ -9,7 +9,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /** Scripted stand-in for Claude in integration tests. */
 public class FakeLibraryAi implements LibraryAi {
 
-    public volatile ShelfReading nextShelf = new ShelfReading(List.of());
+    public volatile ShelfReading nextShelf = new ShelfReading(List.of(), List.of());
     public volatile List<SeriesGuess> seriesAnswer = List.of();
     public volatile SeriesCatalog catalogAnswer = new SeriesCatalog(List.of(), true, "");
     public final List<Integer> tileCounts = new CopyOnWriteArrayList<>();

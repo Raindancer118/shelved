@@ -64,7 +64,7 @@ class ScanFlowTest extends IntegrationTestBase {
         ai.nextShelf = new LibraryAi.ShelfReading(List.of(
                 spine("Die Farben der Magie", "Terry Pratchett", "Scheibenwelt", 1, "high"),
                 spine("Der Process", "Franz Kafka", "", 0, "high"),
-                spine("…drome der Stadt", "", "", 0, "low")));
+                spine("…drome der Stadt", "", "", 0, "low")), List.of());
         when(metadata.search(eq("Die Farben der Magie"), eq("Terry Pratchett"), any()))
                 .thenReturn(List.of(meta("9783492280624", "Die Farben der Magie", "Terry Pratchett", "Piper")));
         when(metadata.search(eq("Der Process"), eq("Franz Kafka"), any()))
@@ -115,7 +115,7 @@ class ScanFlowTest extends IntegrationTestBase {
                 spine("Vortex", "Anna Benning", "Vortex", 1, "high", 1),
                 spine("Dark Sigils", "Anna Benning", "Dark Sigils", 1, "high", 1),
                 spine("City of Bones", "Cassandra Clare", "Chroniken der Unterwelt", 1, "high", 2),
-                spine("Ganz unten", "Niemand", "", 0, "high", 3)));
+                spine("Ganz unten", "Niemand", "", 0, "high", 3)), List.of());
         when(metadata.search(any(), any(), any())).thenAnswer(inv -> List.of(meta(null, inv.getArgument(0), inv.getArgument(1), "Verlag")));
 
         String scan = JsonPath.read(mvc.perform(multipart("/api/scans")
@@ -131,6 +131,39 @@ class ScanFlowTest extends IntegrationTestBase {
         mvc.perform(get("/api/books").param("q", "dark sigils")).andExpect(jsonPath("$[0].location").value("R1 · B2 · 02"));
         mvc.perform(get("/api/books").param("q", "city of bones")).andExpect(jsonPath("$[0].location").value("R1 · B3 · 01"));
         mvc.perform(get("/api/books").param("q", "ganz unten")).andExpect(jsonPath("$[0].location").value("R1 · B4 · 01"));
+    }
+
+    /** Unknown board width: the photo tells how full the board is, the books tell how wide they are. */
+    @Test
+    void boardWidthIsEstimatedFromThePhotoWhenUnknown() throws Exception {
+        String shelf = JsonPath.read(mvc.perform(post("/api/shelves").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Neu\",\"boardWidthsMm\":[null,500]}"))
+                .andExpect(jsonPath("$.boardsEstimated[0]").value(true))
+                .andExpect(jsonPath("$.boardsEstimated[1]").value(false))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        ai.nextShelf = new LibraryAi.ShelfReading(List.of(
+                spine("Eins", "A Autor", "", 0, "high", 1),
+                spine("Zwei", "B Autor", "", 0, "high", 1),
+                spine("Drei", "C Autor", "", 0, "high", 2)),
+                List.of(new LibraryAi.BoardReading(1, 0.25, true), new LibraryAi.BoardReading(2, 0.1, true)));
+        // 300 pages paperback ≈ 31 mm each → 62 mm fill a quarter → ~250 mm board
+        when(metadata.search(any(), any(), any())).thenAnswer(inv -> List.of(meta(null, inv.getArgument(0), inv.getArgument(1), "Verlag")));
+
+        String scan = JsonPath.read(mvc.perform(multipart("/api/scans")
+                        .file(new MockMultipartFile("image", "s.jpg", "image/jpeg", widePhoto()))
+                        .param("mode", "SHELF").param("shelfId", shelf).param("board", "1").with(csrf()))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        await().untilAsserted(() -> mvc.perform(get("/api/scans/" + scan)).andExpect(jsonPath("$.status").value("DONE")));
+        mvc.perform(post("/api/scans/" + scan + "/accept").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\":[{\"index\":0,\"take\":true},{\"index\":1,\"take\":true},{\"index\":2,\"take\":true}]}"))
+                .andExpect(jsonPath("$.estimatedBoards", hasSize(1)))
+                .andExpect(jsonPath("$.estimatedBoards[0].board").value(1))
+                .andExpect(jsonPath("$.estimatedBoards[0].widthMm").value(250));
+
+        mvc.perform(get("/api/shelves"))
+                .andExpect(jsonPath("$[0].boardWidthsMm[0]").value(250))
+                .andExpect(jsonPath("$[0].boardsEstimated[0]").value(true))
+                .andExpect(jsonPath("$[0].boardWidthsMm[1]").value(500)); // measured width is never overwritten
     }
 
     @Test

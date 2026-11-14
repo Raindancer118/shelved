@@ -466,7 +466,8 @@ async function viewScan(id) {
     }));
     const res = await post(`/api/scans/${id}/accept`, { items: decisions });
     invalidate();
-    toast(`${res.created.length} hinzugefügt${res.placed.length ? `, ${res.placed.length} Plätze gespeichert` : ''}`);
+    const est = (res.estimatedBoards ?? []).map(b => `Boden ${b.board} ≈ ${b.widthMm / 10} cm`).join(', ');
+    toast(`${res.created.length} hinzugefügt${res.placed.length ? `, ${res.placed.length} Plätze gespeichert` : ''}${est ? `. Breite geschätzt: ${est}` : ''}`);
     go(scan.shelfId ? '/shelves' : '/');
   });
 }
@@ -542,6 +543,7 @@ async function viewSeries(key) {
 // ---------------------------------------------------------------- Regale
 
 let currentShelf = 0;
+const shelfEstimated = new Map();
 
 async function viewShelves() {
   const [shelves, plan] = await Promise.all([get('/api/shelves'), get('/api/placement')]);
@@ -552,6 +554,8 @@ async function viewShelves() {
     return;
   }
   currentShelf = Math.min(currentShelf, shelves.length - 1);
+  shelfEstimated.clear();
+  shelves.forEach(s => s.boardsEstimated.forEach((e, i) => e && shelfEstimated.set(`${s.id}:${i + 1}`, true)));
   const shelf = shelves[currentShelf];
   const boards = plan.boards.filter(b => b.shelfId === shelf.id);
   paint(`
@@ -574,8 +578,9 @@ function boardHtml(bd) {
   const last = bd.books.at(-1)?.book;
   const free = Math.round((bd.widthMm - bd.usedMm) / 10);
   const scale = 100 / Math.max(bd.widthMm, bd.usedMm);
+  const est = shelfEstimated.get(`${bd.shelfId}:${bd.board}`);
   return `<section class="board">
-    <div class="lbl"><b>Boden ${bd.board}</b><span>${bd.books.length} Bücher · ${pct} % voll${free > 0 ? ` · ca. ${free} cm frei` : ''}</span></div>
+    <div class="lbl"><b>Boden ${bd.board}</b><span>${est ? `≈ ${bd.widthMm / 10} cm (geschätzt) · ` : ''}${bd.books.length} Bücher · ${pct} % voll${free > 0 ? ` · ca. ${free} cm frei` : ''}</span></div>
     <div class="strip" aria-hidden="true">${bd.books.map(p => `<i class="${p.status === 'NEW' ? 'new' : p.status === 'MOVE' ? 'move' : ''}" title="${esc(p.book.title)}"
       data-vars='${esc(JSON.stringify({ '--w': (p.thicknessMm * scale).toFixed(2) + '%', '--h': (70 + (p.book.title.length % 5) * 6) + '%', '--c': colorFor(p.book.title) }))}'></i>`).join('')}</div>
     ${first ? `<p class="note">${esc(surname(first) || first.title)} bis ${esc(surname(last) || last.title)}</p>` : '<p class="note">leer</p>'}
@@ -586,32 +591,45 @@ function boardHtml(bd) {
   </section>`;
 }
 
+const PRESETS = {
+  billy80: { label: 'IKEA Billy 80 cm', boards: Array(6).fill(760) },
+  billy40: { label: 'IKEA Billy 40 cm', boards: Array(6).fill(360) },
+  unknown: { label: 'Breite unbekannt, aus dem Foto schätzen', boards: Array(5).fill(null) },
+};
+
 async function viewShelfForm(id) {
-  const existing = id ? (await get('/api/shelves')).find(s => s.id === id) : null;
-  const widths = existing?.boardWidthsMm ?? [800, 800, 800, 800, 800];
-  const boardFields = ws => ws.map((w, i) => `<div class="field"><label for="w${i}">Boden ${i + 1}: Breite in cm</label><input id="w${i}" type="number" min="5" max="500" step="0.5" value="${w / 10}" required></div>`).join('');
+  const all = await get('/api/shelves');
+  const existing = id ? all.find(s => s.id === id) : null;
+  let widths = existing ? existing.boardWidthsMm.map((w, i) => existing.boardsEstimated[i] ? null : w) : PRESETS.unknown.boards;
+  const estimates = existing ? existing.boardWidthsMm.map((w, i) => existing.boardsEstimated[i] ? w : null) : [];
+  const boardFields = ws => ws.map((w, i) => `<div class="field"><label for="w${i}">Boden ${i + 1}${i === 0 ? ' (oben)' : ''}: Innenbreite in cm</label>
+      <input id="w${i}" type="number" min="5" max="500" step="0.5" value="${w == null ? '' : w / 10}"
+        placeholder="${estimates[i] ? '≈ ' + estimates[i] / 10 + ' (aus Foto geschätzt)' : 'unbekannt, aus Foto schätzen'}"></div>`).join('');
   paint(`
     ${backBar('#/shelves')}
     <h1 class="dtitle">${existing ? 'Regal bearbeiten' : 'Neues Regal'}</h1>
-    <p class="note">Böden von oben nach unten. Innenbreite messen, also das, was wirklich für Bücher frei ist.</p>
+    <p class="note">Böden von oben nach unten. Leer lassen, wenn du die Breite nicht weißt: Nach dem ersten Regalfoto rechnet shelved sie aus den erkannten Büchern aus. Nachgemessen ist genauer.</p>
     <form class="form" id="f">
-      <div class="field"><label for="name">Name</label><input id="name" required maxlength="100" value="${esc(existing?.name ?? 'Regal ' + ((await get('/api/shelves')).length + 1))}"></div>
-      <div class="two"><div class="field"><label for="count">Anzahl Böden</label><input id="count" type="number" min="1" max="20" value="${widths.length}"></div>
-        <div class="field"><label for="all">Alle gleich breit (cm)</label><input id="all" type="number" min="5" max="500" step="0.5" placeholder="z. B. 80"></div></div>
+      <div class="field"><label for="name">Name</label><input id="name" required maxlength="100" value="${esc(existing?.name ?? 'Regal ' + (all.length + 1))}"></div>
+      ${existing ? '' : `<div class="chips" id="presets">${Object.entries(PRESETS).map(([k, p]) => `<button type="button" class="chip ${k === 'unknown' ? 'on' : ''}" data-preset="${k}">${esc(p.label)}</button>`).join('')}</div>`}
+      <div class="field"><label for="count">Anzahl Böden</label><input id="count" type="number" min="1" max="30" value="${widths.length}"></div>
       <div id="boards" class="form">${boardFields(widths)}</div>
       <button class="btn block" type="submit">Speichern</button>
       ${existing ? '<button class="btn danger block" type="button" id="delete">Regal löschen</button>' : ''}
     </form>`);
   const boardsEl = document.getElementById('boards');
-  const current = () => [...boardsEl.querySelectorAll('input')].map(i => Math.round(Number(i.value) * 10));
+  const current = () => [...boardsEl.querySelectorAll('input')].map(i => i.value ? Math.round(Number(i.value) * 10) : null);
+  const render = ws => { widths = ws; boardsEl.innerHTML = boardFields(ws); document.getElementById('count').value = ws.length; };
   document.getElementById('count').addEventListener('change', e => {
-    const n = Math.max(1, Math.min(20, Number(e.target.value)));
+    const n = Math.max(1, Math.min(30, Number(e.target.value)));
     const now = current();
-    boardsEl.innerHTML = boardFields(Array.from({ length: n }, (_, i) => now[i] ?? now.at(-1) ?? 800));
+    render(Array.from({ length: n }, (_, i) => i < now.length ? now[i] : now.at(-1) ?? null));
   });
-  document.getElementById('all').addEventListener('input', e => {
-    if (e.target.value) boardsEl.querySelectorAll('input').forEach(i => { i.value = e.target.value; });
-  });
+  app.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+    app.querySelectorAll('[data-preset]').forEach(x => x.classList.toggle('on', x === b));
+    render([...PRESETS[b.dataset.preset].boards]);
+    if (b.dataset.preset !== 'unknown') document.getElementById('name').value = PRESETS[b.dataset.preset].label.replace('IKEA ', '');
+  }));
   document.getElementById('f').addEventListener('submit', async e => {
     e.preventDefault();
     const body = { name: document.getElementById('name').value, boardWidthsMm: current() };

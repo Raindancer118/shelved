@@ -27,22 +27,21 @@ public class Shelf {
     @Column(nullable = false)
     private String name;
     private int position;
-    /** Board widths in mm, top board first. */
+    /** Top board first. */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "shelf_board", joinColumns = @JoinColumn(name = "shelf_id"))
     @OrderColumn(name = "board_index")
-    @Column(name = "width_mm")
-    private List<Integer> boardWidthsMm = new ArrayList<>();
+    private List<Board> boards = new ArrayList<>();
     private Instant createdAt;
 
     protected Shelf() {
     }
 
-    public Shelf(String ownerId, String name, int position, List<Integer> boardWidthsMm) {
+    public Shelf(String ownerId, String name, int position, List<Board> boards) {
         this.ownerId = ownerId;
         this.name = name;
         this.position = position;
-        setBoardWidthsMm(boardWidthsMm);
+        setBoards(boards);
     }
 
     @PrePersist
@@ -56,9 +55,20 @@ public class Shelf {
     public void setName(String name) { this.name = name; }
     public int getPosition() { return position; }
     public void setPosition(int position) { this.position = position; }
-    public List<Integer> getBoardWidthsMm() { return boardWidthsMm; }
-    public void setBoardWidthsMm(List<Integer> widths) {
-        this.boardWidthsMm.clear();
-        this.boardWidthsMm.addAll(widths);
+    public List<Board> getBoards() { return boards; }
+    public List<Integer> getBoardWidthsMm() { return boards.stream().map(Board::getWidthMm).toList(); }
+    public void setBoards(List<Board> newBoards) {
+        this.boards.clear();
+        this.boards.addAll(newBoards);
+    }
+
+    /** Only replaces a width that was a guess; a measured width stays. Board numbers start at 1. */
+    public boolean applyEstimate(int boardNumber, int widthMm) {
+        Board b = boards.get(boardNumber - 1);
+        if (!b.isEstimated()) {
+            return false;
+        }
+        boards.set(boardNumber - 1, new Board(widthMm, true));
+        return true;
     }
 }

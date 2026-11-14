@@ -30,7 +30,10 @@ public class ScanService {
     public record Decision(int index, boolean take, String isbn13, Boolean anotherCopy) {
     }
 
-    public record AcceptResult(List<UUID> created, List<UUID> placed) {
+    public record EstimatedBoard(int board, int widthMm) {
+    }
+
+    public record AcceptResult(List<UUID> created, List<UUID> placed, List<EstimatedBoard> estimatedBoards) {
     }
 
     private final ScanRepository scans;
@@ -79,7 +82,7 @@ public class ScanService {
     }
 
     public ScanItem.Result result(Scan scan) {
-        return scan.getResultJson() == null ? new ScanItem.Result(List.of()) : json.readValue(scan.getResultJson(), ScanItem.Result.class);
+        return scan.getResultJson() == null ? new ScanItem.Result(List.of(), List.of()) : json.readValue(scan.getResultJson(), ScanItem.Result.class);
     }
 
     void process(UUID scanId, String owner, Scan.Mode mode, BufferedImage img) {
@@ -95,7 +98,7 @@ public class ScanService {
                         ? new ScanItem(item.index(), item.reading(), ScanItem.Status.DUPLICATE, item.candidate(), item.alternatives(), null)
                         : item);
             }
-            String result = json.writeValueAsString(new ScanItem.Result(items));
+            String result = json.writeValueAsString(new ScanItem.Result(items, reading.boards()));
             tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(sc -> sc.done(result)));
         } catch (RuntimeException e) {
             log.warn("Scan {} failed", scanId, e);
@@ -159,7 +162,9 @@ public class ScanService {
         if (scan.getStatus() != Scan.Status.DONE) {
             throw new IllegalStateException("Scan ist nicht (mehr) offen");
         }
-        List<ScanItem> items = result(scan).items();
+        ScanItem.Result scanResult = result(scan);
+        List<ScanItem> items = scanResult.items();
+        java.util.Map<Integer, List<UUID>> booksInRow = new java.util.TreeMap<>();
         List<UUID> created = new ArrayList<>();
         List<UUID> placed = new ArrayList<>();
         int boards = scan.getShelfId() == null ? 0
@@ -182,11 +187,37 @@ public class ScanService {
                     int position = positionInRow.merge(row, 1, Integer::sum);
                     books.move(owner, bookId, scan.getShelfId(), board, position);
                     placed.add(bookId);
+                    booksInRow.computeIfAbsent(row, r -> new ArrayList<>()).add(bookId);
                 }
             }
         }
+        List<EstimatedBoard> estimated = scan.getShelfId() == null ? List.of()
+                : estimateWidths(owner, scan, scanResult.boards(), booksInRow);
         tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(Scan::accepted));
-        return new AcceptResult(created, placed);
+        return new AcceptResult(created, placed, estimated);
+    }
+
+    /** Boards whose width is still a guess learn it from this photo: books' total thickness / fill. */
+    private List<EstimatedBoard> estimateWidths(String owner, Scan scan, List<LibraryAi.BoardReading> boards,
+                                                java.util.Map<Integer, List<UUID>> booksInRow) {
+        List<EstimatedBoard> out = new ArrayList<>();
+        tx.executeWithoutResult(s -> shelves.findById(scan.getShelfId()).ifPresent(shelf -> {
+            for (LibraryAi.BoardReading br : boards) {
+                int boardNumber = scan.getBoardNumber() + br.row() - 1;
+                if (boardNumber < 1 || boardNumber > shelf.getBoards().size()) {
+                    continue;
+                }
+                List<Book> onRow = booksInRow.getOrDefault(br.row(), List.of()).stream().map(id -> books.get(owner, id)).toList();
+                int booksMm = onRow.stream()
+                        .mapToInt(b -> de.raindancer118.shelved.placement.ThicknessEstimator.estimateMm(
+                                b.getThicknessMm(), b.getPageCount(), b.getFormat()) * b.getCopies())
+                        .sum();
+                de.raindancer118.shelved.placement.WidthEstimator.boardWidthMm(booksMm, br.fill(), br.bothEndsVisible())
+                        .filter(w -> shelf.applyEstimate(boardNumber, w))
+                        .ifPresent(w -> out.add(new EstimatedBoard(boardNumber, w)));
+            }
+        }));
+        return out;
     }
 
     /** New book, or (same book already there, e.g. twice on the photo) one more copy if asked, else nothing new. */

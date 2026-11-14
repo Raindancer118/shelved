@@ -1,6 +1,7 @@
 package de.raindancer118.shelved.web;
 
 import de.raindancer118.shelved.book.NotFoundException;
+import de.raindancer118.shelved.shelf.Board;
 import de.raindancer118.shelved.shelf.Shelf;
 import de.raindancer118.shelved.shelf.ShelfRepository;
 import jakarta.validation.Valid;
@@ -29,11 +30,22 @@ import java.util.UUID;
 @RequestMapping("/api/shelves")
 public class ShelfController {
 
+    /** A null width means "don't know": it gets estimated from the first shelf photo. */
     public record ShelfInput(@NotBlank @Size(max = 100) String name,
-                             @NotEmpty @Size(max = 20) List<@Min(50) @Max(5000) Integer> boardWidthsMm) {
+                             @NotEmpty @Size(max = 30) List<@Min(50) @Max(5000) Integer> boardWidthsMm) {
+        List<Board> boards(List<Board> previous) {
+            List<Board> out = new java.util.ArrayList<>();
+            for (int i = 0; i < boardWidthsMm.size(); i++) {
+                Integer w = boardWidthsMm.get(i);
+                Board before = previous != null && i < previous.size() ? previous.get(i) : null;
+                out.add(w != null ? new Board(w, before != null && before.isEstimated() && before.getWidthMm() == w)
+                        : before != null && before.isEstimated() ? before : Board.unknown());
+            }
+            return out;
+        }
     }
 
-    public record ShelfView(UUID id, String name, int number, List<Integer> boardWidthsMm) {
+    public record ShelfView(UUID id, String name, int number, List<Integer> boardWidthsMm, List<Boolean> boardsEstimated) {
     }
 
     private final ShelfRepository shelves;
@@ -56,7 +68,7 @@ public class ShelfController {
     public ShelfView create(Authentication auth, @Valid @RequestBody ShelfInput in) {
         String owner = Owner.of(auth);
         int next = shelves.findByOwnerIdOrderByPosition(owner).size() + 1;
-        Shelf s = shelves.save(new Shelf(owner, in.name().trim(), next, in.boardWidthsMm()));
+        Shelf s = shelves.save(new Shelf(owner, in.name().trim(), next, in.boards(null)));
         return view(s, next);
     }
 
@@ -66,7 +78,7 @@ public class ShelfController {
         String owner = Owner.of(auth);
         Shelf s = shelves.findByIdAndOwnerId(id, owner).orElseThrow(() -> new NotFoundException("Regal"));
         s.setName(in.name().trim());
-        s.setBoardWidthsMm(in.boardWidthsMm());
+        s.setBoards(in.boards(List.copyOf(s.getBoards())));
         return view(s, numberOf(owner, id));
     }
 
@@ -95,6 +107,7 @@ public class ShelfController {
     }
 
     private static ShelfView view(Shelf s, int number) {
-        return new ShelfView(s.getId(), s.getName(), number, List.copyOf(s.getBoardWidthsMm()));
+        return new ShelfView(s.getId(), s.getName(), number, List.copyOf(s.getBoardWidthsMm()),
+                s.getBoards().stream().map(Board::isEstimated).toList());
     }
 }

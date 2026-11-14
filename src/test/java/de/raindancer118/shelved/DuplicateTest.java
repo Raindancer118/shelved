@@ -77,7 +77,7 @@ class DuplicateTest extends IntegrationTestBase {
     void theSameBookTwiceOnOnePhotoIsOnlyAddedOnceByDefault() throws Exception {
         ai.nextShelf = new LibraryAi.ShelfReading(List.of(
                 new LibraryAi.SpineReading("Momo", List.of("Michael Ende"), "", 0, "", "high", "", 1),
-                new LibraryAi.SpineReading("Momo", List.of("Michael Ende"), "", 0, "", "high", "", 1)));
+                new LibraryAi.SpineReading("Momo", List.of("Michael Ende"), "", 0, "", "high", "", 1)), List.of());
         when(metadata.search(any(), any(), any())).thenReturn(List.of(momo()));
         var out = new ByteArrayOutputStream();
         ImageIO.write(new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB), "jpg", out);
@@ -100,7 +100,7 @@ class DuplicateTest extends IntegrationTestBase {
     void secondCopyFromAPhotoWhenTheUserSaysSo() throws Exception {
         ai.nextShelf = new LibraryAi.ShelfReading(List.of(
                 new LibraryAi.SpineReading("Momo", List.of("Michael Ende"), "", 0, "", "high", "", 1),
-                new LibraryAi.SpineReading("Momo", List.of("Michael Ende"), "", 0, "", "high", "", 1)));
+                new LibraryAi.SpineReading("Momo", List.of("Michael Ende"), "", 0, "", "high", "", 1)), List.of());
         when(metadata.search(any(), any(), any())).thenReturn(List.of(momo()));
         var out = new ByteArrayOutputStream();
         ImageIO.write(new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB), "jpg", out);

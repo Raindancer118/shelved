@@ -4,8 +4,9 @@ import de.raindancer118.shelved.book.BookFormat;
 
 public final class ThicknessEstimator {
 
-    // ~0.068 mm per page for typical 70–80 g novel paper, plus the cover
-    private static final double MM_PER_PAGE = 0.068;
+    // German trade books mostly use bulky "Werkdruck" paper. Measured on a real 76 cm shelf: 14 books,
+    // 6330 pages, about 71 cm wide → 0.1 mm per page (classic thin novel paper would be ~0.07).
+    private static final double MM_PER_PAGE = 0.1;
     private static final int TYPICAL_NOVEL_MM = 25;
 
     private ThicknessEstimator() {
