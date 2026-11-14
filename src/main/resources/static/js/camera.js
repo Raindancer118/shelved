@@ -48,14 +48,85 @@ export async function prepareImage(file, maxEdge = 4000) {
     canvas.toBlob(b => b ? resolve(b) : reject(new Error('Bild konnte nicht verarbeitet werden')), 'image/jpeg', 0.9));
 }
 
-/** Opens the native camera/file picker and resolves with the chosen file (or null). */
+/** Opens the gallery / file picker and resolves with the chosen file (or null). */
 export function pickPhoto() {
   return new Promise(resolve => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.capture = 'environment';
     input.addEventListener('change', () => resolve(input.files?.[0] ?? null), { once: true });
     input.click();
   });
+}
+
+/**
+ * Takes a photo with an in-page camera. Switching to the camera app lets Android kill the browser,
+ * and the page (with the photo) is gone when it comes back. Resolves with a Blob/File, or null if cancelled.
+ */
+export function capturePhoto(hint = '') {
+  if (!navigator.mediaDevices?.getUserMedia) return pickPhoto();
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'camera';
+    overlay.innerHTML = `
+      <video playsinline muted></video>
+      <p class="camera-hint"></p>
+      <div class="camera-bar">
+        <button class="camera-side" data-act="cancel">Abbrechen</button>
+        <button class="camera-shutter" data-act="shoot" aria-label="Foto aufnehmen" disabled></button>
+        <button class="camera-side" data-act="gallery">Galerie</button>
+      </div>
+      <button class="camera-torch" data-act="torch" hidden>Licht</button>`;
+    overlay.querySelector('.camera-hint').textContent = hint;
+    document.body.append(overlay);
+    const video = overlay.querySelector('video');
+    let stream, torch = false;
+    const close = result => {
+      stream?.getTracks().forEach(t => t.stop());
+      overlay.remove();
+      resolve(result);
+    };
+    overlay.addEventListener('click', async e => {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'cancel') close(null);
+      if (act === 'gallery') { stream?.getTracks().forEach(t => t.stop()); overlay.remove(); resolve(await pickPhoto()); }
+      if (act === 'torch') {
+        torch = !torch;
+        await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch }] }).catch(() => {});
+        e.target.classList.toggle('on', torch);
+      }
+      if (act === 'shoot') {
+        e.target.disabled = true;
+        close(await grab(stream, video));
+      }
+    });
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 4096 }, height: { ideal: 3072 } }, audio: false,
+    }).then(async s => {
+      stream = s;
+      video.srcObject = s;
+      await video.play();
+      overlay.querySelector('[data-act="shoot"]').disabled = false;
+      const caps = s.getVideoTracks()[0].getCapabilities?.() ?? {};
+      if (caps.torch) overlay.querySelector('[data-act="torch"]').hidden = false;
+    }).catch(async () => {
+      // no permission or no camera: fall back to the file picker
+      overlay.remove();
+      resolve(await pickPhoto());
+    });
+  });
+}
+
+async function grab(stream, video) {
+  const track = stream.getVideoTracks()[0];
+  if ('ImageCapture' in window) {
+    try {
+      return await new ImageCapture(track).takePhoto(); // full sensor resolution where supported
+    } catch { /* fall through to a video frame */ }
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  return new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
 }

@@ -1,6 +1,6 @@
 import { api, get, post, put, del, upload, poll } from './api.js';
 import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor } from './ui.js';
-import { liveBarcodeSupported, scanBarcode, prepareImage, pickPhoto } from './camera.js';
+import { liveBarcodeSupported, scanBarcode, prepareImage, capturePhoto } from './camera.js';
 
 const app = document.getElementById('app');
 const state = { me: null, books: null, sort: 'author', query: '' };
@@ -268,7 +268,9 @@ async function viewAdd() {
 }
 
 async function photoScan(mode, shelfId, board) {
-  const file = await pickPhoto();
+  const file = await capturePhoto(mode === 'SHELF'
+    ? 'Gerade von vorn, ganze Bretter mit beiden Seitenwänden ins Bild'
+    : 'Cover oder Buchrücken formatfüllend');
   if (!file) return;
   paint(pendingView('Foto wird hochgeladen …'));
   const form = new FormData();
@@ -304,7 +306,8 @@ async function viewBarcode(purpose) {
     });
   }
   document.getElementById('photo').addEventListener('click', async () => {
-    const file = await pickPhoto();
+    cleanup?.();
+    const file = await capturePhoto('Barcode auf der Rückseite, nah und scharf');
     if (!file) return;
     out.innerHTML = pendingView('Barcode wird gelesen …');
     const form = new FormData();
