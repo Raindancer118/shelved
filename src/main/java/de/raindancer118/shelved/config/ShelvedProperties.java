@@ -5,7 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.nio.file.Path;
 
 @ConfigurationProperties("shelved")
-public record ShelvedProperties(Path dataDir, String authMode, Anthropic anthropic, int scansPerHour, String googleBooksApiKey) {
+public record ShelvedProperties(Path dataDir, String authMode, Anthropic anthropic, int scansPerHour, String googleBooksApiKey,
+                                String hardcoverApiToken) {
 
     public record Anthropic(String apiKey, String model) {
         public boolean configured() {

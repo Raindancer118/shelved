@@ -9,6 +9,6 @@ if ! docker ps --format '{{.Names}}' | grep -qx shelved-db; then
   until docker exec shelved-db pg_isready -U shelved >/dev/null 2>&1; do sleep 1; done
 fi
 set -a
-for f in .env.anthropic .env.google; do [ -f "$f" ] && . "./$f"; done
+for f in .env.anthropic .env.google .env.hardcover; do [ -f "$f" ] && . "./$f"; done
 set +a
 exec mvn -q spring-boot:run -Dspring-boot.run.profiles=local -Dspring-boot.run.arguments=--server.port=${PORT:-8150}

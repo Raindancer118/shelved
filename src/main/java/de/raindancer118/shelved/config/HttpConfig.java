@@ -2,6 +2,9 @@ package de.raindancer118.shelved.config;
 
 import de.raindancer118.shelved.metadata.DnbClient;
 import de.raindancer118.shelved.metadata.GoogleBooksClient;
+import de.raindancer118.shelved.metadata.HardcoverClient;
+import de.raindancer118.shelved.metadata.K10plusClient;
+import de.raindancer118.shelved.metadata.LocClient;
 import de.raindancer118.shelved.metadata.WikidataClient;
 import de.raindancer118.shelved.metadata.OpenLibraryClient;
 import org.springframework.context.annotation.Bean;
@@ -46,5 +49,20 @@ public class HttpConfig {
     @Bean
     OpenLibraryClient openLibraryClient(RestClient externalHttp) {
         return new OpenLibraryClient(externalHttp);
+    }
+
+    @Bean
+    K10plusClient k10plusClient(RestClient externalHttp) {
+        return new K10plusClient(externalHttp);
+    }
+
+    @Bean
+    LocClient locClient(RestClient externalHttp) {
+        return new LocClient(externalHttp);
+    }
+
+    @Bean
+    HardcoverClient hardcoverClient(RestClient externalHttp, ShelvedProperties props) {
+        return new HardcoverClient(externalHttp, props.hardcoverApiToken());
     }
 }
