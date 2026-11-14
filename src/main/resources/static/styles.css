@@ -57,9 +57,10 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 /* ---------- Cover ---------- */
-.cover { aspect-ratio: 2 / 3; width: 100%; border-radius: 4px; overflow: hidden; background: var(--soft); box-shadow: 0 0 0 1px rgb(0 0 0 / 0.06); }
-.cover img { width: 100%; height: 100%; object-fit: cover; }
-.typo { height: 100%; padding: 10% 9%; display: flex; flex-direction: column; justify-content: space-between; background: var(--c, #4a5d6e); color: #fff; }
+/* The image is taken out of the flow: otherwise its own proportions stretch or shrink the 2:3 box. */
+.cover { position: relative; aspect-ratio: 2 / 3; width: 100%; border-radius: 4px; overflow: hidden; background: var(--soft); box-shadow: 0 0 0 1px rgb(0 0 0 / 0.06); }
+.cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.typo { position: absolute; inset: 0; padding: 10% 9%; display: flex; flex-direction: column; justify-content: space-between; background: var(--c, #4a5d6e); color: #fff; }
 .typo b { font: 700 clamp(11px, 3.3vw, 15px) / 1.08 var(--display); letter-spacing: -0.01em; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
 .typo small { font: 500 clamp(9px, 2.4vw, 11px) var(--body); opacity: 0.85; }
 
