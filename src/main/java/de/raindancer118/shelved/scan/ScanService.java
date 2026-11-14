@@ -27,7 +27,7 @@ public class ScanService {
     private static final Logger log = LoggerFactory.getLogger(ScanService.class);
     private static final double MIN_TITLE_MATCH = 0.5;
 
-    public record Decision(int index, boolean take, String isbn13) {
+    public record Decision(int index, boolean take, String isbn13, Boolean anotherCopy) {
     }
 
     public record AcceptResult(List<UUID> created, List<UUID> placed) {
@@ -90,7 +90,10 @@ public class ScanService {
             List<ScanItem> items = new ArrayList<>();
             List<LibraryAi.SpineReading> spines = reading.books() == null ? List.of() : reading.books();
             for (int i = 0; i < spines.size(); i++) {
-                items.add(match(owner, i, spines.get(i)));
+                ScanItem item = match(owner, i, spines.get(i));
+                items.add(items.stream().anyMatch(earlier -> sameBook(earlier, item)) && item.ownedBookId() == null
+                        ? new ScanItem(item.index(), item.reading(), ScanItem.Status.DUPLICATE, item.candidate(), item.alternatives(), null)
+                        : item);
             }
             String result = json.writeValueAsString(new ScanItem.Result(items));
             tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(sc -> sc.done(result)));
@@ -130,6 +133,16 @@ public class ScanService {
                 owned.isEmpty() ? null : owned.getFirst().getId());
     }
 
+    static boolean sameBook(ScanItem a, ScanItem b) {
+        if (a.candidate() != null && b.candidate() != null && a.candidate().isbn13() != null) {
+            return a.candidate().isbn13().equals(b.candidate().isbn13());
+        }
+        String authorA = a.reading().authors() == null || a.reading().authors().isEmpty() ? "" : a.reading().authors().getFirst();
+        String authorB = b.reading().authors() == null || b.reading().authors().isEmpty() ? "" : b.reading().authors().getFirst();
+        return Similarity.title(a.reading().title(), b.reading().title()) >= 0.9
+                && (authorA.isBlank() || authorB.isBlank() || Similarity.surname(authorA, authorB));
+    }
+
     private List<BookMetadata> candidates(String title, String author, String publisher) {
         return metadata.search(title, author, publisher).stream()
                 .filter(m -> Similarity.title(title, m.title(), m.subtitle()) >= MIN_TITLE_MATCH)
@@ -156,8 +169,11 @@ public class ScanService {
             Decision d = decisions.stream().filter(x -> x.index() == item.index()).findFirst().orElse(null);
             UUID bookId = item.ownedBookId();
             if (d != null && d.take() && bookId == null) {
-                bookId = add(owner, item, d.isbn13()).getId();
-                created.add(bookId);
+                BookService.Added added = add(owner, item, d.isbn13(), Boolean.TRUE.equals(d.anotherCopy()));
+                bookId = added.book().getId();
+                if (added.created()) {
+                    created.add(bookId);
+                }
             }
             if (bookId != null && scan.getShelfId() != null) {
                 int row = Math.max(1, item.reading().row());
@@ -173,7 +189,17 @@ public class ScanService {
         return new AcceptResult(created, placed);
     }
 
-    private Book add(String owner, ScanItem item, String chosenIsbn) {
+    /** New book, or (same book already there, e.g. twice on the photo) one more copy if asked, else nothing new. */
+    private BookService.Added add(String owner, ScanItem item, String chosenIsbn, boolean anotherCopy) {
+        try {
+            return new BookService.Added(create(owner, item, chosenIsbn), true);
+        } catch (de.raindancer118.shelved.book.DuplicateBookException e) {
+            Book existing = anotherCopy ? books.setCopies(owner, e.existing().getId(), e.existing().getCopies() + 1) : e.existing();
+            return new BookService.Added(existing, false);
+        }
+    }
+
+    private Book create(String owner, ScanItem item, String chosenIsbn) {
         LibraryAi.SpineReading r = item.reading();
         var hint = new BookService.SeriesHint(r.series(), r.volume() > 0 ? r.volume() : null);
         BookMetadata chosen = null;
@@ -187,10 +213,12 @@ public class ScanService {
             chosen = item.candidate();
         }
         if (chosen != null) {
-            return books.addFromMetadata(owner, chosen, hint, false);
+            return books.createFromMetadata(owner, chosen, hint, false);
         }
-        return books.addManual(owner, new de.raindancer118.shelved.book.BookInput(r.title(), null, r.authors(), null,
-                blank(r.publisher()), null, null, null, null, null, null, null, null), hint);
+        var in = new de.raindancer118.shelved.book.BookInput(r.title(), null, r.authors(), null,
+                blank(r.publisher()), null, null, null, null, null, null, null, null);
+        BookService.Added a = books.addManual(owner, in, hint, false);
+        return a.book();
     }
 
     private static String blank(String s) {

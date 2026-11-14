@@ -55,6 +55,7 @@ public class Book {
     private Integer boardNumber;
     private Integer boardPosition;
     private boolean seriesChecked;
+    private int copies = 1;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -138,6 +139,13 @@ public class Book {
         this.shelfId = shelfId;
         this.boardNumber = boardNumber;
         this.boardPosition = boardPosition;
+    }
+    public int getCopies() { return copies; }
+    public void setCopies(int copies) {
+        if (copies < 1 || copies > 99) {
+            throw new IllegalArgumentException("Anzahl Exemplare muss zwischen 1 und 99 liegen");
+        }
+        this.copies = copies;
     }
     public boolean isSeriesChecked() { return seriesChecked; }
     public void setSeriesChecked(boolean seriesChecked) { this.seriesChecked = seriesChecked; }

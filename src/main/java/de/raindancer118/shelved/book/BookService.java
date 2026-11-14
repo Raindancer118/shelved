@@ -18,6 +18,10 @@ public class BookService {
     public record BooksAdded(String ownerId) {
     }
 
+    /** {@code created=false}: the book was already there and got one more copy. */
+    public record Added(Book book, boolean created) {
+    }
+
     public record SeriesHint(String name, Integer volume) {
         public static SeriesHint none() {
             return new SeriesHint(null, null);
@@ -57,15 +61,22 @@ public class BookService {
     }
 
     /** Single book: cover and blurb are fetched right away, so the detail page is complete when it opens. */
-    public Book addFromMetadata(String owner, BookMetadata m, SeriesHint hint) {
-        return addFromMetadata(owner, m, hint, true);
+    public Added addFromMetadata(String owner, BookMetadata m, SeriesHint hint, boolean anotherCopy) {
+        Optional<Book> existing = duplicate(owner, m.isbn13(), m.title(), m.authors());
+        if (existing.isPresent()) {
+            return new Added(oneMoreCopyOrRefuse(existing.get(), anotherCopy), false);
+        }
+        return new Added(createFromMetadata(owner, m, hint, true), true);
     }
 
     /**
      * Stores the book from catalogue data. With {@code enrichNow=false} (a whole shelf at once) cover and blurb
      * are downloaded in the background, otherwise accepting 40 books would take minutes and hit proxy timeouts.
      */
-    public Book addFromMetadata(String owner, BookMetadata m, SeriesHint hint, boolean enrichNow) {
+    public Book createFromMetadata(String owner, BookMetadata m, SeriesHint hint, boolean enrichNow) {
+        duplicate(owner, m.isbn13(), m.title(), m.authors()).ifPresent(d -> {
+            throw new DuplicateBookException(d);
+        });
         Book b = new Book(owner, m.title());
         b.setIsbn13(m.isbn13());
         b.setSubtitle(m.subtitle());
@@ -107,7 +118,15 @@ public class BookService {
         metadata.description(m).ifPresent(target::setDescription);
     }
 
-    public Book addManual(String owner, BookInput in, SeriesHint hint) {
+    public Added addManual(String owner, BookInput in, SeriesHint hint, boolean anotherCopy) {
+        Optional<Book> existing = duplicate(owner, Optional.ofNullable(in.isbn()).flatMap(Isbn::toIsbn13).orElse(null), in.title(), in.authors());
+        if (existing.isPresent()) {
+            return new Added(oneMoreCopyOrRefuse(existing.get(), anotherCopy), false);
+        }
+        return new Added(addManual(owner, in, hint), true);
+    }
+
+    private Book addManual(String owner, BookInput in, SeriesHint hint) {
         Book b = new Book(owner, in.title());
         apply(b, in);
         if (in.seriesName() == null || in.seriesName().isBlank()) {
@@ -119,6 +138,27 @@ public class BookService {
         Book saved = books.save(b);
         events.publishEvent(new BooksAdded(owner));
         return saved;
+    }
+
+    private Book oneMoreCopyOrRefuse(Book existing, boolean anotherCopy) {
+        if (!anotherCopy) {
+            throw new DuplicateBookException(existing);
+        }
+        return setCopies(existing.getOwnerId(), existing.getId(), existing.getCopies() + 1);
+    }
+
+    @Transactional
+    public Book setCopies(String owner, UUID id, int copies) {
+        Book b = get(owner, id);
+        b.setCopies(copies);
+        return books.save(b); // also called from inside this class, where @Transactional doesn't apply
+    }
+
+    /** Same ISBN, or same title with the same author surname. */
+    @Transactional(readOnly = true)
+    public Optional<Book> duplicate(String owner, String isbn13, String title, List<String> authors) {
+        String author = authors == null || authors.isEmpty() ? null : authors.getFirst();
+        return findOwned(owner, isbn13, title, author).stream().findFirst();
     }
 
     @Transactional

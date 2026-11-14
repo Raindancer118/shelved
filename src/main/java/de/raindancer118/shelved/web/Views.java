@@ -20,7 +20,7 @@ public final class Views {
     }
 
     public record BookSummary(UUID id, String isbn13, String title, List<String> authors, String authorSort, String seriesName,
-                              Integer seriesVolume, String cover, String location, Instant createdAt) {
+                              Integer seriesVolume, String cover, String location, int copies, Instant createdAt) {
     }
 
     public record BookDetail(UUID id, String isbn13, String title, String subtitle, List<String> authors,
@@ -29,7 +29,7 @@ public final class Views {
                              String description, String seriesName, Integer seriesVolume, String seriesKey,
                              Integer listPriceCents, Integer usedPriceCents, String cover, UUID shelfId,
                              Integer boardNumber, Integer boardPosition, String location, String metadataSource,
-                             Instant createdAt) {
+                             int copies, Instant createdAt) {
     }
 
     static String cover(Book b) {
@@ -38,7 +38,7 @@ public final class Views {
 
     static BookSummary summary(Book b, Map<UUID, Integer> shelfNumbers) {
         return new BookSummary(b.getId(), b.getIsbn13(), b.getTitle(), b.getAuthors(), b.getAuthorSort(), b.getSeriesName(),
-                b.getSeriesVolume(), cover(b), location(b, shelfNumbers), b.getCreatedAt());
+                b.getSeriesVolume(), cover(b), location(b, shelfNumbers), b.getCopies(), b.getCreatedAt());
     }
 
     static BookDetail detail(Book b, Map<UUID, Integer> shelfNumbers) {
@@ -49,7 +49,7 @@ public final class Views {
                 b.getSeriesName() == null ? null : SeriesService.key(b), b.getListPriceCents(),
                 UsedPriceEstimator.estimateCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 cover(b), b.getShelfId(), b.getBoardNumber(), b.getBoardPosition(), location(b, shelfNumbers),
-                b.getMetadataSource(), b.getCreatedAt());
+                b.getMetadataSource(), b.getCopies(), b.getCreatedAt());
     }
 
     static String location(Book b, Map<UUID, Integer> shelfNumbers) {

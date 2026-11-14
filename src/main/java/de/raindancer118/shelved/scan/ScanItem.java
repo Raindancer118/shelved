@@ -15,7 +15,9 @@ public record ScanItem(int index, LibraryAi.SpineReading reading, Status status,
         /** Already in the library. */
         OWNED,
         /** Spine hard to read or no convincing catalogue match: the user should look. */
-        UNSURE
+        UNSURE,
+        /** The same book as an earlier one on this photo: a second copy only if the user says so. */
+        DUPLICATE
     }
 
     public record Result(List<ScanItem> items) {

@@ -42,7 +42,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class BookController {
 
-    public record AddByIsbn(String isbn) {
+    /** Missing JSON fields arrive as null (Jackson 3 refuses them for primitives). */
+    public record AddByIsbn(String isbn, Boolean anotherCopy) {
     }
 
     public record Lookup(String isbn13, List<Views.BookSummary> owned, BookMetadata metadata) {
@@ -100,20 +101,32 @@ public class BookController {
         return Views.detail(books.get(owner, id), shelfNumbers(owner));
     }
 
+    public record CopiesInput(int copies) {
+    }
+
+    private ResponseEntity<Views.BookDetail> added(String owner, BookService.Added a) {
+        return ResponseEntity.status(a.created() ? HttpStatus.CREATED : HttpStatus.OK).body(Views.detail(a.book(), shelfNumbers(owner)));
+    }
+
     @PostMapping("/books/isbn")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Views.BookDetail addByIsbn(Authentication auth, @RequestBody AddByIsbn req) {
+    public ResponseEntity<Views.BookDetail> addByIsbn(Authentication auth, @RequestBody AddByIsbn req) {
         String owner = Owner.of(auth);
         String isbn = Isbn.toIsbn13(req.isbn()).orElseThrow(() -> new IllegalArgumentException("Keine gültige ISBN"));
         BookMetadata m = metadata.byIsbn(isbn).orElseThrow(() -> new NotFoundException("Buch zu dieser ISBN"));
-        return Views.detail(books.addFromMetadata(owner, m, BookService.SeriesHint.none()), shelfNumbers(owner));
+        return added(owner, books.addFromMetadata(owner, m, BookService.SeriesHint.none(), Boolean.TRUE.equals(req.anotherCopy())));
     }
 
     @PostMapping("/books")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Views.BookDetail addManual(Authentication auth, @Valid @RequestBody BookInput in) {
+    public ResponseEntity<Views.BookDetail> addManual(Authentication auth, @Valid @RequestBody BookInput in,
+                                                      @RequestParam(defaultValue = "false") boolean anotherCopy) {
         String owner = Owner.of(auth);
-        return Views.detail(books.addManual(owner, in, BookService.SeriesHint.none()), shelfNumbers(owner));
+        return added(owner, books.addManual(owner, in, BookService.SeriesHint.none(), anotherCopy));
+    }
+
+    @PostMapping("/books/{id}/copies")
+    public Views.BookDetail copies(Authentication auth, @PathVariable UUID id, @RequestBody CopiesInput in) {
+        String owner = Owner.of(auth);
+        return Views.detail(books.setCopies(owner, id, in.copies()), shelfNumbers(owner));
     }
 
     @PutMapping("/books/{id}")
@@ -169,14 +182,14 @@ public class BookController {
     }
 
     @PostMapping("/books/from-catalog")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Views.BookDetail addFromCatalog(Authentication auth, @RequestBody BookMetadata m) {
+    public ResponseEntity<Views.BookDetail> addFromCatalog(Authentication auth, @RequestBody BookMetadata m,
+                                                           @RequestParam(defaultValue = "false") boolean anotherCopy) {
         String owner = Owner.of(auth);
         if (m.title() == null || m.title().isBlank()) {
             throw new IllegalArgumentException("Titel fehlt");
         }
         // prefer fresh data for ISBN-identified books instead of trusting the client copy
         BookMetadata data = m.isbn13() == null ? m : metadata.byIsbn(m.isbn13()).orElse(m);
-        return Views.detail(books.addFromMetadata(owner, data, BookService.SeriesHint.none()), shelfNumbers(owner));
+        return added(owner, books.addFromMetadata(owner, data, BookService.SeriesHint.none(), anotherCopy));
     }
 }

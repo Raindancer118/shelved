@@ -13,7 +13,7 @@ async function ensureCsrf() {
 }
 
 export class ApiError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
+  constructor(status, message, data = null) { super(message); this.status = status; this.data = data; }
 }
 
 export async function api(path, { method = 'GET', json, form } = {}) {
@@ -33,7 +33,7 @@ export async function api(path, { method = 'GET', json, form } = {}) {
   if (res.status === 204) return null;
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
-  if (!res.ok) throw new ApiError(res.status, data?.error ?? `Fehler ${res.status}`);
+  if (!res.ok) throw new ApiError(res.status, data?.error ?? `Fehler ${res.status}`, data);
   return data;
 }
 

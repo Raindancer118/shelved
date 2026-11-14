@@ -25,6 +25,12 @@ public class ApiErrors {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
+    @ExceptionHandler(de.raindancer118.shelved.book.DuplicateBookException.class)
+    ResponseEntity<Map<String, Object>> duplicate(de.raindancer118.shelved.book.DuplicateBookException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage(),
+                "existingId", e.existing().getId().toString(), "title", e.existing().getTitle()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<Map<String, String>> invalid(MethodArgumentNotValidException e) {
         var field = e.getBindingResult().getFieldError();

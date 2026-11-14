@@ -60,6 +60,23 @@ async function route() {
 }
 
 function go(path) { location.hash = '#' + path; }
+
+/**
+ * Runs an "add" call. If the library already has the book, asks whether this is another copy
+ * and repeats the call with anotherCopy. Returns the book, or null if the user said no.
+ */
+async function addOrCopy(call) {
+  try {
+    return await call(false);
+  } catch (e) {
+    if (e.status !== 409) throw e;
+    if (!confirm(`„${e.data.title}“ hast du schon. Besitzt du es mehrfach? Dann zähle ich es als weiteres Exemplar.`)) {
+      go(`/book/${e.data.existingId}`);
+      return null;
+    }
+    return call(true);
+  }
+}
 function paint(html) { app.innerHTML = html; applyVars(app); }
 const backBar = (href, right = '') => `<div class="bar"><a class="round" href="${href}" aria-label="Zurück">${icons.back}</a>${right}</div>`;
 
@@ -94,7 +111,8 @@ function gridHtml(list) {
   if (!list.length) return `<p class="empty">Nichts gefunden.</p>`;
   return `<div class="grid">${list.map(b => `
     <a class="book" href="#/book/${b.id}" data-letter="${esc(surname(b).charAt(0).toUpperCase())}">
-      ${cover(b)}<b>${esc(b.title)}</b><small>${esc(surname(b) || authors(b.authors))}</small>
+      <div class="cv-wrap">${cover(b)}${b.copies > 1 ? `<span class="copies">${b.copies}×</span>` : ''}</div>
+      <b>${esc(b.title)}</b><small>${esc(surname(b) || authors(b.authors))}</small>
     </a>`).join('')}</div>`;
 }
 
@@ -151,6 +169,8 @@ async function viewBook(id) {
     ['Gebraucht', b.usedPriceCents != null && `ca. ${euros(b.usedPriceCents)}`],
     ['Dicke', `${b.estimatedThicknessMm} mm${b.thicknessMm ? '' : ' (geschätzt)'}`],
   ].filter(([, v]) => v);
+  const copiesRow = `<dt>Exemplare</dt><dd class="stepper"><button class="round sm" id="less" aria-label="Ein Exemplar weniger" ${b.copies <= 1 ? 'disabled' : ''}>−</button>
+      <b>${b.copies}</b><button class="round sm" id="more" aria-label="Ein Exemplar mehr">+</button></dd>`;
   paint(`
     ${backBar('#/', `<a class="round" href="#/book/${b.id}/edit" aria-label="Bearbeiten">${icons.pen}</a>`)}
     <div class="stage"><label title="Cover ändern">${cover(b, { lazy: false })}<input id="coverfile" class="sr" type="file" accept="image/jpeg,image/png"></label></div>
@@ -161,11 +181,14 @@ async function viewBook(id) {
     <div class="loc">
       <div><b>${esc(b.location ?? 'Ohne Platz')}</b><small>${b.location ? 'steht hier laut letztem Regalfoto' : 'noch keinem Regal zugeordnet'}${targetLabel && targetLabel !== b.location ? ` · gehört nach <strong>${esc(targetLabel)}</strong>` : ''}</small></div>
       <a class="link" href="#/shelves">Einsortieren</a></div>
-    <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+    <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}${copiesRow}</dl>
     ${b.description ? `<p class="blurb clamp" id="blurb">${esc(b.description)}</p>` : ''}
     <div class="actions"><a class="btn ghost" href="#/book/${b.id}/edit">${icons.pen} Bearbeiten</a><button class="btn danger" id="delete">Löschen</button></div>`);
 
   document.getElementById('blurb')?.addEventListener('click', e => e.currentTarget.classList.toggle('clamp'));
+  const setCopies = async n => { await post(`/api/books/${b.id}/copies`, { copies: n }); invalidate(); route(); };
+  document.getElementById('more').addEventListener('click', () => setCopies(b.copies + 1));
+  document.getElementById('less').addEventListener('click', () => setCopies(b.copies - 1));
   document.getElementById('coverfile').addEventListener('change', async e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -220,7 +243,8 @@ async function viewEdit(id) {
       format: f.get('format') || null, seriesName: f.get('seriesName') ?? '', seriesVolume: num('seriesVolume'),
       listPriceCents: price ? Math.round(Number(price) * 100) : null, description: f.get('description'),
     };
-    const saved = id ? await put(`/api/books/${id}`, body) : await post('/api/books', body);
+    const saved = id ? await put(`/api/books/${id}`, body) : await addOrCopy(another => post(`/api/books?anotherCopy=${another}`, body));
+    if (!saved) return;
     invalidate();
     toast('Gespeichert');
     go(`/book/${saved.id}`);
@@ -319,9 +343,11 @@ async function showIsbn(isbn, out, purpose) {
       <span class="tag new">Neu</span></div><button class="btn block" id="addit">${icons.plus} In die Bibliothek</button></div>`;
     document.getElementById('addit').addEventListener('click', async e => {
       e.target.disabled = true;
-      const b = await post('/api/books/isbn', { isbn: r.isbn13 });
+      const b = await addOrCopy(another => post('/api/books/isbn', { isbn: r.isbn13, anotherCopy: another }));
+      e.target.disabled = false;
+      if (!b) return;
       invalidate();
-      toast(`„${b.title}“ hinzugefügt`);
+      toast(b.copies > 1 ? `„${b.title}“: jetzt ${b.copies} Exemplare` : `„${b.title}“ hinzugefügt`);
       if (purpose === 'add') { out.innerHTML = ''; document.getElementById('isbn').value = ''; } else go(`/book/${b.id}`);
     });
   } else {
@@ -354,7 +380,9 @@ async function viewManual() {
     applyVars(out);
     out.querySelectorAll('[data-i]').forEach(btn => btn.addEventListener('click', async () => {
       btn.disabled = true;
-      const b = await post('/api/books/from-catalog', hits[Number(btn.dataset.i)]);
+      const b = await addOrCopy(another => post(`/api/books/from-catalog?anotherCopy=${another}`, hits[Number(btn.dataset.i)]));
+      btn.disabled = false;
+      if (!b) return;
       invalidate();
       toast(`„${b.title}“ hinzugefügt`);
       go(`/book/${b.id}`);
@@ -390,7 +418,7 @@ async function viewShelfScan() {
   });
 }
 
-const STATUS = { NEW: ['new', 'Neu'], OWNED: ['owned', 'Hast du'], UNSURE: ['unsure', 'Prüfen'] };
+const STATUS = { NEW: ['new', 'Neu'], OWNED: ['owned', 'Hast du'], UNSURE: ['unsure', 'Prüfen'], DUPLICATE: ['unsure', 'Doppelt im Foto'] };
 
 async function viewScan(id) {
   paint(pendingView('Die Buchrücken werden gelesen … das dauert bei einem vollen Brett etwa eine halbe Minute.'));
@@ -410,6 +438,7 @@ async function viewScan(id) {
       <div class="grow"><b>${esc(options[0]?.title ?? r.title ?? '?')}</b>
         <small>${esc(authors(options[0]?.authors?.length ? options[0].authors : r.authors))}${r.series ? ' · ' + esc(r.series) + (r.volume ? ' ' + r.volume : '') : ''}</small>
         ${it.status === 'UNSURE' ? `<small>Gelesen: „${esc(r.spineText || r.title)}“</small>` : ''}
+        ${it.status === 'DUPLICATE' ? '<small>Anhaken, wenn du es wirklich zweimal hast</small>' : ''}
         ${options.length > 1 && it.status !== 'OWNED' ? `<select class="pick" data-pick="${it.index}">${options.map(m => `<option value="${esc(m.isbn13 ?? '')}">${esc([m.publisher, m.publishedYear, m.isbn13].filter(Boolean).join(' · ') || m.title)}</option>`).join('')}</select>` : ''}
       </div><span class="tag ${cls}">${label}</span></div>`;
   };
@@ -432,6 +461,7 @@ async function viewScan(id) {
     btn.disabled = true;
     const decisions = [...app.querySelectorAll('.check')].map(c => ({
       index: Number(c.dataset.i), take: c.checked,
+      anotherCopy: items.find(it => it.index === Number(c.dataset.i))?.status === 'DUPLICATE' && c.checked,
       isbn13: app.querySelector(`[data-pick="${c.dataset.i}"]`)?.value || null,
     }));
     const res = await post(`/api/scans/${id}/accept`, { items: decisions });
