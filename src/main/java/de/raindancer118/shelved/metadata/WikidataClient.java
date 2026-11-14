@@ -25,7 +25,8 @@ public class WikidataClient {
 
     private static final Logger log = LoggerFactory.getLogger(WikidataClient.class);
 
-    public record SeriesMatch(String seriesId, String seriesName, Integer volume) {
+    /** {@code german}: the name is Wikidata's German label (not an English fallback). */
+    public record SeriesMatch(String seriesId, String seriesName, Integer volume, boolean german) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -52,7 +53,7 @@ public class WikidataClient {
         }
         String surname = Names.collationKey(Names.sortForm(author).split(",")[0]);
         String query = """
-                SELECT ?series ?seriesLabel ?ord (COUNT(DISTINCT ?sibling) AS ?size) WHERE {
+                SELECT ?series ?seriesLabel ?deLabel ?ord (COUNT(DISTINCT ?sibling) AS ?size) WHERE {
                   SERVICE wikibase:mwapi {
                     bd:serviceParam wikibase:endpoint "www.wikidata.org"; wikibase:api "EntitySearch";
                                     mwapi:search "%s"; mwapi:language "de"; mwapi:limit "10".
@@ -63,14 +64,16 @@ public class WikidataClient {
                   ?book wdt:P50 ?author . ?author rdfs:label ?authorLabel .
                   FILTER(LANG(?authorLabel) IN ("de","en") && CONTAINS(LCASE(STR(?authorLabel)), "%s"))
                   OPTIONAL { ?sibling wdt:P179 ?series . }
+                  OPTIONAL { ?series rdfs:label ?deLabel . FILTER(LANG(?deLabel) = "de") }
                   SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
-                } GROUP BY ?series ?seriesLabel ?ord""".formatted(literal(title), literal(surname));
+                } GROUP BY ?series ?seriesLabel ?deLabel ?ord""".formatted(literal(title), literal(surname));
         // the biggest series wins: "Scheibenwelt-Romane" (63 works) over the sub-series "Rincewind" (8)
         return run(query).stream()
                 .max(Comparator.comparingInt(b -> parseInt(b, "size", 0)))
-                .map(b -> new SeriesMatch(qid(b.get("series").value()), cleanSeriesName(b.get("seriesLabel").value()),
-                        b.containsKey("ord") ? parseInt(b, "ord", 0) : null))
-                .map(m -> m.volume() != null && m.volume() <= 0 ? new SeriesMatch(m.seriesId(), m.seriesName(), null) : m);
+                .map(b -> new SeriesMatch(qid(b.get("series").value()),
+                        cleanSeriesName((b.containsKey("deLabel") ? b.get("deLabel") : b.get("seriesLabel")).value()),
+                        b.containsKey("ord") && parseInt(b, "ord", 0) > 0 ? parseInt(b, "ord", 0) : null,
+                        b.containsKey("deLabel")));
     }
 
     public List<SeriesCatalogVolume> catalog(String seriesId, String language) {
@@ -101,9 +104,7 @@ public class WikidataClient {
     }
 
     static String cleanSeriesName(String label) {
-        return label.replaceAll("\\s*\\((Roman|Buch)?reihe\\)$", "")
-                .replaceAll("-(Romane|Reihe|Romanreihe|Buchreihe|Serie)$", "")
-                .trim();
+        return de.raindancer118.shelved.series.SeriesNames.normalize(label);
     }
 
     private List<Map<String, Value>> run(String sparql) {

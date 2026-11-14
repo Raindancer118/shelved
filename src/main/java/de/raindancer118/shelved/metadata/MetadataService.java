@@ -69,7 +69,7 @@ public class MetadataService {
     }
 
     public static double score(BookMetadata m, String title, String author, String publisherHint) {
-        double s = Similarity.title(title, m.title(), m.subtitle()) * 3;
+        double s = Similarity.edition(title, m) * 3;
         if (author != null && !author.isBlank() && !m.authors().isEmpty()) {
             s += Similarity.surname(author, m.authors().getFirst()) ? 1.5 : 0;
         }
@@ -85,6 +85,9 @@ public class MetadataService {
         }
         if (m.listPriceCents() != null) {
             s += 0.3; // a bound German retail price marks the regular trade edition
+        }
+        if (m.seriesName() != null) {
+            s += 0.2; // catalogued with its series: the national library's print record
         }
         if ("ger".equals(m.language())) {
             s += 0.3;
@@ -134,6 +137,8 @@ public class MetadataService {
                 // Google renders covers at 600 px, the DNB/MVB ones are ~380 px; CoverStore falls back to DNB anyway
                 "GOOGLE".equals(extra.source()) && extra.coverUrl() != null ? extra.coverUrl()
                         : primary.coverUrl() != null ? primary.coverUrl() : extra.coverUrl(),
-                primary.source());
+                primary.source(),
+                primary.seriesName() != null ? primary.seriesName() : extra.seriesName(),
+                primary.seriesName() != null ? primary.seriesVolume() : extra.seriesVolume());
     }
 }

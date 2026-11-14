@@ -56,7 +56,36 @@ public class DnbClient {
         return query(q.append(" and mat=books").toString(), 30);
     }
 
+    /**
+     * All volumes of a series as the national library knows them (German titles, publisher numbering).
+     * Most frequent title per volume number wins, so one odd edition doesn't rename a volume.
+     */
+    public List<de.raindancer118.shelved.series.SeriesCatalogVolume> seriesCatalog(String seriesName, String author) {
+        StringBuilder q = new StringBuilder("tit=").append(clean(seriesName));
+        String surname = surnameOf(author);
+        if (!surname.isBlank()) {
+            q.append(" and per=").append(clean(surname));
+        }
+        byte[] body = fetch(q.append(" and mat=books").toString(), 100);
+        java.util.Map<Integer, java.util.Map<String, Integer>> titles = new java.util.TreeMap<>();
+        for (BookMetadata m : body == null ? List.<BookMetadata>of() : parse(body, false)) {
+            if (m.seriesName() != null && m.seriesVolume() != null
+                    && Similarity.title(seriesName, m.seriesName()) >= 0.6) {
+                titles.computeIfAbsent(m.seriesVolume(), k -> new java.util.LinkedHashMap<>()).merge(m.title(), 1, Integer::sum);
+            }
+        }
+        return titles.entrySet().stream()
+                .map(e -> new de.raindancer118.shelved.series.SeriesCatalogVolume(e.getKey(),
+                        e.getValue().entrySet().stream().max(java.util.Map.Entry.comparingByValue()).orElseThrow().getKey()))
+                .toList();
+    }
+
     private List<BookMetadata> query(String cql, int max) {
+        byte[] body = fetch(cql, max);
+        return body == null ? List.of() : parse(body);
+    }
+
+    private byte[] fetch(String cql, int max) {
         URI uri = UriComponentsBuilder.fromUriString("https://services.dnb.de/sru/dnb")
                 .queryParam("version", "1.1")
                 .queryParam("operation", "searchRetrieve")
@@ -67,15 +96,18 @@ public class DnbClient {
                 .build()
                 .toUri();
         try {
-            byte[] body = http.get().uri(uri).retrieve().body(byte[].class);
-            return body == null ? List.of() : parse(body);
+            return http.get().uri(uri).retrieve().body(byte[].class);
         } catch (RestClientException e) {
             log.warn("DNB query failed: {}", e.getMessage());
-            return List.of();
+            return null;
         }
     }
 
     static List<BookMetadata> parse(byte[] xml) {
+        return parse(xml, true);
+    }
+
+    static List<BookMetadata> parse(byte[] xml, boolean printedOnly) {
         try {
             DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
             f.setNamespaceAware(true);
@@ -86,7 +118,7 @@ public class DnbClient {
             List<BookMetadata> out = new ArrayList<>();
             for (int i = 0; i < records.getLength(); i++) {
                 Marc rec = new Marc((Element) records.item(i));
-                if (!rec.isPrintedBook()) {
+                if (printedOnly && !rec.isPrintedBook()) {
                     continue;
                 }
                 toMetadata(rec).ifPresent(out::add);
@@ -116,8 +148,14 @@ public class DnbClient {
         String partTitle = rec.first("245", "p");
         String title = Titles.display(rawTitle);
         String subtitle = rec.first("245", "b");
+        Series series = rec.series(Optional.ofNullable(rec.first("264", "b")).orElse(rec.first("260", "b")));
         if (partTitle != null) {
-            subtitle = (part != null ? part + ". " : "") + Titles.display(partTitle);
+            // multi-part work "Samurai ; 1, Der Weg des Kämpfers": the part is the book, the main title its series
+            if (series == null && volumeNumber(part) != null) {
+                series = new Series(cleanSeries(rawTitle), volumeNumber(part));
+            }
+            rawTitle = partTitle;
+            title = Titles.display(partTitle);
         }
 
         List<String> sortNames = new ArrayList<>();
@@ -160,7 +198,9 @@ public class DnbClient {
                 descriptionUrl,
                 null,
                 isbn == null ? null : "https://portal.dnb.de/opac/mvb/cover?isbn=" + isbn,
-                "DNB"));
+                "DNB",
+                series == null ? null : series.name(),
+                series == null ? null : series.volume()));
     }
 
     private static void addIfAuthor(Element field, List<String> names) {
@@ -169,6 +209,41 @@ public class DnbClient {
         if (name != null && (role == null || "aut".equals(role)) && !names.contains(name)) {
             names.add(name);
         }
+    }
+
+    record Series(String name, Integer volume) {
+    }
+
+    private static final Pattern NUMBER = Pattern.compile("\\d+");
+
+    /** "8. Band", "Band 1", "Buch 1", "1" → number; imprint numbers ("8016 : Piper Fantasy") are too big to be volumes. */
+    static Integer volumeNumber(String v) {
+        if (v == null) {
+            return null;
+        }
+        Matcher m = NUMBER.matcher(v);
+        if (!m.find()) {
+            return null;
+        }
+        int n = Integer.parseInt(m.group());
+        return n >= 1 && n <= 300 ? n : null;
+    }
+
+    // "Der ... Band der Tintenwelt-Reihe", "... Roman des Zyklus von der Scheibenwelt", "Bd. ... der Mysteria-Trilogie"
+    private static final Pattern ORDINAL_PLACEHOLDER = Pattern.compile(
+            "^.*?\\.\\.\\.\\s*(?:\\S+\\s+)??(?:des\\s+Zyklus\\s+)?(?:von\\s+)?(?:der|des|dem|die|den)\\s+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern NOT_A_SERIES = Pattern.compile(
+            "(?i)\\bwerke?\\b|werkausgabe|bibliothek|klassiker|edition|taschenbuch|bücherei|sammlung|gesamtausgabe|sonderausgabe|leichter sprache");
+
+    static String cleanSeries(String name) {
+        String n = Titles.display(name).replaceAll("\\s*/\\s*[^/]+$", "").trim(); // "Mysteria-Trilogie / Peter Freund"
+        n = ORDINAL_PLACEHOLDER.matcher(n).replaceFirst("");
+        return WikidataClient.cleanSeriesName(n.replaceAll("\\s*[;:,.]\\s*$", "").trim());
+    }
+
+    /** Collected works, imprints and anthologies number their books too, but they are no reading series. */
+    static boolean notALiterarySeries(String name) {
+        return NOT_A_SERIES.matcher(Titles.display(name)).find();
     }
 
     static Integer year(String s) {
@@ -202,7 +277,7 @@ public class DnbClient {
 
     private static String clean(String s) {
         // dashes, colons and quotes break CQL or narrow the match ("Mysteria – Das Tor des Feuers")
-        return s == null ? "" : s.replaceAll("[\"()=<>/\\\\–—:;,.!?„“”'&]", " ").replaceAll("\\s+", " ").trim();
+        return s == null ? "" : s.replaceAll("[\"()=<>/\\\\–—:;,.!?„“”'&]", " ").replaceAll("\\s-\\s", " ").replaceAll("\\s+", " ").trim();
     }
 
     private static String surnameOf(String author) {
@@ -261,6 +336,31 @@ public class DnbClient {
             }
             String extent = first("300", "a");
             return extent == null || !(extent.contains("Online") || extent.contains("CD"));
+        }
+
+        /**
+         * The literary series: only 800 (author + series title). 490/830 turned out to be mostly publisher
+         * imprints ("Piper Fantasy", "Goldmann ; 48682", "Bild-am-Sonntag-Fantasy-Bibliothek").
+         */
+        Series series(String publisher) {
+            for (Element f : fields("800")) {
+                String t = sub(f, "t");
+                Integer v = volumeNumber(sub(f, "v"));
+                if (t != null && v != null && !notALiterarySeries(t) && !imprint(t, publisher)) {
+                    return new Series(cleanSeries(t), v);
+                }
+            }
+            return null;
+        }
+
+        private static boolean imprint(String series, String publisher) {
+            String s = Names.collationKey(Titles.display(series));
+            if (publisher == null) {
+                return false;
+            }
+            String p = Names.collationKey(Titles.display(publisher));
+            String firstWord = p.split("[^\\p{L}]+")[0];
+            return !firstWord.isBlank() && (s.equals(p) || s.startsWith(firstWord) || p.contains(s));
         }
 
         Optional<BookFormat> productForm() {

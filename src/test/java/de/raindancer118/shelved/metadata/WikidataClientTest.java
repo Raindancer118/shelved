@@ -37,6 +37,7 @@ class WikidataClientTest {
         assertThat(match.seriesId()).isEqualTo("Q3257270");
         assertThat(match.seriesName()).isEqualTo("Scheibenwelt");
         assertThat(match.volume()).isEqualTo(1);
+        assertThat(match.german()).isTrue();
     }
 
     @Test
@@ -70,6 +71,6 @@ class WikidataClientTest {
         assertThat(WikidataClient.cleanSeriesName("Scheibenwelt-Romane")).isEqualTo("Scheibenwelt");
         assertThat(WikidataClient.cleanSeriesName("Harry Potter")).isEqualTo("Harry Potter");
         assertThat(WikidataClient.cleanSeriesName("Die Tribute von Panem (Romanreihe)")).isEqualTo("Die Tribute von Panem");
-        assertThat(WikidataClient.cleanSeriesName("Tintenwelt-Trilogie")).isEqualTo("Tintenwelt-Trilogie");
+        assertThat(WikidataClient.cleanSeriesName("Tintenwelt-Tetralogie")).isEqualTo("Tintenwelt");
     }
 }

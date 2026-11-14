@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/"><version>1.1</version><numberOfRecords>1</numberOfRecords><records><record><recordSchema>MARC21-xml</recordSchema><recordPacking>xml</recordPacking><recordData><record xmlns="http://www.loc.gov/MARC21/slim" type="Bibliographic">
+    <leader>00000pam a2200000 cb4500</leader>
+    <controlfield tag="001">1130176304</controlfield>
+    <controlfield tag="003">DE-101</controlfield>
+    <controlfield tag="005">20231018090449.0</controlfield>
+    <controlfield tag="007">tu</controlfield>
+    <controlfield tag="008">170418s2017    gw ||||| |||| 00||||ger  </controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">18,A47</subfield>
+      <subfield code="z">17,N17</subfield>
+      <subfield code="2">dnb</subfield>
+    </datafield>
+    <datafield tag="016" ind1="7" ind2=" ">
+      <subfield code="2">DE-101</subfield>
+      <subfield code="a">1130176304</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">9783442486823</subfield>
+      <subfield code="c">Broschur : circa EUR 10.00 (DE), circa EUR 10.30 (AT), circa CHF 13.90 (freier Preis)</subfield>
+      <subfield code="9">978-3-442-48682-3</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">3442486823</subfield>
+      <subfield code="9">3-442-48682-3</subfield>
+    </datafield>
+    <datafield tag="024" ind1="3" ind2=" ">
+      <subfield code="a">9783442486823</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(DE-599)DNB1130176304</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)984753037</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">1245</subfield>
+      <subfield code="b">ger</subfield>
+      <subfield code="c">DE-101</subfield>
+      <subfield code="d">1247</subfield>
+      <subfield code="e">rda</subfield>
+    </datafield>
+    <datafield tag="041" ind1=" " ind2=" ">
+      <subfield code="a">ger</subfield>
+      <subfield code="h">eng</subfield>
+    </datafield>
+    <datafield tag="044" ind1=" " ind2=" ">
+      <subfield code="c">XA-DE-BY</subfield>
+    </datafield>
+    <datafield tag="082" ind1="7" ind2="4">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">810</subfield>
+      <subfield code="a">B</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="2">23sdnb</subfield>
+    </datafield>
+    <datafield tag="090" ind1=" " ind2=" ">
+      <subfield code="a">b</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)133854140</subfield>
+      <subfield code="0">https://d-nb.info/gnd/133854140</subfield>
+      <subfield code="0">(DE-101)133854140</subfield>
+      <subfield code="a">Clare, Cassandra</subfield>
+      <subfield code="d">1973-</subfield>
+      <subfield code="e">Verfasser</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="240" ind1="1" ind2="0">
+      <subfield code="a">City of bones</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="a">City of Bones</subfield>
+      <subfield code="b">Roman</subfield>
+      <subfield code="c">Cassandra Clare ; Deutsch von Franca Fritz und Heinrich Koop</subfield>
+    </datafield>
+    <datafield tag="250" ind1=" " ind2=" ">
+      <subfield code="a">1. Auflage, Neuausgabe</subfield>
+    </datafield>
+    <datafield tag="264" ind1=" " ind2="1">
+      <subfield code="a">München</subfield>
+      <subfield code="b">Goldmann</subfield>
+      <subfield code="c">November 2017</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">551 Seiten</subfield>
+      <subfield code="c">19 cm</subfield>
+    </datafield>
+    <datafield tag="336" ind1=" " ind2=" ">
+      <subfield code="a">Text</subfield>
+      <subfield code="b">txt</subfield>
+      <subfield code="2">rdacontent</subfield>
+    </datafield>
+    <datafield tag="337" ind1=" " ind2=" ">
+      <subfield code="a">ohne Hilfsmittel zu benutzen</subfield>
+      <subfield code="b">n</subfield>
+      <subfield code="2">rdamedia</subfield>
+    </datafield>
+    <datafield tag="338" ind1=" " ind2=" ">
+      <subfield code="a">Band</subfield>
+      <subfield code="b">nc</subfield>
+      <subfield code="2">rdacarrier</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Chroniken der Unterwelt</subfield>
+      <subfield code="v">Buch 1</subfield>
+    </datafield>
+    <datafield tag="490" ind1="1" ind2=" ">
+      <subfield code="a">Goldmann</subfield>
+      <subfield code="v">48682</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform)Paperback / softback</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktform (spezifisch))With flaps</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">New-York-Times-Bestsellerautorin</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Spiegel Bestseller Autorin</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Los Angeles</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Schattenjäger</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">Chroniken der Unterwelt</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(VLB-WN)2132: Taschenbuch / Belletristik/Fantasy</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(BISAC Subject Heading)FIC009000</subfield>
+    </datafield>
+    <datafield tag="653" ind1=" " ind2=" ">
+      <subfield code="a">(Produktgruppe)7510: Belletristik</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-588)1071854844</subfield>
+      <subfield code="0">https://d-nb.info/gnd/1071854844</subfield>
+      <subfield code="0">(DE-101)1071854844</subfield>
+      <subfield code="a">Fiktionale Darstellung</subfield>
+      <subfield code="2">gnd-content</subfield>
+    </datafield>
+    <datafield tag="655" ind1=" " ind2="7">
+      <subfield code="0">(DE-101)1010885626</subfield>
+      <subfield code="a">Fantasy</subfield>
+      <subfield code="2">gatbeg</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="0">(DE-588)136967531</subfield>
+      <subfield code="0">https://d-nb.info/gnd/136967531</subfield>
+      <subfield code="0">(DE-101)136967531</subfield>
+      <subfield code="a">Fritz, Franca</subfield>
+      <subfield code="d">1962-</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="0">(DE-588)139525610</subfield>
+      <subfield code="0">https://d-nb.info/gnd/139525610</subfield>
+      <subfield code="0">(DE-101)139525610</subfield>
+      <subfield code="a">Koop, Heinrich</subfield>
+      <subfield code="d">1961-</subfield>
+      <subfield code="e">Übersetzer</subfield>
+      <subfield code="4">trl</subfield>
+      <subfield code="2">gnd</subfield>
+    </datafield>
+    <datafield tag="776" ind1="0" ind2="8">
+      <subfield code="i">Erscheint auch als</subfield>
+      <subfield code="n">Online-Ausgabe</subfield>
+      <subfield code="a">Clare, Cassandra, 1973-</subfield>
+      <subfield code="t">City of Bones</subfield>
+      <subfield code="d">München : Goldmann Verlag, 2017</subfield>
+      <subfield code="h">Online-Ressourcen, 560 Seiten, 1 Illustrationen</subfield>
+      <subfield code="w">(DE-101)1144820472</subfield>
+    </datafield>
+    <datafield tag="800" ind1="1" ind2=" ">
+      <subfield code="a">Clare, Cassandra</subfield>
+      <subfield code="d">1973-</subfield>
+      <subfield code="4">aut</subfield>
+      <subfield code="t">Chroniken der Unterwelt</subfield>
+      <subfield code="v">Buch 1</subfield>
+      <subfield code="w">(DE-101)1170699197</subfield>
+      <subfield code="9">11</subfield>
+      <subfield code="7">am</subfield>
+    </datafield>
+    <datafield tag="830" ind1=" " ind2="0">
+      <subfield code="a">Goldmann</subfield>
+      <subfield code="v">48682</subfield>
+      <subfield code="w">(DE-101)01079042X</subfield>
+      <subfield code="w">(DE-600)135758-X</subfield>
+      <subfield code="9">548682</subfield>
+      <subfield code="7">as</subfield>
+    </datafield>
+    <datafield tag="850" ind1=" " ind2=" ">
+      <subfield code="a">DE-101a</subfield>
+      <subfield code="a">DE-101b</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">X:MVB</subfield>
+      <subfield code="q">text/html</subfield>
+      <subfield code="u">https://services.dnb.de/plus/idn/1130176304/blurb/</subfield>
+      <subfield code="3">Inhaltstext</subfield>
+    </datafield>
+    <datafield tag="856" ind1="4" ind2="2">
+      <subfield code="m">B:DE-101</subfield>
+      <subfield code="q">application/pdf</subfield>
+      <subfield code="u">https://d-nb.info/1130176304/04</subfield>
+      <subfield code="3">Inhaltsverzeichnis</subfield>
+    </datafield>
+    <datafield tag="883" ind1=" " ind2=" ">
+      <subfield code="8">1\p</subfield>
+      <subfield code="a">cgwrk</subfield>
+      <subfield code="d">20210314</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#cgwrk</subfield>
+    </datafield>
+    <datafield tag="883" ind1="2" ind2=" ">
+      <subfield code="8">2\p</subfield>
+      <subfield code="a">dnb</subfield>
+      <subfield code="d">20181112</subfield>
+      <subfield code="q">DE-101</subfield>
+      <subfield code="u">https://d-nb.info/provenance/plan#dnb</subfield>
+    </datafield>
+    <datafield tag="925" ind1="r" ind2=" ">
+      <subfield code="a">ra</subfield>
+    </datafield>
+    <datafield tag="926" ind1="1" ind2=" ">
+      <subfield code="a">FM</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.2</subfield>
+      <subfield code="x">Fantasyliteratur</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">FMR</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.2</subfield>
+      <subfield code="x">Fantasy (Romance, Dark Romance)</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">FMX</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.2</subfield>
+      <subfield code="x">Urban Fantasy</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">FYT</subfield>
+      <subfield code="o">93</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.2</subfield>
+      <subfield code="x">Belletristik in Übersetzung</subfield>
+    </datafield>
+    <datafield tag="926" ind1="2" ind2=" ">
+      <subfield code="a">1KBB-US-WPCA</subfield>
+      <subfield code="o">94</subfield>
+      <subfield code="q">Publisher</subfield>
+      <subfield code="v">1.2</subfield>
+      <subfield code="x">Los Angeles</subfield>
+    </datafield>
+  </record></recordData><recordPosition>1</recordPosition></record></records><echoedSearchRetrieveRequest><version>1.1</version><query>num=9783442486823</query><xQuery xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/><maximumRecords>5</maximumRecords><recordSchema>MARC21-xml</recordSchema></echoedSearchRetrieveRequest></searchRetrieveResponse>
