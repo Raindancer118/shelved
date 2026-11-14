@@ -35,8 +35,15 @@ export function scanBarcode(video, onIsbn) {
   return stop;
 }
 
-/** Downscales a phone photo before upload: keeps enough detail for spines, saves bandwidth. */
+/**
+ * JPEG photos up to 15 MB go up untouched: decoding a 12 MP photo in the browser needs ~100 MB of RAM,
+ * which crashes tabs on phones short of memory. The server turns (EXIF) and scales them anyway.
+ * Other formats or huge files are re-encoded here.
+ */
 export async function prepareImage(file, maxEdge = 4000) {
+  if (file.type === 'image/jpeg' && file.size <= 15 * 1024 * 1024 && maxEdge >= 4000) {
+    return file;
+  }
   const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas');
