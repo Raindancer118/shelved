@@ -1,6 +1,23 @@
 # shelved
 
-Bücherregal-Inventar: Regalfoto oder Barcode scannen, Bestand mit Covern ansehen, nach Nachname einsortieren, fehlende Reihenbände finden, Wert der Bibliothek schätzen.
+[![CI/CD](https://github.com/Raindancer118/shelved/actions/workflows/ci.yml/badge.svg)](https://github.com/Raindancer118/shelved/actions/workflows/ci.yml)
+![Java 25](https://img.shields.io/badge/Java-25-b07219)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4-6db33f)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+
+Bücherregal-Inventar: Regalfoto oder Barcode scannen, Bestand mit Covern ansehen, nach Nachname einsortieren, fehlende Reihenbände finden, Wert der Bibliothek schätzen. Läuft auf [shelf.tstieh.de](https://shelf.tstieh.de).
+
+## Was es kann
+
+- **Erfassen.** ein Foto vom ganzen Regal oder einzelne Barcodes. Ein Sprachmodell liest die Buchrücken, alles andere kommt aus offenen Katalogen.
+- **Einsortieren.** Bücher bekommen einen Platz im Regal nach Nachname, die Brettbreite wird bei Bedarf aus dem Foto geschätzt.
+- **Reihen.** fehlende Bände einer Reihe werden erkannt und angezeigt.
+- **Wert und Versicherung.** Wert der Bibliothek schätzen und eine Inventarliste für die Hausratversicherung als PDF und CSV ausgeben.
+- **Gemeinsam nutzen.** Bibliotheken mit Mitgliedern und Rollen (Eigentümer, Leitung, Mitarbeit, Nur lesen), Einladungen per Mail.
+
+## Aufbau
+
+Spring Boot mit JPA und Flyway auf PostgreSQL, ein Paket pro Fachbereich (`scan`, `metadata`, `series`, `placement`, `pricing`, `inventory`, `library`, `account`, `ai`). Das Frontend ist eine schlanke PWA ohne Framework. KI wird nur dort eingesetzt, wo die Kataloge keine Antwort haben.
 
 ## Woher die Daten kommen
 
@@ -28,8 +45,12 @@ Startet Postgres in Docker und die App mit Profil `local` (kein Login, alles geh
 mvn verify
 ```
 
-Braucht Docker (Testcontainers). Die Katalog-Clients werden gegen echte, als Fixtures gespeicherte Antworten getestet.
+Braucht Docker (Testcontainers). Rund 150 Tests, die Katalog-Clients laufen gegen echte, als Fixtures gespeicherte Antworten der DNB, von Google Books und Hardcover.
 
 ## Betrieb
 
 Läuft auf umaroth (VM apps) unter https://shelf.tstieh.de. Push auf `main` → CI testet → selbst gehosteter Runner baut und startet `docker-compose.yml` (App + Postgres). Server-`.env` wird nie überschrieben, Vorlage `.env.example`, anlegen mit `scripts/prepare-server.sh`. Login per OIDC (Authentik), Profil `prod`.
+
+## Lizenz
+
+Apache License 2.0, siehe [LICENSE](LICENSE).
