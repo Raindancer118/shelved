@@ -9,9 +9,9 @@ Bücherregal-Inventar: Regalfoto oder Barcode scannen, Bestand mit Covern ansehe
 
 ## Was es kann
 
-- **Erfassen.** ein Foto vom ganzen Regal oder einzelne Barcodes. Ein Sprachmodell liest die Buchrücken, alles andere kommt aus offenen Katalogen.
+- **Erfassen.** Ein Foto vom ganzen Regal oder einzelne Barcodes. Ein Sprachmodell liest die Buchrücken, alles andere kommt aus offenen Katalogen.
 - **Einsortieren.** Bücher bekommen einen Platz im Regal nach Nachname, die Brettbreite wird bei Bedarf aus dem Foto geschätzt.
-- **Reihen.** fehlende Bände einer Reihe werden erkannt und angezeigt.
+- **Reihen.** Fehlende Bände einer Reihe werden erkannt und angezeigt.
 - **Wert und Versicherung.** Wert der Bibliothek schätzen und eine Inventarliste für die Hausratversicherung als PDF und CSV ausgeben.
 - **Gemeinsam nutzen.** Bibliotheken mit Mitgliedern und Rollen (Eigentümer, Leitung, Mitarbeit, Nur lesen), Einladungen per Mail.
 
