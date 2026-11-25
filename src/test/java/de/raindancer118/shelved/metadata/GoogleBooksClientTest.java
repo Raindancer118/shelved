@@ -28,6 +28,17 @@ class GoogleBooksClientTest {
     }
 
     @Test
+    void readsTheAverageRatingOfAnEdition() {
+        server.expect(requestTo(containsString("q=isbn%3A9783551586797")))
+                .andRespond(withSuccess("""
+                        {"totalItems":1,"items":[{"volumeInfo":{"title":"This Kingdom will not kill me","averageRating":4.5,"ratingsCount":12}}]}""",
+                        MediaType.APPLICATION_JSON));
+        var r = client.rating("9783551586797").orElseThrow();
+        assertThat(r.average()).isEqualTo(4.5);
+        assertThat(r.count()).isEqualTo(12);
+    }
+
+    @Test
     void looksUpAGermanOmnibusByIsbn() {
         server.expect(requestTo(allOf(startsWith("https://www.googleapis.com/books/v1/volumes"),
                         containsString("q=isbn%3A9783492281980"), containsString("key=test-key"))))

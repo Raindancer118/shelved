@@ -70,6 +70,7 @@ public class WishService {
             w.setPublishedYear(m.publishedYear());
             w.setListPriceCents(m.listPriceCents());
             coverUrl = m.coverUrl();
+            w.setDescription(metadata.description(m).orElse(""));
         } else {
             if (title == null || title.isBlank()) {
                 throw new IllegalArgumentException("Titel oder ISBN fehlt");
@@ -93,10 +94,13 @@ public class WishService {
         return new Added(wishes.save(w), true);
     }
 
-    /** One wish and, if the library has it by now, that book. */
-    @Transactional(readOnly = true)
+    /** One wish and, if the library has it by now, that book. Wishes from before blurbs were kept get theirs now. */
+    @Transactional
     public Entry entry(String owner, UUID id) {
         Wish w = get(owner, id);
+        if (w.getDescription() == null && w.getIsbn13() != null) {
+            w.setDescription(metadata.byIsbn(w.getIsbn13()).flatMap(metadata::description).orElse(""));
+        }
         return new Entry(w, owned(books.all(owner), w).orElse(null));
     }
 

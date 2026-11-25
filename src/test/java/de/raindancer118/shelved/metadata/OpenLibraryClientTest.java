@@ -24,6 +24,30 @@ class OpenLibraryClientTest {
         client = new OpenLibraryClient(builder.build());
     }
 
+    /** A German edition Open Library doesn't know still has the work's ratings, found by title and author. */
+    @Test
+    void readsTheRatingOfAWorkByTitleAndAuthor() {
+        server.expect(requestTo(startsWith("https://openlibrary.org/search.json")))
+                .andRespond(withSuccess("""
+                        {"docs":[{"key":"/works/OL17860744W","title":"A Court of Thorns and Roses","ratings_average":4.15,"ratings_count":873}]}""",
+                        MediaType.APPLICATION_JSON));
+        var r = client.workRating("A Court of Thorns and Roses", "Sarah J. Maas").orElseThrow();
+        assertThat(r.average()).isEqualTo(4.15);
+        assertThat(r.count()).isEqualTo(873);
+    }
+
+    /** Ratings hang on the work, so the edition is asked for its work first. */
+    @Test
+    void readsTheRatingOfTheWorkBehindAnEdition() {
+        server.expect(requestTo("https://openlibrary.org/isbn/9783423285872.json"))
+                .andRespond(withSuccess("{\"works\":[{\"key\":\"/works/OL17860744W\"}]}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://openlibrary.org/works/OL17860744W/ratings.json"))
+                .andRespond(withSuccess("{\"summary\":{\"average\":4.21,\"count\":1043}}", MediaType.APPLICATION_JSON));
+        var r = client.rating("9783423285872").orElseThrow();
+        assertThat(r.average()).isEqualTo(4.21);
+        assertThat(r.count()).isEqualTo(1043);
+    }
+
     @Test
     void looksUpByIsbn() {
         server.expect(requestTo("https://openlibrary.org/api/books?bibkeys=ISBN:9780552166591&format=json&jscmd=data"))

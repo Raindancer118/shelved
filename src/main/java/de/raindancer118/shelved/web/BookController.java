@@ -51,8 +51,11 @@ public class BookController {
     private final MetadataService metadata;
     private final CoverStore covers;
     private final ShelfRepository shelves;
+    private final de.raindancer118.shelved.metadata.RatingService ratings;
 
-    public BookController(BookService books, MetadataService metadata, CoverStore covers, ShelfRepository shelves) {
+    public BookController(BookService books, MetadataService metadata, CoverStore covers, ShelfRepository shelves,
+                          de.raindancer118.shelved.metadata.RatingService ratings) {
+        this.ratings = ratings;
         this.books = books;
         this.metadata = metadata;
         this.covers = covers;
@@ -166,6 +169,13 @@ public class BookController {
     public ResponseEntity<FileSystemResource> googleCover(@PathVariable String volumeId) {
         var path = covers.googleCover(volumeId).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
         return CoverResponse.of(path, false);
+    }
+
+    /** Star averages for an edition; the shop links the page builds itself from the ISBN. */
+    @GetMapping("/ratings")
+    public List<de.raindancer118.shelved.metadata.Rating> ratings(@RequestParam String isbn, @RequestParam(required = false) String title,
+                                                                  @RequestParam(required = false) String author) {
+        return Isbn.toIsbn13(isbn).map(i -> ratings.ratings(i, title, author)).orElse(List.of());
     }
 
     /** "Hab ich das schon?" for a scanned barcode, plus catalogue data to add it right away. */

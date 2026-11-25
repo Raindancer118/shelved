@@ -158,4 +158,67 @@ public class OpenLibraryClient {
             return Optional.empty();
         }
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record WorkRef(String key) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record EditionWorks(List<WorkRef> works) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record RatingSummary(Double average, Integer count) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record Ratings(RatingSummary summary) {
+    }
+
+    /** Ratings belong to the work; the edition tells which work it is. */
+    public Optional<Rating> rating(String isbn13) {
+        try {
+            EditionWorks e = http.get().uri(URI.create("https://openlibrary.org/isbn/" + isbn13 + ".json")).retrieve().body(EditionWorks.class);
+            String work = e == null || e.works() == null || e.works().isEmpty() ? null : e.works().getFirst().key();
+            if (work == null || !work.matches("/works/OL\\d+W")) {
+                return Optional.empty();
+            }
+            Ratings r = http.get().uri(URI.create("https://openlibrary.org" + work + "/ratings.json")).retrieve().body(Ratings.class);
+            RatingSummary sum = r == null ? null : r.summary();
+            return sum == null || sum.average() == null || sum.count() == null || sum.count() == 0 ? Optional.empty()
+                    : Optional.of(new Rating("Open Library", sum.average(), sum.count()));
+        } catch (RestClientException e) {
+            return Optional.empty();
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record WorkDoc(String title, Double ratings_average, Integer ratings_count) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record WorkDocs(List<WorkDoc> docs) {
+    }
+
+    /** Ratings of the work behind any edition, found by title and author (for editions Open Library doesn't list). */
+    public Optional<Rating> workRating(String title, String author) {
+        if (title == null || title.isBlank()) {
+            return Optional.empty();
+        }
+        UriComponentsBuilder b = UriComponentsBuilder.fromUriString("https://openlibrary.org/search.json")
+                .queryParam("title", title).queryParam("fields", "title,ratings_average,ratings_count").queryParam("limit", 5);
+        if (author != null && !author.isBlank()) {
+            b.queryParam("author", author);
+        }
+        try {
+            WorkDocs r = http.get().uri(b.build().encode(StandardCharsets.UTF_8).toUri()).retrieve().body(WorkDocs.class);
+            return r == null || r.docs() == null ? Optional.empty() : r.docs().stream()
+                    .filter(d -> d.ratings_count() != null && d.ratings_count() > 0 && d.ratings_average() != null)
+                    .filter(d -> Similarity.title(title, d.title()) >= 0.8)
+                    .findFirst()
+                    .map(d -> new Rating("Open Library", d.ratings_average(), d.ratings_count()));
+        } catch (RestClientException e) {
+            return Optional.empty();
+        }
+    }
 }

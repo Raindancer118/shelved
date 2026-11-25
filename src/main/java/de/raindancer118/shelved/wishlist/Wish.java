@@ -32,6 +32,7 @@ public class Wish {
     private String publisher;
     private Integer publishedYear;
     private Integer listPriceCents;
+    private String description;
     private String coverFile;
     private boolean keepWhenOwned;
     private Instant createdAt;
@@ -67,6 +68,8 @@ public class Wish {
     public void setPublishedYear(Integer publishedYear) { this.publishedYear = publishedYear; }
     public Integer getListPriceCents() { return listPriceCents; }
     public void setListPriceCents(Integer listPriceCents) { this.listPriceCents = listPriceCents; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
     public String getCoverFile() { return coverFile; }
     public void setCoverFile(String coverFile) { this.coverFile = coverFile; }
     public boolean isKeepWhenOwned() { return keepWhenOwned; }

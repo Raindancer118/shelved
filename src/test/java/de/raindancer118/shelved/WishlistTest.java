@@ -59,6 +59,15 @@ class WishlistTest extends IntegrationTestBase {
         mvc.perform(get("/api/wishes")).andExpect(jsonPath("$", hasSize(0)));
     }
 
+    /** A wish shows its blurb like a book does, without the catalogue's HTML codes. */
+    @Test
+    void aWishCarriesItsBlurbWithoutHtmlCodes() throws Exception {
+        when(metadata.byIsbn("9783791504650")).thenReturn(Optional.of(tintenherz()));
+        when(metadata.description(org.mockito.ArgumentMatchers.any())).thenReturn(Optional.of("Meggie liest&#160;gern &amp; viel."));
+        String id = JsonPath.read(postJson("/api/wishes", "{\"isbn\":\"9783791504650\"}").andReturn().getResponse().getContentAsString(), "$.id");
+        mvc.perform(get("/api/wishes/" + id)).andExpect(jsonPath("$.description").value("Meggie liest\u00a0gern & viel."));
+    }
+
     @Test
     void aBookYouAlreadyOwnIsNotWished() throws Exception {
         when(metadata.byIsbn("9783791504650")).thenReturn(Optional.of(tintenherz()));

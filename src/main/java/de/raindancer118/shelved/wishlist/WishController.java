@@ -3,6 +3,7 @@ package de.raindancer118.shelved.wishlist;
 import de.raindancer118.shelved.book.CoverStore;
 import de.raindancer118.shelved.book.NotFoundException;
 import de.raindancer118.shelved.web.Owner;
+import de.raindancer118.shelved.metadata.Texts;
 import de.raindancer118.shelved.web.CoverResponse;
 import de.raindancer118.shelved.web.Views;
 import jakarta.validation.Valid;
@@ -37,7 +38,8 @@ public class WishController {
 
     public record WishView(UUID id, String isbn13, String title, String subtitle, List<String> authors, String publisher,
                            Integer publishedYear, Integer listPriceCents,
-                           String cover, UUID ownedBookId, String ownedCover, boolean keepWhenOwned, Instant createdAt) {
+                           String cover, UUID ownedBookId, String ownedCover, boolean keepWhenOwned, Instant createdAt,
+                           String description) {
     }
 
     private final WishService wishes;
@@ -53,7 +55,8 @@ public class WishController {
         return new WishView(w.getId(), w.getIsbn13(), w.getTitle(), w.getSubtitle(), w.getAuthors(), w.getPublisher(),
                 w.getPublishedYear(), w.getListPriceCents(), cover, owned == null ? null : owned.getId(),
                 owned == null ? null : Views.cover(owned),
-                w.isKeepWhenOwned(), w.getCreatedAt());
+                w.isKeepWhenOwned(), w.getCreatedAt(),
+                w.getDescription() == null || w.getDescription().isBlank() ? null : Texts.plain(w.getDescription()));
     }
 
     private static List<WishView> views(List<WishService.Entry> entries) {
