@@ -41,7 +41,7 @@ class ScanFlowTest extends IntegrationTestBase {
     }
 
     static LibraryAi.SpineReading spine(String title, String author, String confidence, int row) {
-        return new LibraryAi.SpineReading(title, List.of(author), "", confidence, title, row);
+        return new LibraryAi.SpineReading(title, List.of(author), "", confidence, title, row, 0);
     }
 
     static byte[] widePhoto() throws Exception {
@@ -183,6 +183,58 @@ class ScanFlowTest extends IntegrationTestBase {
         await().untilAsserted(() -> mvc.perform(get("/api/scans/" + shelf)).andExpect(jsonPath("$.status").value("DONE")));
         mvc.perform(get("/api/scans/" + shelf)).andExpect(jsonPath("$.mode").value("SHELF")).andExpect(jsonPath("$.items", hasSize(4)));
         assertThat(ai.tileCounts).isNotEmpty();
+    }
+
+    static LibraryAi.SpineReading spine(String title, String author, double share) {
+        return new LibraryAi.SpineReading(title, List.of(author), "", "high", title, 1, share);
+    }
+
+    private String shelfScan(String shelf, String board) throws Exception {
+        String scan = JsonPath.read(mvc.perform(multipart("/api/scans").file(new MockMultipartFile("image", "shelf.jpg", "image/jpeg", widePhoto()))
+                        .param("mode", "SHELF").param("shelfId", shelf).param("board", board).with(csrf()))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        await().untilAsserted(() -> mvc.perform(get("/api/scans/" + scan)).andExpect(jsonPath("$.status").value("DONE")));
+        return scan;
+    }
+
+    private String bookId(String q) throws Exception {
+        return JsonPath.read(mvc.perform(get("/api/books").param("q", q)).andReturn().getResponse().getContentAsString(), "$[0].id");
+    }
+
+    /** How wide each spine really is comes from the photo: on a measured board its share of the width is millimetres. */
+    @Test
+    void eachSpinesWidthOnTheShelfPhotoBecomesTheBooksThickness() throws Exception {
+        String shelf = JsonPath.read(mvc.perform(post("/api/shelves").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Flur\",\"boardWidthsMm\":[800]}")).andReturn().getResponse().getContentAsString(), "$.id");
+        when(metadata.search(any(), any(), any())).thenReturn(List.of());
+        // a 941-page paperback the page count would make 95 mm thick
+        ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("Dünnes Taschenbuch", "A", 0.05), spine("Dickes Hardcover", "B", 0.10)),
+                List.of(new LibraryAi.BoardReading(1, 0.15, true)));
+        String scan = shelfScan(shelf, "1");
+        mvc.perform(post("/api/scans/" + scan + "/accept").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"items\":[{\"index\":0,\"take\":true},{\"index\":1,\"take\":true}]}")).andExpect(status().isOk());
+
+        mvc.perform(get("/api/books/" + bookId("dünnes"))).andExpect(jsonPath("$.estimatedThicknessMm").value(40))
+                .andExpect(jsonPath("$.thicknessSource").value("PHOTO"));
+        mvc.perform(get("/api/books/" + bookId("dickes"))).andExpect(jsonPath("$.estimatedThicknessMm").value(80));
+    }
+
+    /** Without a measured board there are no millimetres on the photo, but the spines still split the estimated total right. */
+    @Test
+    void onAnUnmeasuredBoardTheSpinesShareTheEstimatedTotal() throws Exception {
+        String shelf = JsonPath.read(mvc.perform(post("/api/shelves").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Flur\",\"boardWidthsMm\":[null]}")).andReturn().getResponse().getContentAsString(), "$.id");
+        when(metadata.search(eq("Erstes"), any(), any())).thenReturn(List.of(meta("9783000000019", "Erstes", "A", "X")));
+        when(metadata.search(eq("Zweites"), any(), any())).thenReturn(List.of(meta("9783000000026", "Zweites", "B", "X")));
+        // both 300 pages: 31 mm each by page count, 62 mm together; the photo shows one three times as wide as the other
+        ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("Erstes", "A", 0.05), spine("Zweites", "B", 0.15)),
+                List.of(new LibraryAi.BoardReading(1, 0.2, true)));
+        String scan = shelfScan(shelf, "1");
+        mvc.perform(post("/api/scans/" + scan + "/accept").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"items\":[{\"index\":0,\"take\":true},{\"index\":1,\"take\":true}]}")).andExpect(status().isOk());
+
+        mvc.perform(get("/api/books/" + bookId("erstes"))).andExpect(jsonPath("$.estimatedThicknessMm").value(16));
+        mvc.perform(get("/api/books/" + bookId("zweites"))).andExpect(jsonPath("$.estimatedThicknessMm").value(47));
     }
 
     @Test

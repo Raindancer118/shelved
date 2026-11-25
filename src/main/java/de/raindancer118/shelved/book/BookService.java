@@ -160,6 +160,14 @@ public class BookService {
         return b;
     }
 
+    /** Thickness measured on a shelf photo; implausible readings (a spine of 2 mm or 25 cm) are ignored. */
+    @Transactional
+    public void measured(String owner, UUID id, int mm) {
+        if (mm >= 3 && mm <= 250) {
+            get(owner, id).setMeasuredThicknessMm(mm);
+        }
+    }
+
     @Transactional
     public Book move(String owner, UUID id, UUID shelfId, Integer board, Integer position) {
         Book b = get(owner, id);

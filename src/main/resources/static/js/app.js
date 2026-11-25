@@ -267,7 +267,7 @@ async function viewBook(id) {
     ['Neupreis', b.listPriceCents != null && euros(b.listPriceCents)],
     ['Privat verkauft', b.usedPriceCents != null && `ca. ${euros(b.usedPriceCents)}`],
     ['Ankauf (momox & Co.)', b.buybackPriceCents != null && (b.buybackPriceCents > 0 ? `ca. ${euros(b.buybackPriceCents)}` : 'kaum etwas')],
-    ['Dicke', `${b.estimatedThicknessMm} mm${b.thicknessMm ? '' : ' (geschätzt)'}`],
+    ['Dicke', `${b.estimatedThicknessMm} mm${{ PHOTO: ' (vom Regalfoto)', PAGES: ' (geschätzt)' }[b.thicknessSource] ?? ''}`],
   ].filter(([, v]) => v);
   const copiesRow = `<dt>Exemplare</dt><dd class="stepper"><button class="round sm" id="less" aria-label="Ein Exemplar weniger" ${b.copies <= 1 ? 'disabled' : ''}>${icons.minus}</button>
       <b>${b.copies}</b><button class="round sm" id="more" aria-label="Ein Exemplar mehr">${icons.plus}</button></dd>`;

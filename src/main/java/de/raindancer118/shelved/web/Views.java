@@ -24,7 +24,7 @@ public final class Views {
 
     public record BookDetail(UUID id, String isbn13, String title, String subtitle, List<String> authors,
                              String publisher, Integer publishedYear, Integer pageCount, Integer heightMm,
-                             Integer thicknessMm, int estimatedThicknessMm, BookFormat format, String language,
+                             Integer thicknessMm, int estimatedThicknessMm, ThicknessEstimator.Source thicknessSource, BookFormat format, String language,
                              String description,
                              Integer listPriceCents, Integer usedPriceCents, Integer buybackPriceCents, String cover, UUID shelfId,
                              Integer boardNumber, Integer boardPosition, String location, String metadataSource,
@@ -43,7 +43,7 @@ public final class Views {
     static BookDetail detail(Book b, Map<UUID, Integer> shelfNumbers) {
         return new BookDetail(b.getId(), b.getIsbn13(), b.getTitle(), b.getSubtitle(), b.getAuthors(), b.getPublisher(),
                 b.getPublishedYear(), b.getPageCount(), b.getHeightMm(), b.getThicknessMm(),
-                ThicknessEstimator.estimateMm(b.getThicknessMm(), b.getPageCount(), b.getFormat()), b.getFormat(),
+                ThicknessEstimator.estimateMm(b), ThicknessEstimator.source(b), b.getFormat(),
                 b.getLanguage(), de.raindancer118.shelved.metadata.Texts.blurb(b.getDescription()), b.getListPriceCents(),
                 UsedPriceEstimator.privateCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 UsedPriceEstimator.buybackCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),

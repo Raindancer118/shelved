@@ -40,6 +40,8 @@ public class Book {
     private Integer pageCount;
     private Integer heightMm;
     private Integer thicknessMm;
+    /** Measured on a shelf photo; a hand-entered thicknessMm wins. */
+    private Integer measuredThicknessMm;
     @Enumerated(EnumType.STRING)
     private BookFormat format;
     private String language;
@@ -109,6 +111,8 @@ public class Book {
     public void setHeightMm(Integer heightMm) { this.heightMm = heightMm; }
     public Integer getThicknessMm() { return thicknessMm; }
     public void setThicknessMm(Integer thicknessMm) { this.thicknessMm = thicknessMm; }
+    public Integer getMeasuredThicknessMm() { return measuredThicknessMm; }
+    public void setMeasuredThicknessMm(Integer measuredThicknessMm) { this.measuredThicknessMm = measuredThicknessMm; }
     public BookFormat getFormat() { return format; }
     public void setFormat(BookFormat format) { this.format = format; }
     public String getLanguage() { return language; }

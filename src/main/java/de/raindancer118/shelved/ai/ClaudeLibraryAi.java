@@ -40,7 +40,9 @@ public class ClaudeLibraryAi implements LibraryAi {
             Skip books that are cut off at the left or right edge of the photo and clearly stand in a neighbouring bookcase.
             Write titles in the language printed on the spine (German editions keep their German titles).
             You may complete a partly readable title or add an author that is not printed only when you are sure
-            which book it is. Never invent books. If a spine is unreadable, still list it with confidence "low".""";
+            which book it is. Never invent books. If a spine is unreadable, still list it with confidence "low".
+            For every spine also give its width as a share of its board's usable width between the side walls,
+            measured on the photo as carefully as you can (a spine taking a twentieth of the board is 0.05).""";
 
 
     private static final String SINGLE_SYSTEM = """

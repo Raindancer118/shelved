@@ -67,7 +67,7 @@ public class PlacementService {
         }
         List<Item> ordered = books.findByOwnerId(owner).stream()
                 .sorted(LIBRARY_ORDER)
-                .map(b -> new Item(b, ThicknessEstimator.estimateMm(b.getThicknessMm(), b.getPageCount(), b.getFormat()) * b.getCopies()))
+                .map(b -> new Item(b, ThicknessEstimator.estimateMm(b) * b.getCopies()))
                 .toList();
         var plan = PlacementPlanner.plan(ordered, boards);
 

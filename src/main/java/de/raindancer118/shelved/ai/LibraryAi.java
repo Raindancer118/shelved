@@ -26,7 +26,9 @@ public interface LibraryAi {
             @JsonPropertyDescription("Only when confidence is not high: the raw text you could actually read. Otherwise empty string")
             String spineText,
             @JsonPropertyDescription("Shelf board in the photo: 1 = topmost board visible, counting downwards")
-            int row) {
+            int row,
+            @JsonPropertyDescription("Width of this spine as a fraction (0.0–1.0) of its board's usable width between the side walls, measured on the photo; 0 if you cannot tell")
+            double share) {
     }
 
     record BoardReading(

@@ -211,6 +211,7 @@ public class ScanService {
         ScanItem.Result scanResult = result(scan);
         List<ScanItem> items = scanResult.items();
         java.util.Map<Integer, List<UUID>> booksInRow = new java.util.TreeMap<>();
+        java.util.Map<Integer, List<Spine>> spinesInRow = new java.util.TreeMap<>();
         List<UUID> created = new ArrayList<>();
         List<UUID> placed = new ArrayList<>();
         int boards = scan.getShelfId() == null ? 0
@@ -234,13 +235,53 @@ public class ScanService {
                     books.move(owner, bookId, scan.getShelfId(), board, position);
                     placed.add(bookId);
                     booksInRow.computeIfAbsent(row, r -> new ArrayList<>()).add(bookId);
+                    spinesInRow.computeIfAbsent(row, r -> new ArrayList<>()).add(new Spine(bookId, item.reading().share()));
                 }
             }
+        }
+        if (scan.getShelfId() != null) {
+            measure(owner, scan, spinesInRow);
         }
         List<EstimatedBoard> estimated = scan.getShelfId() == null ? List.of()
                 : estimateWidths(owner, scan, scanResult.boards(), booksInRow);
         tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(Scan::accepted));
         return new AcceptResult(created, placed, estimated);
+    }
+
+    private record Spine(UUID bookId, double share) {
+    }
+
+    /**
+     * Each spine's share of its board on the photo is its thickness: on a measured board directly in millimetres,
+     * on a board whose width is only a guess as its part of the books' estimated total (which keeps the total but
+     * stops a thin-paper paperback from being taken for twice its width). A book twice on the photo is the mean.
+     */
+    private void measure(String owner, Scan scan, java.util.Map<Integer, List<Spine>> spinesInRow) {
+        tx.executeWithoutResult(s -> shelves.findById(scan.getShelfId()).ifPresent(shelf -> {
+            for (var row : spinesInRow.entrySet()) {
+                int boardNumber = scan.getBoardNumber() + row.getKey() - 1;
+                List<Spine> seen = row.getValue().stream().filter(sp -> sp.share() > 0 && sp.share() < 1).toList();
+                if (boardNumber < 1 || boardNumber > shelf.getBoards().size() || seen.isEmpty()) {
+                    continue;
+                }
+                var board = shelf.getBoards().get(boardNumber - 1);
+                double mmPerShare;
+                if (!board.isEstimated()) {
+                    mmPerShare = board.getWidthMm();
+                } else {
+                    int total = seen.stream().map(Spine::bookId).distinct()
+                            .mapToInt(id -> {
+                                Book b = books.get(owner, id);
+                                return de.raindancer118.shelved.placement.ThicknessEstimator.estimateMm(b.getThicknessMm(), b.getPageCount(), b.getFormat())
+                                        * (int) seen.stream().filter(sp -> sp.bookId().equals(id)).count();
+                            }).sum();
+                    mmPerShare = total / seen.stream().mapToDouble(Spine::share).sum();
+                }
+                seen.stream().collect(java.util.stream.Collectors.groupingBy(Spine::bookId,
+                                java.util.stream.Collectors.averagingDouble(Spine::share)))
+                        .forEach((id, share) -> books.measured(owner, id, (int) Math.round(share * mmPerShare)));
+            }
+        }));
     }
 
     /** Boards whose width is still a guess learn it from this photo: books' total thickness / fill. */
@@ -255,8 +296,7 @@ public class ScanService {
                 }
                 List<Book> onRow = booksInRow.getOrDefault(br.row(), List.of()).stream().map(id -> books.get(owner, id)).toList();
                 int booksMm = onRow.stream()
-                        .mapToInt(b -> de.raindancer118.shelved.placement.ThicknessEstimator.estimateMm(
-                                b.getThicknessMm(), b.getPageCount(), b.getFormat()) * b.getCopies())
+                        .mapToInt(b -> de.raindancer118.shelved.placement.ThicknessEstimator.estimateMm(b) * b.getCopies())
                         .sum();
                 de.raindancer118.shelved.placement.WidthEstimator.boardWidthMm(booksMm, br.fill(), br.bothEndsVisible())
                         .filter(w -> shelf.applyEstimate(boardNumber, w))

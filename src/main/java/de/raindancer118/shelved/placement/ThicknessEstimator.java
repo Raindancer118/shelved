@@ -12,6 +12,24 @@ public final class ThicknessEstimator {
     private ThicknessEstimator() {
     }
 
+    /** Where a book's thickness comes from, best first. */
+    public enum Source { MANUAL, PHOTO, PAGES }
+
+    /** Typed in by hand, else measured on a shelf photo, else guessed from the page count. */
+    public static int estimateMm(de.raindancer118.shelved.book.Book b) {
+        if (b.getMeasuredThicknessMm() != null && b.getMeasuredThicknessMm() > 0 && (b.getThicknessMm() == null || b.getThicknessMm() <= 0)) {
+            return b.getMeasuredThicknessMm();
+        }
+        return estimateMm(b.getThicknessMm(), b.getPageCount(), b.getFormat());
+    }
+
+    public static Source source(de.raindancer118.shelved.book.Book b) {
+        if (b.getThicknessMm() != null && b.getThicknessMm() > 0) {
+            return Source.MANUAL;
+        }
+        return b.getMeasuredThicknessMm() != null && b.getMeasuredThicknessMm() > 0 ? Source.PHOTO : Source.PAGES;
+    }
+
     public static int estimateMm(Integer explicitMm, Integer pages, BookFormat format) {
         if (explicitMm != null && explicitMm > 0) {
             return explicitMm;
