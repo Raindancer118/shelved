@@ -13,7 +13,7 @@ export const liveBarcodeSupported = async () => {
  * while the camera keeps running, so one book after another can be scanned. shoot() takes a still photo.
  * Returns { stop, shoot }; onError gets camera failures (no permission, no camera).
  */
-export function liveCamera(video, { onIsbn, onError }) {
+export function liveCamera(video, { onIsbn, onError, onCodes }) {
   let stream, timer, stopped = false, last = null;
   const stop = () => {
     stopped = true;
@@ -31,10 +31,12 @@ export function liveCamera(video, { onIsbn, onError }) {
     const detector = new BarcodeDetector({ formats: ['ean_13'] });
     timer = setInterval(async () => {
       try {
-        const hit = (await detector.detect(video)).map(c => c.rawValue).find(v => /^97[89]\d{10}$/.test(v));
+        const codes = (await detector.detect(video)).filter(c => /^97[89]\d{10}$/.test(c.rawValue));
+        onCodes?.(codes);
+        const hit = codes[0]?.rawValue;
         if (hit && hit !== last) { last = hit; onIsbn(hit); }
       } catch { /* frame not ready */ }
-    }, 250);
+    }, 120);
   })().catch(err => { stop(); onError?.(err); });
   return { stop, shoot: () => grab(stream, video) };
 }
@@ -62,14 +64,70 @@ export async function prepareImage(file, maxEdge = 4000) {
 }
 
 /** Opens the gallery / file picker and resolves with the chosen file (or null). */
-export function pickPhoto() {
+export async function pickPhoto() {
+  return (await pickPhotos(false))[0] ?? null;
+}
+
+/** Several photos from the gallery at once, e.g. old pictures of shelves to import. */
+export function pickPhotos(multiple = true) {
   return new Promise(resolve => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.addEventListener('change', () => resolve(input.files?.[0] ?? null), { once: true });
+    input.multiple = multiple;
+    input.addEventListener('change', () => resolve([...(input.files ?? [])]), { once: true });
+    input.addEventListener('cancel', () => resolve([]), { once: true });
     input.click();
   });
+}
+
+/**
+ * Draws a frame exactly around a barcode in the live picture, perspective included, and lets a reading beam run
+ * over it. The detector reports the four corners every 120 ms; the frame glides between them every frame.
+ * lock() marks the moment the ISBN is taken.
+ */
+export function barcodeTracker(video, svg) {
+  const poly = svg.querySelector('polygon');
+  const beam = svg.querySelector('line');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let target = null, current = null, seen = 0, raf;
+  const lerp = (a, b, k) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k });
+  const frame = t => {
+    const w = svg.clientWidth, h = svg.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    const visible = target && performance.now() - seen < 500;
+    svg.classList.toggle('seen', !!visible);
+    if (target) {
+      current = !current || still ? target.map(p => ({ ...p })) : current.map((p, i) => lerp(p, target[i], 0.35));
+      poly.setAttribute('points', current.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
+      const k = still ? 0.5 : (Math.sin(t / 240) + 1) / 2;
+      const a = lerp(current[0], current[3], k), b = lerp(current[1], current[2], k);
+      beam.setAttribute('x1', a.x); beam.setAttribute('y1', a.y); beam.setAttribute('x2', b.x); beam.setAttribute('y2', b.y);
+    }
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+  return {
+    update(codes) {
+      const corners = codes[0]?.cornerPoints;
+      if (!corners || corners.length !== 4 || !video.videoWidth) return;
+      // the video is cropped to fill its box (object-fit: cover): same scale and offset as the browser uses
+      const w = svg.clientWidth, h = svg.clientHeight;
+      const s = Math.max(w / video.videoWidth, h / video.videoHeight);
+      const ox = (w - video.videoWidth * s) / 2, oy = (h - video.videoHeight * s) / 2;
+      const pts = corners.map(p => ({ x: p.x * s + ox, y: p.y * s + oy }));
+      const c = pts.reduce((m, p) => ({ x: m.x + p.x / 4, y: m.y + p.y / 4 }), { x: 0, y: 0 });
+      target = pts.map(p => lerp(c, p, 1.18)); // a little air around the bars
+      seen = performance.now();
+    },
+    lock() {
+      svg.classList.remove('locked');
+      void svg.getBoundingClientRect(); // restart the animation for the next book
+      svg.classList.add('locked');
+      setTimeout(() => svg.classList.remove('locked'), 1200);
+    },
+    stop() { cancelAnimationFrame(raf); },
+  };
 }
 
 /**
