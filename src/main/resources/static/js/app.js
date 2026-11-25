@@ -392,6 +392,8 @@ async function viewFind(purpose, typing = new URLSearchParams(location.hash.spli
       const term = document.getElementById('term').value.trim();
       if (term) find(term, out, purpose);
     });
+    const given = new URLSearchParams(location.hash.split('?')[1] ?? '').get('q');
+    if (given) { document.getElementById('term').value = given; find(given, out, purpose); }
     return;
   }
   document.body.classList.add('fullcam');
@@ -619,23 +621,20 @@ const wishMeta = w => [authors(w.authors), w.seriesName && `${w.seriesName}${w.s
 
 async function viewWishes() {
   const list = await wishes(true);
-  if (!list.length) {
-    paint(`${viewHead('Wunschliste', 'Noch leer')}
-      <div class="empty"><h2>Merk dir Bücher, die dir fehlen</h2>
-        <p>Im Buchladen den Barcode scannen, im Katalog suchen oder in einer Reihe auf einen fehlenden Band tippen. Kommt ein Buch später in die Bibliothek, fragt shelved, ob es von der Liste darf.</p>
-        <a class="btn" href="#/wishes/add">${icons.cam} Buch merken</a></div>`);
-    return;
-  }
   const open = list.filter(w => !w.ownedBookId);
   const owned = list.filter(w => w.ownedBookId);
   const priced = open.filter(w => w.listPriceCents != null);
   const total = priced.reduce((sum, w) => sum + w.listPriceCents, 0);
-  const sub = `${open.length} ${open.length === 1 ? 'Buch' : 'Bücher'}${priced.length ? `, ${priced.length < open.length ? 'mindestens ' : ''}${euros(total)} Neupreis` : ''}`;
+  const sub = !list.length ? 'Noch leer' : `${open.length} ${open.length === 1 ? 'Buch' : 'Bücher'}${priced.length ? `, ${priced.length < open.length ? 'mindestens ' : ''}${euros(total)} Neupreis` : ''}`;
   const remove = w => `<button class="round sm" data-del="${w.id}" aria-label="„${esc(w.title)}“ von der Wunschliste nehmen" title="Von der Liste nehmen">${icons.x}</button>`;
   const rows = q => {
     const hit = w => !q || [w.title, ...(w.authors ?? []), w.seriesName ?? '', w.isbn13 ?? ''].join(' ').toLowerCase().includes(q);
     const o = open.filter(hit), d = owned.filter(hit);
-    if (q && !o.length && !d.length) return `<p class="note">Nichts gefunden für „${esc(q)}“.</p>`;
+    // nothing on the list: the same words go straight to the catalogue
+    const more = term => `<div class="actions"><a class="btn ghost" href="#/wishes/add?eingabe&q=${encodeURIComponent(term)}">${icons.search} „${esc(term)}“ im Katalog suchen</a></div>`;
+    if (!list.length) return q ? more(q) : `<div class="empty"><h2>Merk dir Bücher, die dir fehlen</h2>
+      <p>Titel oder Autor oben eingeben, mit der Kamera den Barcode scannen oder in einer Reihe auf einen fehlenden Band tippen. Kommt ein Buch später in die Bibliothek, fragt shelved, ob es von der Liste darf.</p></div>`;
+    if (q && !o.length && !d.length) return `<p class="note">Auf der Liste steht nichts zu „${esc(q)}“.</p>${more(q)}`;
     return `${o.length ? `<div class="list">${o.map(w => `<div class="row">${cover(w)}
       <div class="grow"><b>${esc(w.title)}</b><small>${esc(wishMeta(w))}</small>${w.isbn13 ? `<small class="mono">${esc(w.isbn13)}</small>` : ''}</div>
       ${w.listPriceCents != null ? `<span class="num">${esc(euros(w.listPriceCents))}</span>` : ''}${remove(w)}</div>`).join('')}</div>`
@@ -648,7 +647,7 @@ async function viewWishes() {
   paint(`
     ${viewHead('Wunschliste', sub)}
     <div class="search" role="search">${icons.search}
-      <input id="wq" type="search" placeholder="Titel, Autor oder ISBN" autocomplete="off" aria-label="Wunschliste durchsuchen">
+      <input id="wq" type="search" placeholder="Titel, Autor oder ISBN" autocomplete="off" enterkeyhint="search" aria-label="Wunschliste durchsuchen">
       <a class="cam" href="#/wishes/add" aria-label="Buch merken: scannen oder suchen" title="Buch merken">${icons.cam}</a></div>
     <div id="wishrows" class="gap-top">${rows('')}</div>
     ${open.length ? `<div class="actions"><button class="btn ghost" id="share">${icons.share} Als Einkaufsliste teilen</button></div>` : ''}`);
@@ -660,6 +659,11 @@ async function viewWishes() {
     toast('Von der Wunschliste genommen');
     route();
   }));
+  // Enter with no match on the list searches the catalogue
+  document.getElementById('wq').addEventListener('keydown', e => {
+    const q = e.target.value.trim();
+    if (e.key === 'Enter' && q && box.querySelector('a[href^="#/wishes/add?eingabe"]')) go(`/wishes/add?eingabe&q=${encodeURIComponent(q)}`);
+  });
   document.getElementById('wq').addEventListener('input', e => { box.innerHTML = rows(e.target.value.trim().toLowerCase()); applyVars(box); bind(); });
   bind();
   warmCovers();
