@@ -94,6 +94,14 @@ class LibraryFlowTest extends IntegrationTestBase {
     }
 
     /** Series were removed as a feature: no endpoint, no columns, no catalogue table left behind (V10). */
+    /** The local bookshop to order from; its product page is the ISBN under the shop's address. */
+    @Test
+    void theLocalBookshopIsOffered() throws Exception {
+        mvc.perform(get("/api/me"))
+                .andExpect(jsonPath("$.bookshop.name").value("Buchhandlung Cremer"))
+                .andExpect(jsonPath("$.bookshop.url").value("https://buchhandlungcremer.buchkatalog.de/{isbn}"));
+    }
+
     @Test
     void seriesAreGone() throws Exception {
         mvc.perform(get("/api/series")).andExpect(status().isNotFound());

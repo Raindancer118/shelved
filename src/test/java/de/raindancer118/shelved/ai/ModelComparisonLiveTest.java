@@ -43,7 +43,7 @@ class ModelComparisonLiveTest {
         String models = System.getenv().getOrDefault("SHELVED_COMPARE_MODELS", "claude-opus-5-5,claude-sonnet-5-5,claude-haiku-5-5");
         for (String model : models.split(",")) {
             var ai = new ClaudeLibraryAi(new ShelvedProperties(Path.of("target"), "local",
-                    new ShelvedProperties.Anthropic(System.getenv("ANTHROPIC_API_KEY"), model), 99, "", "http://localhost"));
+                    new ShelvedProperties.Anthropic(System.getenv("ANTHROPIC_API_KEY"), model), 99, "", "http://localhost", null));
             long t0 = System.currentTimeMillis();
             LibraryAi.ShelfReading r;
             try {

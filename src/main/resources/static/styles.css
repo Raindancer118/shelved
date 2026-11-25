@@ -208,6 +208,7 @@ h3.sec { font: 600 17px var(--sans); margin: 32px 0 8px; }
 a.row, button.row { cursor: pointer; }
 .row .cover { width: 40px; flex: none; }
 .row.tall .cover { width: 64px; }
+.btn.order { background: none; color: var(--t1); border-color: var(--line-strong); margin-bottom: 12px; }
 .stars { font-size: 17px; letter-spacing: 1px; color: var(--t1); flex: none; width: 92px; }
 .stars s { text-decoration: none; color: var(--line-strong); }
 /* Authors: a round portrait, initials underneath until (or unless) the photo loads */

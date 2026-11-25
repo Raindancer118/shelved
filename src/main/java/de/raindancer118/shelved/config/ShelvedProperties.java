@@ -6,7 +6,11 @@ import java.nio.file.Path;
 
 @ConfigurationProperties("shelved")
 public record ShelvedProperties(Path dataDir, String authMode, Anthropic anthropic, int scansPerHour, String googleBooksApiKey,
-                                String publicUrl) {
+                                String publicUrl, Bookshop bookshop) {
+
+    /** The bookshop to order from. {@code url} holds {isbn} where the ISBN-13 goes. */
+    public record Bookshop(String name, String url) {
+    }
 
     public record Anthropic(String apiKey, String model) {
         public boolean configured() {

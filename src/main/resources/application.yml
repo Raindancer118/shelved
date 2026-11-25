@@ -59,4 +59,7 @@ shelved:
   scans-per-hour: ${SHELVED_SCANS_PER_HOUR:40}
   google-books-api-key: ${GOOGLE_BOOKS_API_KEY:}
   public-url: ${SHELVED_PUBLIC_URL:https://shelf.tstieh.de}
+  bookshop:
+    name: ${SHELVED_BOOKSHOP_NAME:Buchhandlung Cremer}
+    url: ${SHELVED_BOOKSHOP_URL:https://buchhandlungcremer.buchkatalog.de/{isbn}}
   mail-from: ${SHELVED_MAIL_FROM:shelved <noreply@tstieh.de>}

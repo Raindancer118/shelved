@@ -29,7 +29,7 @@ class CoverStoreTest {
     void setUp() {
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
-        covers = new CoverStore(new ShelvedProperties(data, "local", null, 10, null, null), builder.build());
+        covers = new CoverStore(new ShelvedProperties(data, "local", null, 10, null, null, null), builder.build());
     }
 
     @Test

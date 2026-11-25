@@ -23,7 +23,8 @@ public class LibraryController {
                                  de.raindancer118.shelved.library.Membership.Role role) {
     }
 
-    public record Me(String name, String email, boolean aiAvailable, CurrentLibrary library) {
+    public record Me(String name, String email, boolean aiAvailable, CurrentLibrary library,
+                     de.raindancer118.shelved.config.ShelvedProperties.Bookshop bookshop) {
     }
 
     public record PlacedView(Views.BookSummary book, int position, int thicknessMm, PlacementService.Status status, String from) {
@@ -39,12 +40,15 @@ public class LibraryController {
     private final StatsService stats;
     private final ShelfRepository shelves;
     private final LibraryAi ai;
+    private final de.raindancer118.shelved.config.ShelvedProperties props;
 
     private final de.raindancer118.shelved.account.AccountService accounts;
     private final de.raindancer118.shelved.library.LibraryService libraries;
 
     public LibraryController(PlacementService placement, StatsService stats, ShelfRepository shelves, LibraryAi ai,
-                             de.raindancer118.shelved.account.AccountService accounts, de.raindancer118.shelved.library.LibraryService libraries) {
+                             de.raindancer118.shelved.account.AccountService accounts, de.raindancer118.shelved.library.LibraryService libraries,
+                             de.raindancer118.shelved.config.ShelvedProperties props) {
+        this.props = props;
         this.accounts = accounts;
         this.libraries = libraries;
         this.placement = placement;
@@ -67,7 +71,7 @@ public class LibraryController {
         String name = account.getDisplayName() != null ? account.getDisplayName()
                 : auth.getPrincipal() instanceof OidcUser u && u.getGivenName() != null ? u.getGivenName() : account.getEmail();
         return new Me(name, account.getEmail(), ai.available(),
-                new CurrentLibrary(library.getId(), library.getName(), library.getKind(), user.role()));
+                new CurrentLibrary(library.getId(), library.getName(), library.getKind(), user.role()), props.bookshop());
     }
 
     private Map<UUID, Integer> numbers(String owner) {

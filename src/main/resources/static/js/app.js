@@ -598,10 +598,12 @@ async function fillInsights() {
     ['Thalia', `https://www.thalia.de/suche?sq=${isbn}`],
     ['Hugendubel', `https://www.hugendubel.de/de/search?searchTerm=${isbn}`],
   ].filter(Boolean);
+  const shop = state.me?.bookshop;
+  const order = shop?.url ? `<a class="btn block order" href="${esc(shop.url.replace('{isbn}', isbn))}" target="_blank" rel="noopener noreferrer">${icons.book} Bei ${esc(shop.name)} bestellen ↗</a>` : '';
   slot.innerHTML = `${ratings.length ? `<h3 class="sec">Bewertungen</h3><div class="list">${ratings.map(r => `<div class="row">
       <span class="stars" aria-label="${r.average.toLocaleString('de-DE', { maximumFractionDigits: 1 })} von 5 Sternen">${'★'.repeat(Math.round(r.average))}<s>${'★'.repeat(5 - Math.round(r.average))}</s></span>
       <div class="grow"><b>${r.average.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} von 5</b><small>${r.count.toLocaleString('de-DE')} ${r.count === 1 ? 'Bewertung' : 'Bewertungen'} bei ${esc(r.source)}</small></div></div>`).join('')}</div>` : ''}
-    <h3 class="sec">Im Shop ansehen</h3>
+    <h3 class="sec">Kaufen</h3>${order}
     <div class="chips">${shops.map(([n, u]) => `<a class="chip" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(n)} ↗</a>`).join('')}</div>`;
 }
 
