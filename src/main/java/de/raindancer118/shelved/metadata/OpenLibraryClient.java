@@ -104,4 +104,58 @@ public class OpenLibraryClient {
                 d.cover_i() == null ? null : "https://covers.openlibrary.org/b/id/" + d.cover_i() + "-L.jpg",
                 "OPENLIBRARY");
     }
+
+    // ------------------------------------------------------------------ authors
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record AuthorDoc(String key, String name, String birth_date, String top_work, Integer work_count) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record AuthorDocs(List<AuthorDoc> docs) {
+    }
+
+    /** Open Library writes a bio either as plain text or as {type, value}. */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record AuthorRecord(String name, String birth_date, String death_date, tools.jackson.databind.JsonNode bio, List<Long> photos) {
+    }
+
+    public record AuthorHit(String key, String name, String birthDate, String topWork, int works) {
+    }
+
+    public record AuthorDetail(String key, String name, String birthDate, String deathDate, String bio, boolean hasPhoto) {
+    }
+
+    /** Authors by name. The search is fuzzy, callers decide which hits really are the person. */
+    public List<AuthorHit> searchAuthors(String query) {
+        URI uri = UriComponentsBuilder.fromUriString("https://openlibrary.org/search/authors.json")
+                .queryParam("q", query).queryParam("limit", 10).build().encode(StandardCharsets.UTF_8).toUri();
+        try {
+            AuthorDocs r = http.get().uri(uri).retrieve().body(AuthorDocs.class);
+            return r == null || r.docs() == null ? List.of() : r.docs().stream()
+                    .filter(d -> d.key() != null && d.name() != null)
+                    .map(d -> new AuthorHit(d.key(), d.name(), d.birth_date(), d.top_work(), d.work_count() == null ? 0 : d.work_count()))
+                    .toList();
+        } catch (RestClientException e) {
+            log.debug("Open Library author search failed: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    public Optional<AuthorDetail> author(String key) {
+        if (key == null || !key.matches("OL\\d+A")) {
+            return Optional.empty();
+        }
+        try {
+            AuthorRecord a = http.get().uri(URI.create("https://openlibrary.org/authors/" + key + ".json")).retrieve().body(AuthorRecord.class);
+            if (a == null) {
+                return Optional.empty();
+            }
+            String bio = a.bio() == null ? null : a.bio().isString() ? a.bio().asString() : a.bio().path("value").asString(null);
+            return Optional.of(new AuthorDetail(key, a.name(), a.birth_date(), a.death_date(), bio, a.photos() != null && !a.photos().isEmpty()));
+        } catch (RestClientException e) {
+            log.debug("Open Library author {} failed: {}", key, e.getMessage());
+            return Optional.empty();
+        }
+    }
 }

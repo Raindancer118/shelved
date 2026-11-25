@@ -121,6 +121,16 @@ class DnbClientTest {
         server.verify();
     }
 
+    /** An author's books in German: the person index with the name as the catalogue writes it. */
+    @Test
+    void booksOfAnAuthorAreAskedForByTheirCatalogueName() {
+        server.expect(requestTo(startsWith("https://services.dnb.de/sru/dnb")))
+                .andExpect(decodedQuery("query=per=\"Maas, Sarah J.\" and mat=books"))
+                .andRespond(withSuccess(new ClassPathResource("fixtures/dnb-search-farben.xml"), MediaType.APPLICATION_XML));
+        assertThat(client.byAuthor("Sarah J. Maas")).isNotEmpty();
+        server.verify();
+    }
+
     @Test
     void thePartTitleIsTheTitle() {
         String xml = """

@@ -75,6 +75,15 @@ public abstract class MarcSruClient {
         return query(titleQuery(title, author), 30);
     }
 
+    /** Everything printed under this person, with the name as the catalogue writes it ("Maas, Sarah J."). */
+    public List<BookMetadata> byAuthor(String name) {
+        if (name == null || name.isBlank()) {
+            return List.of();
+        }
+        String catalogName = Names.sortForm(name.trim()).replace("\"", "");
+        return query(profile.personIndex() + "=\"" + catalogName + "\"" + profile.booksFilter(), 100);
+    }
+
     private String titleQuery(String title, String author) {
         StringBuilder q = new StringBuilder(profile.titleIndex()).append('=').append(clean(title));
         String surname = surnameOf(author);
