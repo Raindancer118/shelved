@@ -27,6 +27,7 @@ public class CoverStore {
 
     private final Path dir;
     private final Path catalogDir;
+    private final Path flatDir;
     private final RestClient http;
     /** ISBNs without any cover anywhere, so a list of search hits doesn't ask the same sources again and again. */
     private final java.util.Map<String, java.time.Instant> misses = new java.util.concurrent.ConcurrentHashMap<>();
@@ -34,9 +35,11 @@ public class CoverStore {
     public CoverStore(ShelvedProperties props, RestClient externalHttp) {
         this.dir = props.dataDir().resolve("covers");
         this.catalogDir = dir.resolve("catalog");
+        this.flatDir = dir.resolve("flat");
         this.http = externalHttp;
         try {
             Files.createDirectories(catalogDir);
+            Files.createDirectories(flatDir);
         } catch (IOException e) {
             throw new UncheckedIOException("Cannot create cover directory " + dir, e);
         }
@@ -126,9 +129,40 @@ public class CoverStore {
         return Files.isRegularFile(p) ? Optional.of(p) : Optional.empty();
     }
 
+    /**
+     * The picture to show: a publisher's 3D mockup cut down to its front (see CoverFlattener), else the file itself.
+     * Worked out once per file and kept next to it; the original is never touched.
+     */
+    public Path flat(Path original) {
+        String name = original.getFileName().toString();
+        Path cut = flatDir.resolve(name + ".jpg");
+        Path same = flatDir.resolve(name + ".same");
+        if (Files.isRegularFile(cut)) {
+            return cut;
+        }
+        if (Files.exists(same)) {
+            return original;
+        }
+        try {
+            java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(original.toFile());
+            java.awt.image.BufferedImage front = img == null ? null : CoverFlattener.flatten(img);
+            if (front == null || front == img) {
+                Files.createFile(same);
+                return original;
+            }
+            javax.imageio.ImageIO.write(front, "jpg", cut.toFile());
+            return cut;
+        } catch (IOException e) {
+            log.debug("Cover {} not checked for a mockup: {}", name, e.getMessage());
+            return original;
+        }
+    }
+
     public void delete(String file) {
         path(file).ifPresent(p -> {
             try {
+                Files.deleteIfExists(flatDir.resolve(p.getFileName() + ".jpg"));
+                Files.deleteIfExists(flatDir.resolve(p.getFileName() + ".same"));
                 Files.deleteIfExists(p);
             } catch (IOException e) {
                 log.warn("Could not delete cover {}", p);

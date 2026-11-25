@@ -144,7 +144,7 @@ public class BookController {
     @GetMapping("/books/{id}/cover")
     public ResponseEntity<FileSystemResource> cover(Authentication auth, @PathVariable UUID id) {
         Book b = books.get(Owner.of(auth), id);
-        var path = covers.path(b.getCoverFile()).orElseThrow(() -> new NotFoundException("Cover"));
+        var path = covers.path(b.getCoverFile()).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
         MediaType type = path.toString().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
         return ResponseEntity.ok().contentType(type)
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePrivate().immutable())
@@ -163,7 +163,7 @@ public class BookController {
 
     @GetMapping("/covers/{isbn}")
     public ResponseEntity<FileSystemResource> catalogCover(@PathVariable String isbn) {
-        var path = covers.catalogCover(isbn).orElseThrow(() -> new NotFoundException("Cover"));
+        var path = covers.catalogCover(isbn).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
         MediaType type = path.toString().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
         return ResponseEntity.ok().contentType(type)
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(30)).cachePrivate())

@@ -68,6 +68,19 @@ class CoverStoreTest {
     }
 
     @Test
+    void mockupsAreServedAsTheirFrontAndTheOriginalStays() throws Exception {
+        byte[] mockup = Mockups.paperbackJpeg();
+        Path original = covers.path(covers.save(java.util.UUID.randomUUID(), mockup, "jpg")).orElseThrow();
+
+        Path flat = covers.flat(original);
+
+        assertThat(flat).isNotEqualTo(original);
+        assertThat(javax.imageio.ImageIO.read(flat.toFile()).getWidth()).isLessThan(javax.imageio.ImageIO.read(original.toFile()).getWidth());
+        assertThat(java.nio.file.Files.readAllBytes(original)).isEqualTo(mockup);
+        assertThat(covers.flat(original)).isEqualTo(flat);
+    }
+
+    @Test
     void onlyIsbnsReachTheDisk() {
         assertThat(covers.catalogCover("../../etc/passwd")).isEmpty();
         assertThat(covers.catalogCover("12345")).isEmpty();

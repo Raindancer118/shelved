@@ -32,7 +32,7 @@ public final class Views {
     }
 
     public static String cover(Book b) {
-        return b.getCoverFile() == null ? null : "/api/books/" + b.getId() + "/cover?v=" + b.getCoverFile().hashCode();
+        return b.getCoverFile() == null ? null : "/api/books/" + b.getId() + "/cover?v=f" + b.getCoverFile().hashCode(); // f: served as the cut front since 0.9.1
     }
 
     static BookSummary summary(Book b, Map<UUID, Integer> shelfNumbers) {

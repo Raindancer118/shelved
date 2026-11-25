@@ -51,7 +51,7 @@ public class WishController {
     }
 
     static WishView view(Wish w, de.raindancer118.shelved.book.Book owned) {
-        String cover = w.getCoverFile() == null ? null : "/api/wishes/" + w.getId() + "/cover?v=" + w.getCoverFile().hashCode();
+        String cover = w.getCoverFile() == null ? null : "/api/wishes/" + w.getId() + "/cover?v=f" + w.getCoverFile().hashCode(); // f: served as the cut front since 0.9.1
         return new WishView(w.getId(), w.getIsbn13(), w.getTitle(), w.getSubtitle(), w.getAuthors(), w.getPublisher(),
                 w.getPublishedYear(), w.getListPriceCents(), cover, owned == null ? null : owned.getId(),
                 owned == null ? null : Views.cover(owned),
@@ -99,7 +99,7 @@ public class WishController {
     @GetMapping("/{id}/cover")
     public ResponseEntity<FileSystemResource> cover(Authentication auth, @PathVariable UUID id) {
         Wish w = wishes.get(Owner.of(auth), id);
-        var path = covers.path(w.getCoverFile()).orElseThrow(() -> new NotFoundException("Cover"));
+        var path = covers.path(w.getCoverFile()).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
         MediaType type = path.toString().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
         return ResponseEntity.ok().contentType(type)
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePrivate().immutable())
