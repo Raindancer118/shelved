@@ -1,9 +1,9 @@
 import { api, get, post, put, del, upload, poll, PUBLIC } from './api.js';
-import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor } from './ui.js';
+import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor, themeButton, toggleTheme, dialog } from './ui.js';
 import { liveBarcodeSupported, scanBarcode, prepareImage, capturePhoto } from './camera.js';
 
 const app = document.getElementById('app');
-const state = { me: null, books: null, sort: 'author', query: '' };
+const state = { me: null, books: null, wishes: null, sort: 'author', query: '' };
 let cleanup = null; // stops a running camera when the view changes
 
 // ---------------------------------------------------------------- Router
@@ -25,6 +25,10 @@ const routes = [
   [/^\/shelves\/new$/, viewShelfForm, 'shelves'],
   [/^\/shelves\/([\w-]+)\/edit$/, viewShelfForm, 'shelves'],
   [/^\/stats$/, viewStats, 'stats'],
+  [/^\/wishes$/, viewWishes, 'wishes'],
+  [/^\/wishes\/add$/, viewWishAdd, 'wishes'],
+  [/^\/wishes\/barcode$/, () => viewBarcode('wish'), 'wishes'],
+  [/^\/wishes\/search$/, () => viewManual('wish'), 'wishes'],
   [/^\/login$/, viewLogin, null],
   [/^\/register$/, viewRegister, null],
   [/^\/verify$/, viewVerify, null],
@@ -47,6 +51,7 @@ async function route() {
   const [re, view, tab] = routes.find(([r]) => r.test(path)) ?? routes[0];
   const args = (path.match(re) ?? []).slice(1).map(decodeURIComponent);
   document.querySelectorAll('.tabbar a').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
+  app.classList.toggle('wide', WIDE.some(r => r.test(path)));
   const render = async () => {
     try {
       await view(...args);
@@ -72,7 +77,17 @@ async function route() {
   window.scrollTo(0, 0);
 }
 
+// Overviews use the full width; reading and forms keep a measure.
+const WIDE = [/^\/$/, /^\/wishes$/, /^\/series/, /^\/shelves$/, /^\/stats$/];
+
 function go(path) { location.hash = '#' + path; }
+
+/** Yes/no question as a dialog. Resolves true for the first button. */
+async function ask(title, text, yes, no = 'Abbrechen', danger = false) {
+  const r = await dialog({ title, body: text ? `<p>${esc(text)}</p>` : '',
+    buttons: [{ label: yes, value: 'yes', kind: danger ? 'danger solid' : '' }, { label: no, value: 'no', kind: 'ghost' }] });
+  return r?.value === 'yes';
+}
 
 /**
  * Runs an "add" call. If the library already has the book, asks whether this is another copy
@@ -83,7 +98,7 @@ async function addOrCopy(call) {
     return await call(false);
   } catch (e) {
     if (e.status !== 409) throw e;
-    if (!confirm(`„${e.data.title}“ hast du schon. Besitzt du es mehrfach? Dann zähle ich es als weiteres Exemplar.`)) {
+    if (!await ask(`„${e.data.title}“ hast du schon`, 'Besitzt du es mehrfach? Dann zählt es als weiteres Exemplar.', 'Weiteres Exemplar', 'Zum Buch')) {
       go(`/book/${e.data.existingId}`);
       return null;
     }
@@ -97,7 +112,43 @@ async function books(force = false) {
   if (!state.books || force) state.books = await get('/api/books?sort=author');
   return state.books;
 }
-const invalidate = () => { state.books = null; };
+const invalidate = () => { state.books = null; state.wishes = null; };
+
+async function wishes(force = false) {
+  if (!state.wishes || force) state.wishes = await get('/api/wishes');
+  return state.wishes;
+}
+
+/**
+ * After books came into the library: if some of them were on the wish list, ask whether they may leave it.
+ * Unticked ones stay and are not asked about again.
+ */
+async function askAboutWishes() {
+  const done = await get('/api/wishes/fulfilled').catch(() => []);
+  if (!done.length) return;
+  const one = done.length === 1;
+  const r = await dialog({
+    title: 'Von der Wunschliste nehmen?',
+    body: one
+      ? `<p>„${esc(done[0].title)}“ steht jetzt in deiner Bibliothek.</p>`
+      : `<p>Diese ${done.length} Bücher stehen jetzt in deiner Bibliothek.</p>
+         <div class="list">${done.map(w => `<label class="row"><input class="check" type="checkbox" data-wish="${w.id}" checked>
+           <div class="grow"><b>${esc(w.title)}</b><small>${esc(authors(w.authors))}</small></div></label>`).join('')}</div>`,
+    buttons: [{ label: one ? 'Von der Liste nehmen' : 'Angehakte entfernen', value: 'remove' }, { label: 'Auf der Liste lassen', value: 'keep', kind: 'ghost' }],
+  });
+  if (!r) return; // closed without answer: ask again next time
+  const ticked = one ? new Set([done[0].id])
+    : new Set([...r.root.querySelectorAll('[data-wish]:checked')].map(c => c.dataset.wish));
+  const remove = r.value === 'remove' ? done.filter(w => ticked.has(w.id)).map(w => w.id) : [];
+  const keep = done.map(w => w.id).filter(id => !remove.includes(id));
+  await post('/api/wishes/resolve', { remove, keep });
+  state.wishes = null;
+  if (remove.length) toast(remove.length === 1 ? 'Von der Wunschliste genommen' : `${remove.length} von der Wunschliste genommen`);
+}
+
+/** Head of a main view: title, one line of context, theme switch and whatever the view adds. */
+const viewHead = (title, sub = '', extra = '') => `<div class="head"><div><h1>${esc(title)}</h1>${sub ? `<small>${sub}</small>` : ''}</div>
+  <div class="tools">${extra}${themeButton()}</div></div>`;
 
 // ---------------------------------------------------------------- Bibliothek
 
@@ -131,10 +182,11 @@ function gridHtml(list) {
 
 async function viewLibrary() {
   const [list, shelves] = await Promise.all([books(), get('/api/shelves')]);
-  const name = state.me?.name ?? '';
+  const name = state.me?.name || state.me?.email || '';
+  const avatar = `<a class="round avatar" href="#/account" title="${esc(name)}" aria-label="Konto und Bibliothek">${name ? esc(name.charAt(0).toUpperCase()) : icons.user}</a>`;
   if (!list.length) {
     paint(`
-      <div class="head"><div><h1>Bibliothek</h1><small>Noch leer</small></div><a class="avatar" href="#/account" aria-label="Konto und Bibliothek">${esc(name.charAt(0).toUpperCase())}</a></div>
+      ${viewHead('Bibliothek', 'Noch leer', avatar)}
       <div class="empty"><h2>Fang mit einem Regalbrett an</h2>
         <p>Foto vom Regal, Barcode scannen oder von Hand: shelved holt die Daten aus DNB, Google Books und Wikidata.</p>
         <a class="btn" href="#/add">${icons.plus} Bücher hinzufügen</a></div>`);
@@ -142,8 +194,7 @@ async function viewLibrary() {
   }
   const letters = [...new Set(list.map(b => surname(b).charAt(0).toUpperCase()).filter(l => /[A-ZÄÖÜ]/.test(l)))];
   paint(`
-    <div class="head"><div><h1>Bibliothek</h1><small>${esc(state.me?.library?.name ?? '')} · ${list.length} Bücher · ${shelves.length} ${shelves.length === 1 ? 'Regal' : 'Regale'}</small></div>
-      <a class="avatar" href="#/account" title="${esc(name)}" aria-label="Konto und Bibliothek">${esc(name.charAt(0).toUpperCase())}</a></div>
+    ${viewHead('Bibliothek', `${esc(state.me?.library?.name ?? '')} · ${list.length} Bücher in ${shelves.length} ${shelves.length === 1 ? 'Regal' : 'Regalen'}`, avatar)}
     <div class="search" role="search">${icons.search}
       <input id="q" type="search" placeholder="Titel, Autor oder ISBN" value="${esc(state.query)}" autocomplete="off" aria-label="Bibliothek durchsuchen">
       <a class="cam" href="#/lookup" aria-label="Mit der Kamera nachschauen">${icons.cam}</a></div>
@@ -177,25 +228,27 @@ async function viewBook(id) {
     ['Erschienen', b.publishedYear],
     ['Seiten', b.pageCount && `${b.pageCount}${b.format ? ' · ' + FORMATS[b.format] : ''}`],
     ['Sprache', b.language && (LANGS[b.language] ?? b.language)],
-    ['ISBN', b.isbn13],
+    ['ISBN', b.isbn13 && { mono: b.isbn13 }],
     ['Neupreis', b.listPriceCents != null && euros(b.listPriceCents)],
     ['Privat verkauft', b.usedPriceCents != null && `ca. ${euros(b.usedPriceCents)}`],
     ['Ankauf (momox & Co.)', b.buybackPriceCents != null && (b.buybackPriceCents > 0 ? `ca. ${euros(b.buybackPriceCents)}` : 'kaum etwas')],
     ['Dicke', `${b.estimatedThicknessMm} mm${b.thicknessMm ? '' : ' (geschätzt)'}`],
   ].filter(([, v]) => v);
-  const copiesRow = `<dt>Exemplare</dt><dd class="stepper"><button class="round sm" id="less" aria-label="Ein Exemplar weniger" ${b.copies <= 1 ? 'disabled' : ''}>−</button>
-      <b>${b.copies}</b><button class="round sm" id="more" aria-label="Ein Exemplar mehr">+</button></dd>`;
+  const copiesRow = `<dt>Exemplare</dt><dd class="stepper"><button class="round sm" id="less" aria-label="Ein Exemplar weniger" ${b.copies <= 1 ? 'disabled' : ''}>${icons.minus}</button>
+      <b>${b.copies}</b><button class="round sm" id="more" aria-label="Ein Exemplar mehr">${icons.plus}</button></dd>`;
   paint(`
     ${backBar('#/', `<a class="round" href="#/book/${b.id}/edit" aria-label="Bearbeiten">${icons.pen}</a>`)}
     <div class="stage"><label title="Cover ändern">${cover(b, { lazy: false })}<input id="coverfile" class="sr" type="file" accept="image/jpeg,image/png"></label></div>
     <h1 class="dtitle">${esc(b.title)}</h1>
     ${b.subtitle ? `<p class="dsub">${esc(b.subtitle)}</p>` : ''}
     <p class="dauthor">${esc(authors(b.authors))}</p>
-    ${b.seriesName ? `<a class="serieschip" href="#/series/${encodeURIComponent(b.seriesKey)}"><span>${esc(b.seriesName)}${b.seriesVolume ? ' · Band ' + b.seriesVolume : ''}</span><em>Reihe ›</em></a>` : '<div class="note">Keine Reihe bekannt.</div>'}
-    <div class="loc">
-      <div><b>${esc(b.location ?? 'Ohne Platz')}</b><small>${b.location ? 'steht hier laut letztem Regalfoto' : 'noch keinem Regal zugeordnet'}${targetLabel && targetLabel !== b.location ? ` · gehört nach <strong>${esc(targetLabel)}</strong>` : ''}</small></div>
-      <a class="link" href="#/shelves">Einsortieren</a></div>
-    <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}${copiesRow}</dl>
+    <div class="list">
+      ${b.seriesName ? `<a class="row" href="#/series/${encodeURIComponent(b.seriesKey)}"><div class="grow"><b>${esc(b.seriesName)}</b><small>Reihe${b.seriesVolume ? ', Band ' + b.seriesVolume : ''}</small></div>${icons.next}</a>` : ''}
+      <div class="loc">
+        <div><b class="${b.location ? 'mono' : ''}">${esc(b.location ?? 'Ohne Platz')}</b><small>${b.location ? 'steht hier laut letztem Regalfoto' : 'noch keinem Regal zugeordnet'}${targetLabel && targetLabel !== b.location ? ` · gehört nach <strong>${esc(targetLabel)}</strong>` : ''}</small></div>
+        <a class="link" href="#/shelves">Einsortieren</a></div>
+    </div>
+    <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v.mono ? `<span class="mono">${esc(v.mono)}</span>` : esc(v)}</dd>`).join('')}${copiesRow}</dl>
     ${b.description ? `<p class="blurb clamp" id="blurb">${esc(b.description)}</p>` : ''}
     <div class="actions"><a class="btn ghost" href="#/book/${b.id}/edit">${icons.pen} Bearbeiten</a><button class="btn danger" id="delete">Löschen</button></div>`);
 
@@ -214,7 +267,7 @@ async function viewBook(id) {
     route();
   });
   document.getElementById('delete').addEventListener('click', async () => {
-    if (!confirm(`„${b.title}“ aus der Bibliothek löschen?`)) return;
+    if (!await ask(`„${b.title}“ löschen?`, 'Das Buch verschwindet aus der Bibliothek, samt Cover und Regalplatz.', 'Löschen', 'Abbrechen', true)) return;
     await del(`/api/books/${b.id}`);
     invalidate();
     toast('Gelöscht');
@@ -261,6 +314,7 @@ async function viewEdit(id) {
     if (!saved) return;
     invalidate();
     toast('Gespeichert');
+    if (!id) await askAboutWishes();
     go(`/book/${saved.id}`);
   });
 }
@@ -272,11 +326,11 @@ async function viewAdd() {
   paint(`
     ${backBar('#/')}
     <h1 class="dtitle">Hinzufügen</h1>
-    <div class="modes">
-      <a class="mode" href="#/add/shelf"><span class="ic">${icons.shelf}</span><span><b>Regal fotografieren</b><small>${ai ? 'Ein Foto pro Regalbrett, die Buchrücken werden gelesen' : 'Nicht eingerichtet (kein API-Key)'}</small></span></a>
-      <a class="mode" href="#/add/barcode"><span class="ic">${icons.barcode}</span><span><b>Barcode scannen</b><small>ISBN auf der Rückseite, Daten aus DNB und Google Books</small></span></a>
-      <button class="mode" id="bookphoto"><span class="ic">${icons.book}</span><span><b>Buch fotografieren</b><small>Cover oder Rücken eines einzelnen Buchs</small></span></button>
-      <a class="mode" href="#/add/manual"><span class="ic">${icons.pen}</span><span><b>Von Hand</b><small>Im Katalog suchen oder selbst eintragen</small></span></a>
+    <div class="list modes">
+      <a class="row mode" href="#/add/shelf"><span class="ic">${icons.shelf}</span><span class="grow"><b>Regal fotografieren</b><small>${ai ? 'Ein Foto pro Regalbrett, die Buchrücken werden gelesen' : 'Nicht eingerichtet (kein API-Key)'}</small></span></a>
+      <a class="row mode" href="#/add/barcode"><span class="ic">${icons.barcode}</span><span class="grow"><b>Barcode scannen</b><small>ISBN auf der Rückseite, Daten aus DNB und Google Books</small></span></a>
+      <button class="row mode" id="bookphoto"><span class="ic">${icons.book}</span><span class="grow"><b>Buch fotografieren</b><small>Cover oder Rücken eines einzelnen Buchs</small></span></button>
+      <a class="row mode" href="#/add/manual"><span class="ic">${icons.pen}</span><span class="grow"><b>Von Hand</b><small>Im Katalog suchen oder selbst eintragen</small></span></a>
     </div>`);
   document.getElementById('bookphoto').addEventListener('click', () => photoScan('BOOK'));
 }
@@ -298,8 +352,8 @@ async function photoScan(mode, shelfId, board) {
 async function viewBarcode(purpose) {
   const live = await liveBarcodeSupported();
   paint(`
-    ${backBar(purpose === 'add' ? '#/add' : '#/')}
-    <h1 class="dtitle">${purpose === 'add' ? 'Barcode scannen' : 'Hab ich das schon?'}</h1>
+    ${backBar({ add: '#/add', wish: '#/wishes/add' }[purpose] ?? '#/')}
+    <h1 class="dtitle">${{ add: 'Barcode scannen', wish: 'Buch merken' }[purpose] ?? 'Hab ich das schon?'}</h1>
     ${live ? '<div class="viewfinder"><video id="video" muted playsinline></video></div>' : ''}
     <div class="actions">
       <button class="btn ${live ? 'ghost' : ''}" id="photo">${icons.cam} ${live ? 'Lieber ein Foto' : 'Barcode fotografieren'}</button>
@@ -349,41 +403,66 @@ async function showIsbn(isbn, out, purpose) {
     out.innerHTML = `<p class="note warn">${esc(e.message)}</p>`;
     return;
   }
+  const wished = (await wishes()).find(w => w.isbn13 === r.isbn13);
   if (r.owned.length) {
     const b = r.owned[0];
-    out.innerHTML = `<div class="result"><a class="row" href="#/book/${b.id}">${cover(b)}<div class="grow"><b>${esc(b.title)}</b><small>${esc(authors(b.authors))}</small></div><span class="tag owned">Hast du</span></a>
-      <p class="note">${b.location ? 'Steht bei ' + esc(b.location) : 'Noch ohne Regalplatz'}.</p></div>`;
+    out.innerHTML = `<div class="result"><div class="list"><a class="row" href="#/book/${b.id}">${cover(b)}<div class="grow"><b>${esc(b.title)}</b><small>${esc(authors(b.authors))}</small></div><span class="tag owned">Hast du</span></a></div>
+      <p class="note">${b.location ? `Steht bei <span class="mono">${esc(b.location)}</span>` : 'Noch ohne Regalplatz'}</p></div>`;
   } else if (r.metadata) {
     const m = r.metadata;
-    out.innerHTML = `<div class="result"><div class="row">${cover({ title: m.title, authors: m.authors })}<div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small>
+    const add = `<button class="btn" id="addit">${icons.plus} In die Bibliothek</button>`;
+    const wish = wished ? '' : `<button class="btn ${purpose === 'wish' ? '' : 'ghost'}" id="wishit">${icons.bookmark} Merken</button>`;
+    out.innerHTML = `<div class="result"><div class="list"><div class="row">${cover({ title: m.title, authors: m.authors })}<div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small>
       <small>${esc([m.publisher, m.publishedYear, m.listPriceCents != null && euros(m.listPriceCents)].filter(Boolean).join(' · '))}</small></div>
-      <span class="tag new">Neu</span></div><button class="btn block" id="addit">${icons.plus} In die Bibliothek</button></div>`;
-    document.getElementById('addit').addEventListener('click', async e => {
-      e.target.disabled = true;
-      const b = await addOrCopy(another => post('/api/books/isbn', { isbn: r.isbn13, anotherCopy: another }));
-      e.target.disabled = false;
+      ${wished ? '<span class="tag new">Gemerkt</span>' : '<span class="tag plain">Neu</span>'}</div></div>
+      <div class="actions">${purpose === 'wish' ? wish : add + wish}</div></div>`;
+    document.getElementById('addit')?.addEventListener('click', async e => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      const b = await addOrCopy(another => post('/api/books/isbn', { isbn: r.isbn13, anotherCopy: another })).finally(() => { btn.disabled = false; });
       if (!b) return;
       invalidate();
       toast(b.copies > 1 ? `„${b.title}“: jetzt ${b.copies} Exemplare` : `„${b.title}“ hinzugefügt`);
+      await askAboutWishes();
       if (purpose === 'add') { out.innerHTML = ''; document.getElementById('isbn').value = ''; } else go(`/book/${b.id}`);
     });
+    document.getElementById('wishit')?.addEventListener('click', async e => {
+      e.currentTarget.disabled = true;
+      await addWish({ isbn: r.isbn13 });
+      if (purpose === 'wish') go('/wishes'); else showIsbn(isbn, out, purpose);
+    });
   } else {
-    out.innerHTML = `<div class="result"><p>Zu ${esc(r.isbn13)} kennen DNB, Google Books und Open Library nichts.</p>
-      <a class="btn ghost block" href="#/new">Von Hand anlegen</a></div>`;
+    out.innerHTML = `<div class="result"><p>Zu <span class="mono">${esc(r.isbn13)}</span> kennen DNB, Google Books und Open Library nichts.</p>
+      <div class="actions"><a class="btn ghost" href="${purpose === 'wish' ? '#/wishes/search' : '#/new'}">${purpose === 'wish' ? 'Im Katalog suchen' : 'Von Hand anlegen'}</a></div></div>`;
   }
 }
 
-async function viewManual() {
+/** Puts a book on the wish list. Owned already: says so instead. */
+async function addWish(body) {
+  try {
+    const w = await post('/api/wishes', body);
+    state.wishes = null;
+    toast(`„${w.title}“ gemerkt`);
+    return w;
+  } catch (e) {
+    if (e.status !== 409) throw e;
+    toast(`„${e.data.title}“ hast du schon`);
+    return null;
+  }
+}
+
+async function viewManual(purpose = 'add') {
+  const forWish = purpose === 'wish';
   paint(`
-    ${backBar('#/add')}
-    <h1 class="dtitle">Im Katalog suchen</h1>
+    ${backBar(forWish ? '#/wishes/add' : '#/add')}
+    <h1 class="dtitle">${forWish ? 'Buch merken' : 'Im Katalog suchen'}</h1>
     <form class="form" id="f">
       <div class="field"><label for="t">Titel</label><input id="t" name="t" required></div>
       <div class="field"><label for="a">Autor (optional)</label><input id="a" name="a"></div>
       <button class="btn block" type="submit">${icons.search} Suchen</button>
     </form>
     <div id="out"></div>
-    <p class="note"><a class="link" href="#/new">Nicht dabei? Selbst eintragen</a></p>`);
+    ${forWish ? '' : '<p class="note"><a class="link" href="#/new">Nicht dabei? Selbst eintragen</a></p>'}`);
   document.getElementById('f').addEventListener('submit', async e => {
     e.preventDefault();
     const out = document.getElementById('out');
@@ -393,15 +472,21 @@ async function viewManual() {
     out.innerHTML = `<div class="list">${hits.map((m, i) => `
       <button class="row" data-i="${i}" type="button">${cover({ title: m.title, authors: m.authors })}
         <div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small><small>${esc([m.publisher, m.publishedYear, m.isbn13].filter(Boolean).join(' · '))}</small></div>
-        <span class="tag">${esc(m.source)}</span></button>`).join('')}</div>`;
+        <span class="tag plain">${esc(m.source)}</span></button>`).join('')}</div>`;
     applyVars(out);
     out.querySelectorAll('[data-i]').forEach(btn => btn.addEventListener('click', async () => {
       btn.disabled = true;
-      const b = await addOrCopy(another => post(`/api/books/from-catalog?anotherCopy=${another}`, hits[Number(btn.dataset.i)]));
-      btn.disabled = false;
+      const m = hits[Number(btn.dataset.i)];
+      if (forWish) {
+        const w = await addWish(m.isbn13 ? { isbn: m.isbn13 } : { title: m.title, authors: m.authors }).finally(() => { btn.disabled = false; });
+        if (w) go('/wishes');
+        return;
+      }
+      const b = await addOrCopy(another => post(`/api/books/from-catalog?anotherCopy=${another}`, m)).finally(() => { btn.disabled = false; });
       if (!b) return;
       invalidate();
       toast(`„${b.title}“ hinzugefügt`);
+      await askAboutWishes();
       go(`/book/${b.id}`);
     }));
   });
@@ -451,7 +536,7 @@ async function viewScan(id) {
     const options = [it.candidate, ...(it.alternatives ?? [])].filter(Boolean);
     const [cls, label] = STATUS[it.status];
     return `<div class="row">
-      ${it.status === 'OWNED' ? '<span class="pos">✓</span>' : `<input class="check" type="checkbox" data-i="${it.index}" ${it.status === 'NEW' ? 'checked' : ''} aria-label="übernehmen">`}
+      ${it.status === 'OWNED' ? `<span class="pos" aria-label="hast du">${icons.check}</span>` : `<input class="check" type="checkbox" data-i="${it.index}" ${it.status === 'NEW' ? 'checked' : ''} aria-label="übernehmen">`}
       <div class="grow"><b>${esc(options[0]?.title ?? r.title ?? '?')}</b>
         <small>${esc(authors(options[0]?.authors?.length ? options[0].authors : r.authors))}${r.series ? ' · ' + esc(r.series) + (r.volume ? ' ' + r.volume : '') : ''}</small>
         ${it.status === 'UNSURE' ? `<small>Gelesen: „${esc(r.spineText || r.title)}“</small>` : ''}
@@ -485,8 +570,65 @@ async function viewScan(id) {
     invalidate();
     const est = (res.estimatedBoards ?? []).map(b => `Boden ${b.board} ≈ ${b.widthMm / 10} cm`).join(', ');
     toast(`${res.created.length} hinzugefügt${res.placed.length ? `, ${res.placed.length} Plätze gespeichert` : ''}${est ? `. Breite geschätzt: ${est}` : ''}`);
+    await askAboutWishes();
     go(scan.shelfId ? '/shelves' : '/');
   });
+}
+
+// ---------------------------------------------------------------- Wunschliste
+
+const wishMeta = w => [authors(w.authors), w.seriesName && `${w.seriesName}${w.seriesVolume ? ' ' + w.seriesVolume : ''}`].filter(Boolean).join(' · ');
+
+async function viewWishes() {
+  const list = await wishes(true);
+  if (!list.length) {
+    paint(`${viewHead('Wunschliste', 'Noch leer')}
+      <div class="empty"><h2>Merk dir Bücher, die dir fehlen</h2>
+        <p>Im Buchladen den Barcode scannen, im Katalog suchen oder in einer Reihe auf einen fehlenden Band tippen. Kommt ein Buch später in die Bibliothek, fragt shelved, ob es von der Liste darf.</p>
+        <a class="btn" href="#/wishes/add">${icons.bookmark} Buch merken</a></div>`);
+    return;
+  }
+  const open = list.filter(w => !w.ownedBookId);
+  const owned = list.filter(w => w.ownedBookId);
+  const priced = open.filter(w => w.listPriceCents != null);
+  const total = priced.reduce((sum, w) => sum + w.listPriceCents, 0);
+  const sub = `${open.length} ${open.length === 1 ? 'Buch' : 'Bücher'}${priced.length ? `, ${priced.length < open.length ? 'mindestens ' : ''}${euros(total)} Neupreis` : ''}`;
+  const remove = w => `<button class="round sm" data-del="${w.id}" aria-label="„${esc(w.title)}“ von der Wunschliste nehmen" title="Von der Liste nehmen">${icons.x}</button>`;
+  paint(`
+    ${viewHead('Wunschliste', sub)}
+    ${open.length ? `<div class="list">${open.map(w => `<div class="row">${cover(w)}
+      <div class="grow"><b>${esc(w.title)}</b><small>${esc(wishMeta(w))}</small>${w.isbn13 ? `<small class="mono">${esc(w.isbn13)}</small>` : ''}</div>
+      ${w.listPriceCents != null ? `<span class="num">${esc(euros(w.listPriceCents))}</span>` : ''}${remove(w)}</div>`).join('')}</div>`
+      : '<p class="note">Alles, was du dir gemerkt hast, steht schon in der Bibliothek.</p>'}
+    ${owned.length ? `<h3 class="sec">Schon in der Bibliothek</h3>
+      <div class="list">${owned.map(w => `<div class="row">${cover(w)}
+        <a class="grow" href="#/book/${w.ownedBookId}"><b>${esc(w.title)}</b><small>${esc(wishMeta(w))}</small></a>
+        <span class="tag owned">Hast du</span>${remove(w)}</div>`).join('')}</div>` : ''}
+    ${open.length ? `<div class="actions"><button class="btn ghost" id="share">${icons.share} Als Einkaufsliste teilen</button></div>` : ''}
+    <a class="btn fab" href="#/wishes/add">${icons.bookmark} Merken</a>`);
+  app.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    await del(`/api/wishes/${b.dataset.del}`).finally(() => { b.disabled = false; });
+    state.wishes = null;
+    toast('Von der Wunschliste genommen');
+    route();
+  }));
+  document.getElementById('share')?.addEventListener('click', async () => {
+    const text = 'Meine Wunschliste:\n' + open.map(w => `${w.title}${w.authors?.length ? ' (' + authors(w.authors) + ')' : ''}${w.isbn13 ? ', ISBN ' + w.isbn13 : ''}`).join('\n');
+    if (navigator.share) await navigator.share({ title: 'Wunschliste', text }).catch(() => {});
+    else { await navigator.clipboard.writeText(text); toast('In die Zwischenablage kopiert'); }
+  });
+}
+
+async function viewWishAdd() {
+  paint(`
+    ${backBar('#/wishes')}
+    <h1 class="dtitle">Buch merken</h1>
+    <div class="list modes">
+      <a class="row mode" href="#/wishes/barcode"><span class="ic">${icons.barcode}</span><span class="grow"><b>Barcode scannen</b><small>Im Buchladen: zeigt auch, ob du es schon hast</small></span></a>
+      <a class="row mode" href="#/wishes/search"><span class="ic">${icons.search}</span><span class="grow"><b>Im Katalog suchen</b><small>Nach Titel und Autor</small></span></a>
+      <a class="row mode" href="#/series"><span class="ic">${icons.bookmark}</span><span class="grow"><b>Aus einer Reihe</b><small>Auf einen fehlenden Band tippen</small></span></a>
+    </div>`);
 }
 
 // ---------------------------------------------------------------- Reihen
@@ -494,13 +636,12 @@ async function viewScan(id) {
 async function viewSeriesList() {
   const list = await get('/api/series');
   if (!list.length) {
-    paint(`<div class="head"><div><h1>Reihen</h1></div></div><div class="empty"><h2>Noch keine Reihen</h2><p>Sobald Bücher einer Reihe in deiner Bibliothek sind, siehst du hier, welche Bände fehlen.</p></div>`);
+    paint(`${viewHead('Reihen')}<div class="empty"><h2>Noch keine Reihen</h2><p>Sobald Bücher einer Reihe in deiner Bibliothek sind, siehst du hier, welche Bände fehlen.</p></div>`);
     return;
   }
   const missing = list.reduce((s, r) => s + r.missingCount, 0);
   paint(`
-    <div class="head"><div><h1>Reihen</h1><small>${list.length} Reihen · ${missing} Bände fehlen</small></div>
-      <button class="round" id="recheck" aria-label="Reihen neu prüfen" title="Reihen neu prüfen">↻</button></div>
+    ${viewHead('Reihen', `${list.length} Reihen, ${missing} Bände fehlen`, `<button class="round" id="recheck" aria-label="Reihen neu prüfen" title="Reihen neu prüfen">${icons.refresh}</button>`)}
     <div class="list">${list.map(r => {
       const total = r.knownTotal ?? (r.ownedCount + r.missingCount);
       const pct = total ? Math.round(100 * r.ownedCount / total) : 100;
@@ -522,7 +663,9 @@ async function viewSeriesList() {
 }
 
 async function viewSeries(key) {
-  const s = await get(`/api/series/${encodeURIComponent(key)}`);
+  const [s, wishList] = await Promise.all([get(`/api/series/${encodeURIComponent(key)}`), wishes()]);
+  const isWished = v => wishList.some(w => (w.seriesName === s.name && w.seriesVolume === v.number)
+    || (v.title && w.title.toLowerCase() === v.title.toLowerCase()));
   const total = s.knownTotal;
   const pct = total ? Math.round(100 * s.ownedCount / total) : 0;
   const source = { CATALOG: 'Bandliste aus Bibliothekskatalogen', WIKIDATA: 'Bandliste aus Wikidata', HARDCOVER: 'Bandliste von Hardcover', CLAUDE: 'Bandliste per KI-Recherche' }[s.catalogSource];
@@ -531,7 +674,7 @@ async function viewSeries(key) {
     : `<p class="note">${esc(source ?? '')}${s.catalogNote ? ' · ' + esc(s.catalogNote) : ''}</p>`;
   const missing = s.volumes.filter(v => !v.book);
   paint(`
-    ${backBar('#/series', `<button class="round" id="refresh" aria-label="Bandliste neu prüfen">${icons.more}</button>`)}
+    ${backBar('#/series', `<button class="round" id="refresh" aria-label="Bandliste neu prüfen" title="Bandliste neu prüfen">${icons.refresh}</button>`)}
     <small class="dauthor">${esc(s.author ?? '')}</small>
     <h1 class="dtitle">${esc(s.name)}</h1>
     <div class="big"><b>${s.ownedCount}</b><span>${total ? `von ${total} Bänden` : 'Bände'}${s.missingCount ? ` · ${s.missingCount} fehlen` : ''}</span></div>
@@ -539,14 +682,34 @@ async function viewSeries(key) {
     <div class="chips"><button class="chip on" data-f="all">Alle</button><button class="chip" data-f="missing">Fehlende ${s.missingCount}</button></div>
     <div class="sgrid" id="vols">${s.volumes.map(v => v.book
       ? `<a class="vol" href="#/book/${v.book.id}" data-owned="1">${cover(v.book)}<span class="no">${v.number}</span></a>`
-      : `<div class="vol miss"><div class="ph">${esc(v.title ?? 'Band ' + v.number)}<em>fehlt</em></div><span class="no">${v.number}</span></div>`).join('')}
+      : `<button class="vol miss ${isWished(v) ? 'wished' : ''}" data-vol="${v.number}" aria-label="Band ${v.number} ${isWished(v) ? 'ist gemerkt' : 'merken'}"><div class="ph">${esc(v.title ?? 'Band ' + v.number)}<em>${isWished(v) ? 'gemerkt' : 'fehlt'}</em></div><span class="no">${v.number}</span></button>`).join('')}
       ${s.volumes.length ? '' : '<p class="note">Keine Bandnummern bekannt.</p>'}</div>
     ${statusNote}
-    ${missing.length ? '<div class="actions"><button class="btn ghost" id="share">Fehlende als Einkaufsliste teilen</button></div>' : ''}`);
+    ${missing.length ? `<p class="note">Tipp auf einen fehlenden Band, um ihn auf die Wunschliste zu setzen.</p>
+      <div class="actions">${missing.some(v => !isWished(v)) && missing.length <= 30 ? `<button class="btn" id="wishall">${icons.bookmark} Alle fehlenden merken</button>` : ''}
+      <button class="btn ghost" id="share">${icons.share} Als Einkaufsliste teilen</button></div>` : ''}`);
   app.querySelectorAll('[data-f]').forEach(c => c.addEventListener('click', () => {
     app.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === c));
     app.querySelectorAll('#vols [data-owned]').forEach(v => { v.hidden = c.dataset.f === 'missing'; });
   }));
+  const wishVolume = v => post('/api/wishes', { title: v.title ?? `${s.name}, Band ${v.number}`, authors: s.author ? [s.author] : [], seriesName: s.name, seriesVolume: v.number });
+  app.querySelectorAll('[data-vol]').forEach(b => b.addEventListener('click', async () => {
+    const v = missing.find(x => x.number === Number(b.dataset.vol));
+    if (isWished(v)) { go('/wishes'); return; }
+    b.disabled = true;
+    try { await wishVolume(v); } finally { b.disabled = false; }
+    state.wishes = null;
+    toast(`Band ${v.number} gemerkt`);
+    route();
+  }));
+  document.getElementById('wishall')?.addEventListener('click', async e => {
+    e.currentTarget.disabled = true;
+    const open = missing.filter(v => !isWished(v));
+    for (const v of open) await wishVolume(v);
+    state.wishes = null;
+    toast(`${open.length} ${open.length === 1 ? 'Band' : 'Bände'} gemerkt`);
+    route();
+  });
   document.getElementById('refresh').addEventListener('click', async () => {
     await post(`/api/series/${encodeURIComponent(key)}/catalog`);
     toast('Bandliste wird neu geprüft');
@@ -571,7 +734,7 @@ const shelfEstimated = new Map();
 async function viewShelves() {
   const [shelves, plan] = await Promise.all([get('/api/shelves'), get('/api/placement')]);
   if (!shelves.length) {
-    paint(`<div class="head"><div><h1>Regale</h1></div></div>
+    paint(`${viewHead('Regale')}
       <div class="empty"><h2>Leg deine Regale an</h2><p>Mit Anzahl und Breite der Böden rechnet shelved aus, welches Buch wohin gehört, sortiert nach Nachname.</p>
       <a class="btn" href="#/shelves/new">${icons.plus} Regal anlegen</a></div>`);
     return;
@@ -582,9 +745,9 @@ async function viewShelves() {
   const shelf = shelves[currentShelf];
   const boards = plan.boards.filter(b => b.shelfId === shelf.id);
   paint(`
-    <div class="head"><div><h1>Einsortieren</h1><small>nach Nachname, dann Reihe und Band</small></div><a class="round" href="#/shelves/new" aria-label="Regal anlegen">${icons.plus}</a></div>
+    ${viewHead('Einsortieren', 'Nach Nachname, dann Reihe und Band', `<a class="round" href="#/shelves/new" aria-label="Regal anlegen" title="Regal anlegen">${icons.plus}</a>`)}
     <div class="summary"><div><b>${plan.toPlace}</b>neu einsortieren</div><div><b>${plan.toMove}</b>umstellen</div><div><b>${plan.overflow.length}</b>passen nicht</div></div>
-    <div class="seg" role="tablist">${shelves.map((s, i) => `<button role="tab" class="${i === currentShelf ? 'on' : ''}" data-s="${i}">${esc(s.name)}</button>`).join('')}</div>
+    ${shelves.length < 2 ? '' : `<div class="seg" role="tablist">${shelves.map((s, i) => `<button role="tab" class="${i === currentShelf ? 'on' : ''}" data-s="${i}">${esc(s.name)}</button>`).join('')}</div>`}
     <div class="chips"><button class="chip on" data-f="all">Alle Bücher</button><button class="chip" data-f="changes">Nur Änderungen</button><a class="chip" href="#/shelves/${shelf.id}/edit">Regal bearbeiten</a></div>
     <div id="boards">${boards.map(bd => boardHtml(bd)).join('')}</div>
     ${plan.overflow.length ? `<h3 class="sec">Passt nicht mehr rein</h3><div class="list">${plan.overflow.map(b => `<a class="row" href="#/book/${b.id}">${cover(b)}<div class="grow"><b>${esc(b.title)}</b><small>${esc(authors(b.authors))}</small></div></a>`).join('')}</div>` : ''}`);
@@ -603,14 +766,14 @@ function boardHtml(bd) {
   const scale = 100 / Math.max(bd.widthMm, bd.usedMm);
   const est = shelfEstimated.get(`${bd.shelfId}:${bd.board}`);
   return `<section class="board">
-    <div class="lbl"><b>Boden ${bd.board}</b><span>${est ? `≈ ${bd.widthMm / 10} cm (geschätzt) · ` : ''}${bd.books.length} Bücher · ${pct} % voll${free > 0 ? ` · ca. ${free} cm frei` : ''}</span></div>
+    <div class="lbl"><b>Boden ${bd.board}</b><span>${bd.books.length} Bücher, ${pct} % voll${free > 0 ? `, ca. ${free} cm frei` : ''}${est ? ` (Breite ≈ ${bd.widthMm / 10} cm geschätzt)` : ''}</span></div>
     <div class="strip" aria-hidden="true">${bd.books.map(p => `<i class="${p.status === 'NEW' ? 'new' : p.status === 'MOVE' ? 'move' : ''}" title="${esc(p.book.title)}"
       data-vars='${esc(JSON.stringify({ '--w': (p.thicknessMm * scale).toFixed(2) + '%', '--h': (70 + (p.book.title.length % 5) * 6) + '%', '--c': colorFor(p.book.title) }))}'></i>`).join('')}</div>
     ${first ? `<p class="note">${esc(surname(first) || first.title)} bis ${esc(surname(last) || last.title)}</p>` : '<p class="note">leer</p>'}
     <div class="list">${bd.books.map(p => `<a class="row" href="#/book/${p.book.id}" data-status="${p.status}">
       <span class="pos">${String(p.position).padStart(2, '0')}</span>
       <div class="grow"><b>${esc(p.book.title)}</b><small>${esc(p.book.authorSort ?? authors(p.book.authors))}${p.book.seriesName ? ' · ' + esc(p.book.seriesName) + (p.book.seriesVolume ? ' ' + p.book.seriesVolume : '') : ''}</small></div>
-      ${p.status === 'NEW' ? '<span class="tag new">neu</span>' : p.status === 'MOVE' ? `<span class="tag move">von ${esc(p.from)}</span>` : ''}</a>`).join('')}</div>
+      ${p.status === 'NEW' ? '<span class="tag new">Neu</span>' : p.status === 'MOVE' ? `<span class="tag move">von <span class="mono">${esc(p.from)}</span></span>` : ''}</a>`).join('')}</div>
   </section>`;
 }
 
@@ -661,7 +824,7 @@ async function viewShelfForm(id) {
     go('/shelves');
   });
   document.getElementById('delete')?.addEventListener('click', async () => {
-    if (!confirm(`„${existing.name}“ löschen? Die Bücher bleiben in der Bibliothek, nur ihr Platz wird vergessen.`)) return;
+    if (!await ask(`„${existing.name}“ löschen?`, 'Die Bücher bleiben in der Bibliothek, nur ihr Platz wird vergessen.', 'Regal löschen', 'Abbrechen', true)) return;
     await del(`/api/shelves/${existing.id}`);
     currentShelf = 0;
     go('/shelves');
@@ -674,7 +837,7 @@ async function viewStats() {
   const s = await get('/api/stats');
   const [eur, cent] = euros(s.listValueCents).split(',');
   paint(`
-    <div class="head"><div><h1>Statistik</h1></div></div>
+    ${viewHead('Statistik')}
     <small class="dauthor">Wert deiner Bibliothek (Neupreis)</small>
     <div class="value">${esc(eur)}<small>,${esc(cent)}</small></div>
     <p class="dauthor">privat verkauft ca. ${esc(euros(s.usedValueCents))} · an Ankaufportale ca. ${esc(euros(s.buybackValueCents))}</p>
@@ -689,7 +852,7 @@ async function viewStats() {
     <h3 class="sec">Für die Versicherung</h3>
     <p class="note">Inventarliste mit Wiederbeschaffungswert (Neupreis), Standort, Covern und deinen Regalfotos als Nachweis für die Hausratversicherung.</p>
     <div class="actions"><a class="btn" href="/api/export/inventory.pdf" download>${icons.book} Inventarliste (PDF)</a><a class="btn ghost" href="/api/export/inventory.csv" download>Tabelle (CSV)</a></div>
-    ${s.topAuthors.length ? `<h3 class="sec">Am häufigsten</h3><div class="list">${s.topAuthors.map(a => `<div class="row"><div class="grow"><b>${esc(a.author)}</b></div><span class="tag">${a.books}</span></div>`).join('')}</div>` : ''}
+    ${s.topAuthors.length ? `<h3 class="sec">Am häufigsten</h3><div class="list">${s.topAuthors.map(a => `<div class="row"><div class="grow"><b>${esc(a.author)}</b></div><span class="num">${a.books}</span></div>`).join('')}</div>` : ''}
     <p class="note">Neupreise kommen aus der Deutschen Nationalbibliothek. Gebrauchtwerte sind eine Faustregel nach dem Markt 2026: privat (Kleinanzeigen, Booklooker) je nach Alter 6–35 % vom Neupreis, Ankaufportale zahlen davon nochmal nur 20–40 %, für alte Taschenbücher meist nichts.</p>`);
 }
 
@@ -838,13 +1001,13 @@ async function viewAccount() {
   const roleSelect = (id, role) => `<select data-member="${id}" aria-label="Rolle">${Object.entries(ROLES)
     .filter(([k]) => k !== 'OWNER' || lib.role === 'OWNER').map(([k, v]) => `<option value="${k}" ${k === role ? 'selected' : ''}>${v}</option>`).join('')}</select>`;
   paint(`
-    ${backBar('#/')}
+    ${backBar('#/', themeButton())}
     <small class="dauthor">${esc(KINDS[lib.kind])} · ${ROLES[lib.role]}</small>
     <h1 class="dtitle">${esc(lib.name)}</h1>
 
     <h3 class="sec">Bibliotheken</h3>
     <div class="list">${libs.map(l => `<div class="row"><div class="grow"><b>${esc(l.name)}</b><small>${esc(KINDS[l.kind])} · ${ROLES[l.role]}</small></div>
-      ${l.current ? '<span class="tag">aktiv</span>' : `<button class="btn quiet" data-select="${l.id}">Wechseln</button>`}</div>`).join('')}</div>
+      ${l.current ? '<span class="tag owned">Aktiv</span>' : `<button class="btn quiet" data-select="${l.id}">Wechseln</button>`}</div>`).join('')}</div>
     <form class="inline" id="newlib">${input('name', 'Neue Bibliothek anlegen', 'text', 'required maxlength="120" placeholder="Name"')}<button class="btn ghost" type="submit">Anlegen</button></form>
     ${manage ? `<form class="form" id="libform">${input('libname', 'Name dieser Bibliothek', 'text', 'required maxlength="120"', lib.name)}
       <div class="field"><label for="kind">Art</label><select id="kind" name="kind">${Object.entries(KINDS).map(([k, v]) => `<option value="${k}" ${k === lib.kind ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
@@ -853,9 +1016,9 @@ async function viewAccount() {
     ${manage ? `<h3 class="sec">Team</h3>
     <div class="list">${members.map(m => `<div class="row"><div class="grow"><b>${esc(m.name ?? m.email ?? 'Ohne Namen')}</b><small>${esc(m.email ?? '')}</small></div>
       ${m.accountId === undefined ? '' : roleSelect(m.accountId, m.role)}
-      <button class="round sm" data-remove="${m.accountId}" aria-label="Aus der Bibliothek entfernen">×</button></div>`).join('')}
+      <button class="round sm" data-remove="${m.accountId}" aria-label="Aus der Bibliothek entfernen">${icons.x}</button></div>`).join('')}
       ${invites.map(i => `<div class="row"><div class="grow"><b>${esc(i.email)}</b><small>eingeladen als ${ROLES[i.role]}</small></div>
-      <button class="round sm" data-withdraw="${i.id}" aria-label="Einladung zurückziehen">×</button></div>`).join('')}</div>
+      <button class="round sm" data-withdraw="${i.id}" aria-label="Einladung zurückziehen">${icons.x}</button></div>`).join('')}</div>
     <form class="inline" id="invite">${input('email', 'Jemanden einladen', 'email', 'required placeholder="E-Mail-Adresse"')}
       <select name="role" aria-label="Rolle">${Object.entries(ROLES).filter(([k]) => k !== 'OWNER' || lib.role === 'OWNER')
         .map(([k, v]) => `<option value="${k}" ${k === 'STAFF' ? 'selected' : ''}>${v}</option>`).join('')}</select>
@@ -885,7 +1048,7 @@ async function viewAccount() {
     if (!t) return;
     try {
       if (t.dataset.select) { await post(`/api/libraries/${t.dataset.select}/select`, {}); await reload(); }
-      if (t.dataset.remove && confirm('Aus dieser Bibliothek entfernen?')) { await del(`/api/library/members/${t.dataset.remove}`); await reload(); }
+      if (t.dataset.remove && await ask('Aus dieser Bibliothek entfernen?', 'Die Person verliert den Zugriff auf Bücher, Regale und Wunschliste.', 'Entfernen', 'Abbrechen', true)) { await del(`/api/library/members/${t.dataset.remove}`); await reload(); }
       if (t.dataset.withdraw) { await del(`/api/library/invitations/${t.dataset.withdraw}`); await reload(); }
       if (t.id === 'export') { await post('/api/account/export', {}); toast('Die Auskunft ist per Mail unterwegs'); }
       if (t.id === 'logout') { await post('/api/auth/logout', {}); state.me = null; state.books = null; go('/login'); }
@@ -905,7 +1068,7 @@ async function viewAccount() {
   onSubmit('mail', async v => { await post('/api/account/email', v); toast(`Bestätigungslink an ${v.email} geschickt`); });
   onSubmit('pw', async (v, f) => { await post('/api/account/password', v); toast('Passwort gespeichert'); f.reset(); });
   onSubmit('del', async v => {
-    if (!confirm('Konto wirklich endgültig löschen?')) return;
+    if (!await ask('Konto endgültig löschen?', 'Das lässt sich nicht rückgängig machen.', 'Konto löschen', 'Abbrechen', true)) return;
     await api('/api/account', { method: 'DELETE', json: v });
     state.me = null;
     go('/login');
@@ -915,6 +1078,7 @@ async function viewAccount() {
 
 // ---------------------------------------------------------------- Start
 
+document.addEventListener('click', e => { if (e.target.closest('[data-theme-toggle]')) toggleTheme(); });
 window.addEventListener('hashchange', route);
 window.addEventListener('unhandledrejection', e => toast(e.reason?.message ?? 'Fehler', true));
 route();
