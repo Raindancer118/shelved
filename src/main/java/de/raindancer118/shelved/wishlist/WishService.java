@@ -8,6 +8,7 @@ import de.raindancer118.shelved.book.Isbn;
 import de.raindancer118.shelved.book.NotFoundException;
 import de.raindancer118.shelved.metadata.BookMetadata;
 import de.raindancer118.shelved.metadata.MetadataService;
+import de.raindancer118.shelved.metadata.Texts;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,7 +99,9 @@ public class WishService {
     @Transactional
     public Entry entry(String owner, UUID id) {
         Wish w = get(owner, id);
-        if (w.getDescription() == null && w.getIsbn13() != null) {
+        // not looked up yet, or once a web page was stored as blurb (a publisher's home page linked as "Inhaltstext")
+        boolean unusable = w.getDescription() != null && !w.getDescription().isEmpty() && Texts.blurb(w.getDescription()) == null;
+        if ((w.getDescription() == null || unusable) && w.getIsbn13() != null) {
             w.setDescription(metadata.byIsbn(w.getIsbn13()).flatMap(metadata::description).orElse(""));
         }
         return new Entry(w, owned(books.all(owner), w).orElse(null));

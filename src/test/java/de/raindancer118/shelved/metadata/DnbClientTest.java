@@ -139,6 +139,20 @@ class DnbClientTest {
         assertThat(DnbClient.year("2019")).isEqualTo(2019);
     }
 
+    /** "This Kingdom Will Not Kill Me" lists the DNB blurb and, as a second "Inhaltstext", the publisher's home page. */
+    @Test
+    void onlyTheNationalLibrarysOwnBlurbCounts() {
+        String xml = """
+                <searchRetrieveResponse><records><record><recordData>
+                <record xmlns="http://www.loc.gov/MARC21/slim">
+                  <datafield tag="245" ind1="1" ind2="0"><subfield code="a">This Kingdom will not kill me</subfield></datafield>
+                  <datafield tag="856" ind1="4" ind2="2"><subfield code="u">https://services.dnb.de/plus/idn/1395620695/blurb/</subfield><subfield code="3">Inhaltstext</subfield></datafield>
+                  <datafield tag="856" ind1="4" ind2="2"><subfield code="u">http://www.carlsen.de</subfield><subfield code="3">Inhaltstext</subfield></datafield>
+                </record></recordData></record></records></searchRetrieveResponse>""";
+        BookMetadata m = DnbClient.parse(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8)).getFirst();
+        assertThat(m.descriptionUrl()).isEqualTo("https://services.dnb.de/plus/idn/1395620695/blurb/");
+    }
+
     @Test
     void thePartTitleIsTheTitle() {
         String xml = """

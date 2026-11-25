@@ -68,6 +68,22 @@ class WishlistTest extends IntegrationTestBase {
         mvc.perform(get("/api/wishes/" + id)).andExpect(jsonPath("$.description").value("Meggie liest\u00a0gern & viel."));
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private de.raindancer118.shelved.wishlist.WishRepository wishRepository;
+
+    /** A publisher's home page was once stored as blurb; opening the wish fetches the real one. */
+    @Test
+    void aStoredWebPageIsReplacedByTheRealBlurb() throws Exception {
+        when(metadata.byIsbn("9783791504650")).thenReturn(Optional.of(tintenherz()));
+        when(metadata.description(org.mockito.ArgumentMatchers.any())).thenReturn(Optional.of("Meggie liest gern."));
+        String id = JsonPath.read(postJson("/api/wishes", "{\"isbn\":\"9783791504650\"}").andReturn().getResponse().getContentAsString(), "$.id");
+        var w = wishRepository.findById(java.util.UUID.fromString(id)).orElseThrow();
+        w.setDescription(String.join("\n", java.util.Collections.nCopies(80, "Kinderbuch\nMerkzettel")));
+        wishRepository.save(w);
+
+        mvc.perform(get("/api/wishes/" + id)).andExpect(jsonPath("$.description").value("Meggie liest gern."));
+    }
+
     @Test
     void aBookYouAlreadyOwnIsNotWished() throws Exception {
         when(metadata.byIsbn("9783791504650")).thenReturn(Optional.of(tintenherz()));

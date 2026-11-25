@@ -56,7 +56,7 @@ public class WishController {
                 w.getPublishedYear(), w.getListPriceCents(), cover, owned == null ? null : owned.getId(),
                 owned == null ? null : Views.cover(owned),
                 w.isKeepWhenOwned(), w.getCreatedAt(),
-                w.getDescription() == null || w.getDescription().isBlank() ? null : Texts.plain(w.getDescription()));
+                Texts.blurb(w.getDescription()));
     }
 
     private static List<WishView> views(List<WishService.Entry> entries) {

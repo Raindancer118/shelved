@@ -49,7 +49,7 @@
 @media (pointer: coarse) { :root { --tap: 44px; } }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
 /* A long word with the phone's text size turned up must never widen the page. */
 body { overflow-x: clip; background: var(--bg); color: var(--t1); font: 400 15px/1.5 var(--sans); min-height: 100dvh; font-variant-numeric: tabular-nums; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -191,7 +191,7 @@ dl.facts dt, dl.facts dd { padding: 12px 0; border-bottom: var(--hw) solid var(-
 dl.facts dt { color: var(--t3); padding-right: 16px; }
 dl.facts dd { text-align: right; overflow-wrap: anywhere; }
 dl.facts dd.stepper { padding: 4px 0; }
-.blurb { margin: 20px 0; font-size: 15px; line-height: 1.6; white-space: pre-line; max-width: 68ch; cursor: pointer; }
+.blurb { margin: 20px 0; font-size: 15px; line-height: 1.6; white-space: pre-line; max-width: 68ch; cursor: pointer; overflow-wrap: anywhere; }
 .blurb.clamp { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
 .actions .btn { flex: 1; }

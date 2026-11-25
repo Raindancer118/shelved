@@ -226,8 +226,11 @@ public abstract class MarcSruClient {
 
         String descriptionUrl = null;
         for (Element f : rec.fields("856")) {
-            if ("Inhaltstext".equals(Marc.sub(f, "3"))) {
-                descriptionUrl = Marc.sub(f, "u");
+            // only the library's own blurb: some records also list the publisher's home page as "Inhaltstext"
+            String url = Marc.sub(f, "u");
+            if (descriptionUrl == null && "Inhaltstext".equals(Marc.sub(f, "3")) && url != null
+                    && (url.startsWith("https://services.dnb.de/") || url.startsWith("https://d-nb.info/") || url.startsWith("http://d-nb.info/"))) {
+                descriptionUrl = url;
             }
         }
 

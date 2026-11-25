@@ -107,7 +107,7 @@ public class MetadataService {
     /** The blurb: from the catalogue answer if there was one, else the DNB "Inhaltstext" page. */
     public Optional<String> description(BookMetadata m) {
         if (m.description() != null && !m.description().isBlank()) {
-            return Optional.of(Texts.plain(m.description()));
+            return Optional.ofNullable(Texts.blurb(m.description()));
         }
         if (m.descriptionUrl() == null) {
             return Optional.empty();
@@ -117,8 +117,7 @@ public class MetadataService {
             if (html == null) {
                 return Optional.empty();
             }
-            String text = Texts.plain(html);
-            return text.isBlank() ? Optional.empty() : Optional.of(text);
+            return Optional.ofNullable(Texts.blurb(html));
         } catch (RestClientException e) {
             return Optional.empty();
         }
