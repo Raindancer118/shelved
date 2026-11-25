@@ -1,6 +1,6 @@
 import { api, get, post, put, del, upload, poll, PUBLIC } from './api.js';
 import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor, themeButton, toggleTheme, dialog } from './ui.js';
-import { liveBarcodeSupported, scanBarcode, prepareImage, capturePhoto } from './camera.js';
+import { liveCamera, cameraAvailable, prepareImage, capturePhoto } from './camera.js';
 
 const app = document.getElementById('app');
 const state = { me: null, books: null, wishes: null, sort: 'author', query: '' };
@@ -13,10 +13,7 @@ const routes = [
   [/^\/book\/([\w-]+)$/, viewBook, 'library'],
   [/^\/book\/([\w-]+)\/edit$/, viewEdit, 'library'],
   [/^\/new$/, viewEdit, 'library'],
-  [/^\/add$/, viewAdd, 'library'],
-  [/^\/add\/barcode$/, () => viewBarcode('add'), 'library'],
-  [/^\/lookup$/, () => viewBarcode('lookup'), 'library'],
-  [/^\/add\/manual$/, viewManual, 'library'],
+  [/^\/(add|add\/barcode|add\/manual|lookup)$/, () => viewFind('add'), 'library'],
   [/^\/add\/shelf$/, viewShelfScan, 'library'],
   [/^\/scan\/([\w-]+)$/, viewScan, 'library'],
   [/^\/series$/, viewSeriesList, 'series'],
@@ -26,9 +23,7 @@ const routes = [
   [/^\/shelves\/([\w-]+)\/edit$/, viewShelfForm, 'shelves'],
   [/^\/stats$/, viewStats, 'stats'],
   [/^\/wishes$/, viewWishes, 'wishes'],
-  [/^\/wishes\/add$/, viewWishAdd, 'wishes'],
-  [/^\/wishes\/barcode$/, () => viewBarcode('wish'), 'wishes'],
-  [/^\/wishes\/search$/, () => viewManual('wish'), 'wishes'],
+  [/^\/wishes\/(add|barcode|search)$/, () => viewFind('wish'), 'wishes'],
   [/^\/login$/, viewLogin, null],
   [/^\/register$/, viewRegister, null],
   [/^\/verify$/, viewVerify, null],
@@ -53,6 +48,9 @@ async function route() {
   document.querySelectorAll('.tabbar a').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
   app.classList.toggle('wide', WIDE.some(r => r.test(path)));
   const render = async () => {
+    const sk = skeletonFor(path);
+    clearTimeout(skeletonTimer);
+    if (sk) skeletonTimer = setTimeout(() => { app.innerHTML = `<div class="skeleton" aria-busy="true" aria-label="Lädt">${sk}</div>`; }, 150);
     try {
       await view(...args);
     } catch (e) {
@@ -105,7 +103,39 @@ async function addOrCopy(call) {
     return call(true);
   }
 }
-function paint(html) { app.innerHTML = html; applyVars(app); }
+function paint(html) { clearTimeout(skeletonTimer); app.innerHTML = html; applyVars(app); }
+
+// Shown when a view takes longer than a blink: the shape of what is coming, no spinner.
+let skeletonTimer;
+const skLine = (cls = '') => `<div class="sk sk-line ${cls}"></div>`;
+const SKELETONS = {
+  grid: () => `<div class="sk-head">${skLine('h')}${skLine('short')}</div><div class="sk sk-field"></div>
+    <div class="grid gap-top">${Array.from({ length: 9 }, () => `<div><div class="cover"></div>${skLine()}${skLine('short')}</div>`).join('')}</div>`,
+  list: () => `<div class="sk-head">${skLine('h')}${skLine('short')}</div>
+    <div class="list">${Array.from({ length: 6 }, () => `<div class="row"><div class="cover"></div><div class="grow">${skLine()}${skLine('short')}</div></div>`).join('')}</div>`,
+  detail: () => `<div class="bar"><span class="round"></span></div><div class="stage"><div class="cover"></div></div>
+    <div class="sk-head">${skLine('h')}${skLine('short')}</div><div class="list">${Array.from({ length: 5 }, () => `<div class="row">${skLine()}</div>`).join('')}</div>`,
+};
+function skeletonFor(path) {
+  if (path === '/') return SKELETONS.grid();
+  if (/^\/book\//.test(path)) return SKELETONS.detail();
+  if (/^\/(wishes|series|shelves|stats)$|^\/series\//.test(path)) return SKELETONS.list();
+  return null;
+}
+
+/** Hands the service worker every cover the library and wish list show, so it can keep them on the device. */
+let warmed = '';
+async function warmCovers() {
+  const sw = navigator.serviceWorker?.controller;
+  if (!sw) return;
+  const [list, wish] = await Promise.all([books(), wishes()]).catch(() => [[], []]);
+  const urls = [...list, ...wish].map(b => b.cover).filter(Boolean).sort();
+  const key = urls.join();
+  if (key === warmed) return;
+  warmed = key;
+  sw.postMessage({ type: 'warm', urls });
+}
+const forgetCovers = () => { warmed = ''; navigator.serviceWorker?.controller?.postMessage({ type: 'clear' }); };
 const backBar = (href, right = '') => `<div class="bar"><a class="round" href="${href}" aria-label="Zurück">${icons.back}</a>${right}</div>`;
 
 async function books(force = false) {
@@ -197,15 +227,16 @@ async function viewLibrary() {
   }
   const letters = [...new Set(list.map(b => surname(b).charAt(0).toUpperCase()).filter(l => /[A-ZÄÖÜ]/.test(l)))];
   paint(`
-    ${viewHead('Bibliothek', `${esc(state.me?.library?.name ?? '')} · ${list.length} Bücher in ${shelves.length} ${shelves.length === 1 ? 'Regal' : 'Regalen'}`, avatar)}
+    ${viewHead('Bibliothek', `${esc(state.me?.library?.name ?? '')} · ${list.length} Bücher${shelves.length ? ` in ${shelves.length} ${shelves.length === 1 ? 'Regal' : 'Regalen'}` : ''}`, avatar)}
     <div class="search" role="search">${icons.search}
       <input id="q" type="search" placeholder="Titel, Autor oder ISBN" value="${esc(state.query)}" autocomplete="off" aria-label="Bibliothek durchsuchen">
-      <a class="cam" href="#/lookup" aria-label="Mit der Kamera nachschauen">${icons.cam}</a></div>
+      <a class="cam" href="#/add" aria-label="Scannen: nachschauen oder hinzufügen" title="Scannen">${icons.cam}</a></div>
     <div class="chips">${Object.entries(SORTS).map(([k, v]) => `<button class="chip ${state.sort === k ? 'on' : ''}" data-sort="${k}">${v}</button>`).join('')}</div>
     <div id="results">${gridHtml(filtered(sorted(list)))}</div>
     ${state.sort === 'author' && !state.query ? `<div class="index" aria-label="Springe zu Buchstabe">${letters.map(l => `<button data-letter="${esc(l)}">${esc(l)}</button>`).join('')}</div>` : ''}
-    <a class="btn fab" href="#/add">${icons.plus} Hinzufügen</a>`);
+`);
 
+  warmCovers();
   const results = document.getElementById('results');
   document.getElementById('q').addEventListener('input', e => {
     state.query = e.target.value;
@@ -324,22 +355,8 @@ async function viewEdit(id) {
 
 // ---------------------------------------------------------------- Hinzufügen & Nachschlagen
 
-async function viewAdd() {
-  const ai = state.me?.aiAvailable;
-  paint(`
-    ${backBar('#/')}
-    <h1 class="dtitle">Hinzufügen</h1>
-    <div class="list modes">
-      <a class="row mode" href="#/add/shelf"><span class="ic">${icons.shelf}</span><span class="grow"><b>Regal fotografieren</b><small>${ai ? 'Ein Foto pro Regalbrett, die Buchrücken werden gelesen' : 'Nicht eingerichtet (kein API-Key)'}</small></span></a>
-      <a class="row mode" href="#/add/barcode"><span class="ic">${icons.barcode}</span><span class="grow"><b>Barcode scannen</b><small>ISBN auf der Rückseite, Daten aus DNB und Google Books</small></span></a>
-      <button class="row mode" id="bookphoto"><span class="ic">${icons.book}</span><span class="grow"><b>Buch fotografieren</b><small>Cover oder Rücken eines einzelnen Buchs</small></span></button>
-      <a class="row mode" href="#/add/manual"><span class="ic">${icons.pen}</span><span class="grow"><b>Von Hand</b><small>Im Katalog suchen oder selbst eintragen</small></span></a>
-    </div>`);
-  document.getElementById('bookphoto').addEventListener('click', () => photoScan('BOOK'));
-}
-
-async function photoScan(mode, shelfId, board) {
-  const file = await capturePhoto(mode === 'SHELF'
+async function photoScan(mode, shelfId, board, photo = null) {
+  const file = photo ?? await capturePhoto(mode === 'SHELF'
     ? 'Gerade von vorn, ganze Bretter mit beiden Seitenwänden ins Bild'
     : 'Cover oder Buchrücken formatfüllend');
   if (!file) return;
@@ -352,49 +369,108 @@ async function photoScan(mode, shelfId, board) {
   go(`/scan/${scan.id}`);
 }
 
-async function viewBarcode(purpose) {
-  const live = await liveBarcodeSupported();
-  paint(`
-    ${backBar({ add: '#/add', wish: '#/wishes/add' }[purpose] ?? '#/')}
-    <h1 class="dtitle">${{ add: 'Barcode scannen', wish: 'Buch merken' }[purpose] ?? 'Hab ich das schon?'}</h1>
-    ${live ? '<div class="viewfinder"><video id="video" muted playsinline></video></div>' : ''}
-    <div class="actions">
-      <button class="btn ${live ? 'ghost' : ''}" id="photo">${icons.cam} ${live ? 'Lieber ein Foto' : 'Barcode fotografieren'}</button>
-      ${purpose === 'lookup' && state.me?.aiAvailable ? `<button class="btn ghost" id="cover">${icons.book} Cover fotografieren</button>` : ''}
-    </div>
-    <form class="search" id="manual">
-      <input id="isbn" inputmode="numeric" placeholder="ISBN eintippen" aria-label="ISBN" autocomplete="off">
-      <button class="cam" type="submit" aria-label="Suchen">${icons.search}</button></form>
-    <div id="out"></div>`);
-
-  const out = document.getElementById('out');
-  const handle = isbn => showIsbn(isbn, out, purpose);
-  if (live) {
-    cleanup = scanBarcode(document.getElementById('video'), (isbn, err) => {
-      if (err) { toast('Kamera nicht verfügbar: ' + err.message, true); return; }
-      navigator.vibrate?.(60);
-      handle(isbn);
+/**
+ * The one way in for a single book: a full-screen camera. Barcodes are read live, one after another. The shutter
+ * takes a photo: with a barcode it is that ISBN, without one the photo is read as a cover, and with several spines
+ * on it as a shelf. "Eintippen" switches to one field that takes an ISBN, a title or an author.
+ */
+async function viewFind(purpose, typing = new URLSearchParams(location.hash.split('?')[1] ?? '').has('eingabe')) {
+  const forWish = purpose === 'wish';
+  const base = forWish ? '/wishes/add' : '/add';
+  const back = forWish ? '#/wishes' : '#/';
+  if (typing || !cameraAvailable()) {
+    paint(`
+      ${backBar(back, cameraAvailable() ? `<a class="round" href="#${base}" aria-label="Zur Kamera" title="Zur Kamera">${icons.cam}</a>` : '')}
+      <h1 class="dtitle">${forWish ? 'Buch merken' : 'Hab ich das schon?'}</h1>
+      <form class="search" id="q">${icons.search}
+        <input id="term" type="search" placeholder="ISBN, Titel oder Autor" aria-label="ISBN, Titel oder Autor" autocomplete="off" enterkeyhint="search" autofocus>
+      </form>
+      <div id="out"></div>`);
+    const out = document.getElementById('out');
+    document.getElementById('q').addEventListener('submit', e => {
+      e.preventDefault();
+      const term = document.getElementById('term').value.trim();
+      if (term) find(term, out, purpose);
     });
+    return;
   }
-  document.getElementById('photo').addEventListener('click', async () => {
-    cleanup?.();
-    const file = await capturePhoto('Barcode auf der Rückseite, nah und scharf');
-    if (!file) return;
-    out.innerHTML = pendingView('Barcode wird gelesen …');
-    const form = new FormData();
-    form.append('image', await prepareImage(file, 2400), 'barcode.jpg');
+  document.body.classList.add('fullcam');
+  const coverToo = !forWish && state.me?.aiAvailable;
+  paint(`<div class="fcam">
+      <video id="video" muted playsinline></video>
+      <div class="fcam-top">
+        <a class="round on-dark" href="${back}" aria-label="Schließen">${icons.x}</a>
+        <p>${coverToo ? 'Barcode in den Rahmen, oder ein Foto vom Buch oder Regal' : 'Barcode in den Rahmen halten'}</p>
+        <span class="round-gap"></span>
+      </div>
+      <div class="fcam-frame" aria-hidden="true"></div>
+      <div class="fcam-sheet" id="out"></div>
+      <div class="fcam-bar">
+        <a class="fcam-side" href="#${base}?eingabe">${icons.keyboard}<span>Eintippen</span></a>
+        <button class="shutter" id="shoot" aria-label="Foto aufnehmen"></button>
+        <span class="fcam-side"></span>
+      </div>
+    </div>`);
+  const out = document.getElementById('out');
+  const warn = (text, typeLink = true) => {
+    out.innerHTML = `<p class="note warn">${esc(text)}</p>${typeLink ? `<div class="actions"><a class="btn ghost" href="#${base}?eingabe">${icons.keyboard} Eintippen</a></div>` : ''}`;
+  };
+  const cam = liveCamera(document.getElementById('video'), {
+    onIsbn: isbn => { navigator.vibrate?.(60); showIsbn(isbn, out, purpose); },
+    onError: () => location.replace(`#${base}?eingabe`), // no camera or no permission: typing is all that's left
+  });
+  cleanup = () => { cam.stop(); document.body.classList.remove('fullcam'); };
+  document.getElementById('shoot').addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
     try {
-      const { isbn } = await upload('/api/barcode', form);
-      handle(isbn);
-    } catch (e) {
-      out.innerHTML = `<p class="note warn">${esc(e.status === 404 ? 'Kein Barcode erkannt. Näher ran und scharf stellen, oder ISBN eintippen.' : e.message)}</p>`;
+      const photo = await cam.shoot();
+      out.innerHTML = pendingView('Foto wird gelesen …');
+      const form = new FormData();
+      form.append('image', await prepareImage(photo, 2400), 'photo.jpg');
+      try {
+        showIsbn((await upload('/api/barcode', form)).isbn, out, purpose);
+      } catch (err) {
+        if (err.status !== 404) { warn(err.message, false); return; }
+        if (!coverToo) { warn('Kein Barcode erkannt. Näher ran und scharf stellen.'); return; }
+        cam.stop();
+        document.body.classList.remove('fullcam');
+        await photoScan('AUTO', null, null, photo); // no barcode: one book or a whole shelf, the server decides
+      }
+    } finally { btn.disabled = false; }
+  });
+}
+
+/** What was typed: an ISBN is looked up, anything else searched in the catalogues by title and author. */
+async function find(term, out, purpose) {
+  const digits = term.replace(/[^0-9xX]/g, '');
+  if ((digits.length === 10 || digits.length === 13) && digits.length >= term.replace(/[\s-]/g, '').length) {
+    return showIsbn(digits, out, purpose);
+  }
+  out.innerHTML = pendingView('Kataloge werden gefragt …');
+  const hits = await get(`/api/catalog?title=${encodeURIComponent(term)}`);
+  const manual = purpose === 'wish' ? '' : '<p class="note"><a class="link" href="#/new">Nicht dabei? Selbst eintragen</a></p>';
+  if (!hits.length) { out.innerHTML = `<p class="note">Keine Treffer für „${esc(term)}“.</p>${manual}`; return; }
+  out.innerHTML = `<div class="list">${hits.map((m, i) => `
+    <button class="row" data-i="${i}" type="button">${cover({ title: m.title, authors: m.authors })}
+      <div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small><small>${esc([m.publisher, m.publishedYear].filter(Boolean).join(' · '))}</small></div>
+      ${purpose === 'wish' ? icons.bookmark : icons.plus}</button>`).join('')}</div>${manual}`;
+  applyVars(out);
+  out.querySelectorAll('[data-i]').forEach(btn => btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const m = hits[Number(btn.dataset.i)];
+    if (purpose === 'wish') {
+      const w = await addWish(m.isbn13 ? { isbn: m.isbn13 } : { title: m.title, authors: m.authors }).finally(() => { btn.disabled = false; });
+      if (w) go('/wishes');
+      return;
     }
-  });
-  document.getElementById('cover')?.addEventListener('click', () => photoScan('BOOK'));
-  document.getElementById('manual').addEventListener('submit', e => {
-    e.preventDefault();
-    handle(document.getElementById('isbn').value);
-  });
+    const b = await addOrCopy(another => post(`/api/books/from-catalog?anotherCopy=${another}`, m)).finally(() => { btn.disabled = false; });
+    if (!b) return;
+    invalidate();
+    toast(`„${b.title}“ hinzugefügt`);
+    await askAboutWishes();
+    go(`/book/${b.id}`);
+  }));
 }
 
 async function showIsbn(isbn, out, purpose) {
@@ -427,7 +503,7 @@ async function showIsbn(isbn, out, purpose) {
       invalidate();
       toast(b.copies > 1 ? `„${b.title}“: jetzt ${b.copies} Exemplare` : `„${b.title}“ hinzugefügt`);
       await askAboutWishes();
-      if (purpose === 'add') { out.innerHTML = ''; document.getElementById('isbn').value = ''; } else go(`/book/${b.id}`);
+      showIsbn(isbn, out, purpose); // stays here: the next book can be scanned right away
     });
     document.getElementById('wishit')?.addEventListener('click', async e => {
       e.currentTarget.disabled = true;
@@ -436,7 +512,7 @@ async function showIsbn(isbn, out, purpose) {
     });
   } else {
     out.innerHTML = `<div class="result"><p>Zu <span class="mono">${esc(r.isbn13)}</span> kennen DNB, Google Books und Open Library nichts.</p>
-      <div class="actions"><a class="btn ghost" href="${purpose === 'wish' ? '#/wishes/search' : '#/new'}">${purpose === 'wish' ? 'Im Katalog suchen' : 'Von Hand anlegen'}</a></div></div>`;
+      <div class="actions"><a class="btn ghost" href="${purpose === 'wish' ? '#/wishes/add?eingabe' : '#/new'}">${purpose === 'wish' ? 'Nach Titel suchen' : 'Von Hand anlegen'}</a></div></div>`;
   }
 }
 
@@ -454,51 +530,10 @@ async function addWish(body) {
   }
 }
 
-async function viewManual(purpose = 'add') {
-  const forWish = purpose === 'wish';
-  paint(`
-    ${backBar(forWish ? '#/wishes/add' : '#/add')}
-    <h1 class="dtitle">${forWish ? 'Buch merken' : 'Im Katalog suchen'}</h1>
-    <form class="form" id="f">
-      <div class="field"><label for="t">Titel</label><input id="t" name="t" required></div>
-      <div class="field"><label for="a">Autor (optional)</label><input id="a" name="a"></div>
-      <button class="btn block" type="submit">${icons.search} Suchen</button>
-    </form>
-    <div id="out"></div>
-    ${forWish ? '' : '<p class="note"><a class="link" href="#/new">Nicht dabei? Selbst eintragen</a></p>'}`);
-  document.getElementById('f').addEventListener('submit', async e => {
-    e.preventDefault();
-    const out = document.getElementById('out');
-    out.innerHTML = pendingView('Kataloge werden gefragt …');
-    const hits = await get(`/api/catalog?title=${encodeURIComponent(e.target.t.value)}&author=${encodeURIComponent(e.target.a.value)}`);
-    if (!hits.length) { out.innerHTML = '<p class="note">Keine Treffer.</p>'; return; }
-    out.innerHTML = `<div class="list">${hits.map((m, i) => `
-      <button class="row" data-i="${i}" type="button">${cover({ title: m.title, authors: m.authors })}
-        <div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small><small>${esc([m.publisher, m.publishedYear, m.isbn13].filter(Boolean).join(' · '))}</small></div>
-        <span class="tag plain">${esc(m.source)}</span></button>`).join('')}</div>`;
-    applyVars(out);
-    out.querySelectorAll('[data-i]').forEach(btn => btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      const m = hits[Number(btn.dataset.i)];
-      if (forWish) {
-        const w = await addWish(m.isbn13 ? { isbn: m.isbn13 } : { title: m.title, authors: m.authors }).finally(() => { btn.disabled = false; });
-        if (w) go('/wishes');
-        return;
-      }
-      const b = await addOrCopy(another => post(`/api/books/from-catalog?anotherCopy=${another}`, m)).finally(() => { btn.disabled = false; });
-      if (!b) return;
-      invalidate();
-      toast(`„${b.title}“ hinzugefügt`);
-      await askAboutWishes();
-      go(`/book/${b.id}`);
-    }));
-  });
-}
-
 async function viewShelfScan() {
   const shelves = await get('/api/shelves');
   paint(`
-    ${backBar('#/add')}
+    ${backBar('#/shelves')}
     <h1 class="dtitle">Regal fotografieren</h1>
     <p class="note">Gerade von vorn, so dass die Rücken lesbar sind. Ein Brett oder mehrere auf einmal. Wenn du sagst, welches das oberste Brett im Bild ist, merkt sich shelved auch, wo die Bücher gerade stehen.</p>
     <form class="form" id="f">
@@ -588,7 +623,7 @@ async function viewWishes() {
     paint(`${viewHead('Wunschliste', 'Noch leer')}
       <div class="empty"><h2>Merk dir Bücher, die dir fehlen</h2>
         <p>Im Buchladen den Barcode scannen, im Katalog suchen oder in einer Reihe auf einen fehlenden Band tippen. Kommt ein Buch später in die Bibliothek, fragt shelved, ob es von der Liste darf.</p>
-        <a class="btn" href="#/wishes/add">${icons.bookmark} Buch merken</a></div>`);
+        <a class="btn" href="#/wishes/add">${icons.cam} Buch merken</a></div>`);
     return;
   }
   const open = list.filter(w => !w.ownedBookId);
@@ -597,41 +632,42 @@ async function viewWishes() {
   const total = priced.reduce((sum, w) => sum + w.listPriceCents, 0);
   const sub = `${open.length} ${open.length === 1 ? 'Buch' : 'Bücher'}${priced.length ? `, ${priced.length < open.length ? 'mindestens ' : ''}${euros(total)} Neupreis` : ''}`;
   const remove = w => `<button class="round sm" data-del="${w.id}" aria-label="„${esc(w.title)}“ von der Wunschliste nehmen" title="Von der Liste nehmen">${icons.x}</button>`;
-  paint(`
-    ${viewHead('Wunschliste', sub)}
-    ${open.length ? `<div class="list">${open.map(w => `<div class="row">${cover(w)}
+  const rows = q => {
+    const hit = w => !q || [w.title, ...(w.authors ?? []), w.seriesName ?? '', w.isbn13 ?? ''].join(' ').toLowerCase().includes(q);
+    const o = open.filter(hit), d = owned.filter(hit);
+    if (q && !o.length && !d.length) return `<p class="note">Nichts gefunden für „${esc(q)}“.</p>`;
+    return `${o.length ? `<div class="list">${o.map(w => `<div class="row">${cover(w)}
       <div class="grow"><b>${esc(w.title)}</b><small>${esc(wishMeta(w))}</small>${w.isbn13 ? `<small class="mono">${esc(w.isbn13)}</small>` : ''}</div>
       ${w.listPriceCents != null ? `<span class="num">${esc(euros(w.listPriceCents))}</span>` : ''}${remove(w)}</div>`).join('')}</div>`
-      : '<p class="note">Alles, was du dir gemerkt hast, steht schon in der Bibliothek.</p>'}
-    ${owned.length ? `<h3 class="sec">Schon in der Bibliothek</h3>
-      <div class="list">${owned.map(w => `<div class="row">${cover(w)}
+      : q ? '' : '<p class="note">Alles, was du dir gemerkt hast, steht schon in der Bibliothek.</p>'}
+    ${d.length ? `<h3 class="sec">Schon in der Bibliothek</h3>
+      <div class="list">${d.map(w => `<div class="row">${cover(w)}
         <a class="grow" href="#/book/${w.ownedBookId}"><b>${esc(w.title)}</b><small>${esc(wishMeta(w))}</small></a>
-        <span class="tag owned">Hast du</span>${remove(w)}</div>`).join('')}</div>` : ''}
-    ${open.length ? `<div class="actions"><button class="btn ghost" id="share">${icons.share} Als Einkaufsliste teilen</button></div>` : ''}
-    <a class="btn fab" href="#/wishes/add">${icons.bookmark} Merken</a>`);
-  app.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+        <span class="tag owned">Hast du</span>${remove(w)}</div>`).join('')}</div>` : ''}`;
+  };
+  paint(`
+    ${viewHead('Wunschliste', sub)}
+    <div class="search" role="search">${icons.search}
+      <input id="wq" type="search" placeholder="Titel, Autor oder ISBN" autocomplete="off" aria-label="Wunschliste durchsuchen">
+      <a class="cam" href="#/wishes/add" aria-label="Buch merken: scannen oder suchen" title="Buch merken">${icons.cam}</a></div>
+    <div id="wishrows" class="gap-top">${rows('')}</div>
+    ${open.length ? `<div class="actions"><button class="btn ghost" id="share">${icons.share} Als Einkaufsliste teilen</button></div>` : ''}`);
+  const box = document.getElementById('wishrows');
+  const bind = () => box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
     b.disabled = true;
     await del(`/api/wishes/${b.dataset.del}`).finally(() => { b.disabled = false; });
     state.wishes = null;
     toast('Von der Wunschliste genommen');
     route();
   }));
+  document.getElementById('wq').addEventListener('input', e => { box.innerHTML = rows(e.target.value.trim().toLowerCase()); applyVars(box); bind(); });
+  bind();
+  warmCovers();
   document.getElementById('share')?.addEventListener('click', async () => {
     const text = 'Meine Wunschliste:\n' + open.map(w => `${w.title}${w.authors?.length ? ' (' + authors(w.authors) + ')' : ''}${w.isbn13 ? ', ISBN ' + w.isbn13 : ''}`).join('\n');
     if (navigator.share) await navigator.share({ title: 'Wunschliste', text }).catch(() => {});
     else { await navigator.clipboard.writeText(text); toast('In die Zwischenablage kopiert'); }
   });
-}
-
-async function viewWishAdd() {
-  paint(`
-    ${backBar('#/wishes')}
-    <h1 class="dtitle">Buch merken</h1>
-    <div class="list modes">
-      <a class="row mode" href="#/wishes/barcode"><span class="ic">${icons.barcode}</span><span class="grow"><b>Barcode scannen</b><small>Im Buchladen: zeigt auch, ob du es schon hast</small></span></a>
-      <a class="row mode" href="#/wishes/search"><span class="ic">${icons.search}</span><span class="grow"><b>Im Katalog suchen</b><small>Nach Titel und Autor</small></span></a>
-      <a class="row mode" href="#/series"><span class="ic">${icons.bookmark}</span><span class="grow"><b>Aus einer Reihe</b><small>Auf einen fehlenden Band tippen</small></span></a>
-    </div>`);
 }
 
 // ---------------------------------------------------------------- Reihen
@@ -748,7 +784,7 @@ async function viewShelves() {
   const shelf = shelves[currentShelf];
   const boards = plan.boards.filter(b => b.shelfId === shelf.id);
   paint(`
-    ${viewHead('Einsortieren', 'Nach Nachname, dann Reihe und Band', `<a class="round" href="#/shelves/new" aria-label="Regal anlegen" title="Regal anlegen">${icons.plus}</a>`)}
+    ${viewHead('Einsortieren', 'Nach Nachname, dann Reihe und Band', `<a class="round" href="#/add/shelf" aria-label="Regal fotografieren" title="Regal fotografieren">${icons.cam}</a><a class="round" href="#/shelves/new" aria-label="Regal anlegen" title="Regal anlegen">${icons.plus}</a>`)}
     <div class="summary"><div><b>${plan.toPlace}</b>neu einsortieren</div><div><b>${plan.toMove}</b>umstellen</div><div><b>${plan.overflow.length}</b>passen nicht</div></div>
     ${shelves.length < 2 ? '' : `<div class="seg" role="tablist">${shelves.map((s, i) => `<button role="tab" class="${i === currentShelf ? 'on' : ''}" data-s="${i}">${esc(s.name)}</button>`).join('')}</div>`}
     <div class="chips"><button class="chip on" data-f="all">Alle Bücher</button><button class="chip" data-f="changes">Nur Änderungen</button><a class="chip" href="#/shelves/${shelf.id}/edit">Regal bearbeiten</a></div>
@@ -1054,7 +1090,7 @@ async function viewAccount() {
       if (t.dataset.remove && await ask('Aus dieser Bibliothek entfernen?', 'Die Person verliert den Zugriff auf Bücher, Regale und Wunschliste.', 'Entfernen', 'Abbrechen', true)) { await del(`/api/library/members/${t.dataset.remove}`); await reload(); }
       if (t.dataset.withdraw) { await del(`/api/library/invitations/${t.dataset.withdraw}`); await reload(); }
       if (t.id === 'export') { await post('/api/account/export', {}); toast('Die Auskunft ist per Mail unterwegs'); }
-      if (t.id === 'logout') { await post('/api/auth/logout', {}); state.me = null; state.books = null; go('/login'); }
+      if (t.id === 'logout') { await post('/api/auth/logout', {}); forgetCovers(); state.me = null; state.books = null; go('/login'); }
     } catch (err) { toast(err.message, true); }
   };
   app.addEventListener('click', onClick);
@@ -1073,6 +1109,7 @@ async function viewAccount() {
   onSubmit('del', async v => {
     if (!await ask('Konto endgültig löschen?', 'Das lässt sich nicht rückgängig machen.', 'Konto löschen', 'Abbrechen', true)) return;
     await api('/api/account', { method: 'DELETE', json: v });
+    forgetCovers();
     state.me = null;
     go('/login');
     toast('Dein Konto ist gelöscht');
@@ -1082,6 +1119,10 @@ async function viewAccount() {
 // ---------------------------------------------------------------- Start
 
 document.addEventListener('click', e => { if (e.target.closest('[data-theme-toggle]')) toggleTheme(); });
+// Covers fade in once loaded; until then their box is the skeleton.
+document.addEventListener('load', e => { if (e.target.matches?.('.cover img')) e.target.closest('.cover').classList.add('loaded'); }, true);
+document.addEventListener('error', e => { if (e.target.matches?.('.cover img')) e.target.closest('.cover').classList.add('loaded', 'broken'); }, true);
+navigator.serviceWorker?.register('/sw.js').catch(() => { /* covers just come from the network */ });
 window.addEventListener('hashchange', route);
 window.addEventListener('unhandledrejection', e => toast(e.reason?.message ?? 'Fehler', true));
 route();

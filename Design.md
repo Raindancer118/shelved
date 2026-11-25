@@ -34,8 +34,11 @@ Hell/Dunkel: Schalter oben rechts in jeder Hauptansicht, gespeichert in `localSt
 - Status-Badge: 8-px-Punkt plus Text, voll rund.
 - Buttons: Tinte gefüllt (primär), umrandet (sekundär), Radius 6, Höhe 40 (48 auf Touch). Hover hebt 1 px, Druck `scale(.97)`.
 - Dialog: 450 breit, Buttons links, Primär zuerst, destruktiv in Fehlerfarbe. Ersetzt alle `confirm()`.
-- Suchleiste oben in der Bibliothek mit **Kamera-Icon rechts im Feld** (Tom, 14.11.): **nur Nachschlagen**. Barcode → »hab ich das schon?«, Treffer öffnet die Detailseite, sonst »In die Bibliothek« oder »Merken«.
-- **FAB „Hinzufügen“** (Tinte, unten rechts). Modi als Listenzeilen: Regal · Barcode · Buch · Von Hand.
+- Suchleiste oben in der Bibliothek mit **Kamera-Icon rechts im Feld**. Seit 0.5.2 (Tom, 25.11.) der einzige Einstieg zum Scannen und Hinzufügen, **kein FAB mehr**.
+- **Eine Kamera, eine Option** (`#/add`, Tom 25.11.): Vollbild-Kamera ohne Auswahl. Barcodes werden live und fortlaufend gelesen. Der Auslöser macht ein Foto: mit Barcode ist es die ISBN, ohne Barcode entscheidet der Server (Scan-Modus `AUTO`) zwischen Einzelbuch und Regal (ab 3 Büchern). Ergebnis als Sheet über der Kamera. „Eintippen“ schaltet auf ein Feld für ISBN, Titel oder Autor, die App erkennt, was es ist. Regal mit Platzzuordnung: Kamera-Knopf im Tab Regale.
+- Wunschliste: Suchleiste mit Kamera-Icon wie in der Bibliothek, dieselbe Kamera ohne Cover-Lesen.
+- Laden: ab 150 ms ein Skelett in der Form der Ansicht, Cover-Boxen pulsieren leicht, bis das Bild da ist, und blenden dann ein. Ein Service Worker (`sw.js`) hält alle Cover von Bibliothek und Wunschliste auf dem Gerät und lädt neue im Hintergrund vor. Beim Abmelden wird der Cache geleert.
+- Handys (≤ 480 px): Skala eine Stufe kleiner (Titel 28 px), Touch-Ziele 44 px.
 - Navigation: Leiste unten (Bibliothek · Wunschliste · Reihen · Regale · Statistik), ab 1024 px Seitenleiste 252 px mit Wortmarke, aktiver Eintrag mit Balken.
 - Übersichten nutzen bis 1300 px Breite, Detail und Formulare bleiben bei 760.
 - Touch-Targets ≥ 48px auf Touch-Geräten.

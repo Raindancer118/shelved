@@ -8,9 +8,13 @@ export const liveBarcodeSupported = async () => {
   } catch { return false; }
 };
 
-/** Starts the camera in `video` and resolves with the first ISBN-like EAN-13. Call the returned stop() to abort. */
-export function scanBarcode(video, onIsbn) {
-  let stream, timer, stopped = false;
+/**
+ * Runs the camera in `video`. Where the browser can detect barcodes, every new ISBN-like EAN-13 goes to onIsbn
+ * while the camera keeps running, so one book after another can be scanned. shoot() takes a still photo.
+ * Returns { stop, shoot }; onError gets camera failures (no permission, no camera).
+ */
+export function liveCamera(video, { onIsbn, onError }) {
+  let stream, timer, stopped = false, last = null;
   const stop = () => {
     stopped = true;
     clearInterval(timer);
@@ -23,17 +27,19 @@ export function scanBarcode(video, onIsbn) {
     video.setAttribute('playsinline', '');
     video.muted = true;
     await video.play();
+    if (!await liveBarcodeSupported()) return;
     const detector = new BarcodeDetector({ formats: ['ean_13'] });
     timer = setInterval(async () => {
       try {
-        const codes = await detector.detect(video);
-        const hit = codes.map(c => c.rawValue).find(v => /^97[89]\d{10}$/.test(v));
-        if (hit) { stop(); onIsbn(hit); }
+        const hit = (await detector.detect(video)).map(c => c.rawValue).find(v => /^97[89]\d{10}$/.test(v));
+        if (hit && hit !== last) { last = hit; onIsbn(hit); }
       } catch { /* frame not ready */ }
     }, 250);
-  })().catch(err => { stop(); onIsbn(null, err); });
-  return stop;
+  })().catch(err => { stop(); onError?.(err); });
+  return { stop, shoot: () => grab(stream, video) };
 }
+
+export const cameraAvailable = () => !!navigator.mediaDevices?.getUserMedia;
 
 /**
  * JPEG photos up to 15 MB go up untouched: decoding a 12 MP photo in the browser needs ~100 MB of RAM,
