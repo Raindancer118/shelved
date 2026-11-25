@@ -13,7 +13,6 @@ import de.raindancer118.shelved.placement.PlacementService;
 import de.raindancer118.shelved.shelf.ShelfRepository;
 import jakarta.validation.Valid;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -145,10 +143,7 @@ public class BookController {
     public ResponseEntity<FileSystemResource> cover(Authentication auth, @PathVariable UUID id) {
         Book b = books.get(Owner.of(auth), id);
         var path = covers.path(b.getCoverFile()).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
-        MediaType type = path.toString().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
-        return ResponseEntity.ok().contentType(type)
-                .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePrivate().immutable())
-                .body(new FileSystemResource(path));
+        return CoverResponse.of(path, true);
     }
 
     @PutMapping(value = "/books/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -164,10 +159,13 @@ public class BookController {
     @GetMapping("/covers/{isbn}")
     public ResponseEntity<FileSystemResource> catalogCover(@PathVariable String isbn) {
         var path = covers.catalogCover(isbn).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
-        MediaType type = path.toString().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
-        return ResponseEntity.ok().contentType(type)
-                .cacheControl(CacheControl.maxAge(Duration.ofDays(30)).cachePrivate())
-                .body(new FileSystemResource(path));
+        return CoverResponse.of(path, false);
+    }
+
+    @GetMapping("/covers/google/{volumeId}")
+    public ResponseEntity<FileSystemResource> googleCover(@PathVariable String volumeId) {
+        var path = covers.googleCover(volumeId).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
+        return CoverResponse.of(path, false);
     }
 
     /** "Hab ich das schon?" for a scanned barcode, plus catalogue data to add it right away. */

@@ -87,23 +87,45 @@ public class CoverStore {
         if (isbn13 == null || !isbn13.matches("97[89]\\d{10}")) {
             return Optional.empty();
         }
+        return cached(isbn13, candidates(isbn13, null));
+    }
+
+    /** Cover of a Google Books volume that has no ISBN in Google's answer (often self-published titles). */
+    public Optional<Path> googleCover(String volumeId) {
+        if (volumeId == null || !volumeId.matches("[A-Za-z0-9_-]{6,20}")) {
+            return Optional.empty();
+        }
+        return cached("g-" + volumeId,
+                List.of("https://books.google.com/books/content?id=" + volumeId + "&printsec=frontcover&img=1&zoom=1&fife=w600"));
+    }
+
+    /** An author's portrait from Open Library. */
+    public Optional<Path> authorPhoto(String olid) {
+        if (olid == null || !olid.matches("OL\\d+A")) {
+            return Optional.empty();
+        }
+        return cached("a-" + olid, List.of("https://covers.openlibrary.org/a/olid/" + olid + "-M.jpg?default=false"));
+    }
+
+    /** Fetched once into the catalog folder under {@code key}; a miss is remembered for a day. */
+    private Optional<Path> cached(String key, List<String> urls) {
         for (String ext : List.of("jpg", "png")) {
-            Path p = catalogDir.resolve(isbn13 + "." + ext);
+            Path p = catalogDir.resolve(key + "." + ext);
             if (Files.isRegularFile(p)) {
                 return Optional.of(p);
             }
         }
-        java.time.Instant missed = misses.get(isbn13);
+        java.time.Instant missed = misses.get(key);
         if (missed != null && missed.isAfter(java.time.Instant.now().minus(java.time.Duration.ofDays(1)))) {
             return Optional.empty();
         }
-        Optional<Image> img = download(candidates(isbn13, null));
+        Optional<Image> img = download(urls);
         if (img.isEmpty()) {
-            misses.put(isbn13, java.time.Instant.now());
+            misses.put(key, java.time.Instant.now());
             return Optional.empty();
         }
         try {
-            Path p = catalogDir.resolve(isbn13 + "." + img.get().ext());
+            Path p = catalogDir.resolve(key + "." + img.get().ext());
             Files.write(p, img.get().bytes());
             return Optional.of(p);
         } catch (IOException e) {

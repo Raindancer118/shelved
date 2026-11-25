@@ -3,13 +3,12 @@ package de.raindancer118.shelved.wishlist;
 import de.raindancer118.shelved.book.CoverStore;
 import de.raindancer118.shelved.book.NotFoundException;
 import de.raindancer118.shelved.web.Owner;
+import de.raindancer118.shelved.web.CoverResponse;
 import de.raindancer118.shelved.web.Views;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -100,9 +98,6 @@ public class WishController {
     public ResponseEntity<FileSystemResource> cover(Authentication auth, @PathVariable UUID id) {
         Wish w = wishes.get(Owner.of(auth), id);
         var path = covers.path(w.getCoverFile()).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
-        MediaType type = path.toString().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
-        return ResponseEntity.ok().contentType(type)
-                .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePrivate().immutable())
-                .body(new FileSystemResource(path));
+        return CoverResponse.of(path, true);
     }
 }

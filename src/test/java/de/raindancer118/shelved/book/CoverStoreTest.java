@@ -90,6 +90,17 @@ class CoverStoreTest {
         assertThat(covers.flattenAll()).isZero(); // already done
     }
 
+    /** Self-published titles often have no ISBN in Google's answer, only Google's own volume id. */
+    @Test
+    void aCoverByGoogleVolumeIdIsFetchedOnce() {
+        server.expect(ExpectedCount.once(), requestTo("https://books.google.com/books/content?id=zyTCAlFPjgYC&printsec=frontcover&img=1&zoom=1&fife=w600"))
+                .andRespond(withSuccess(new byte[9_000], MediaType.IMAGE_JPEG));
+        assertThat(covers.googleCover("zyTCAlFPjgYC")).isPresent();
+        assertThat(covers.googleCover("zyTCAlFPjgYC")).isPresent();
+        assertThat(covers.googleCover("../etc")).isEmpty();
+        server.verify();
+    }
+
     @Test
     void onlyIsbnsReachTheDisk() {
         assertThat(covers.catalogCover("../../etc/passwd")).isEmpty();
