@@ -18,8 +18,6 @@ public record BookInput(
         @Min(1) @Max(20000) Integer pageCount,
         @Min(1) @Max(300) Integer thicknessMm,
         BookFormat format,
-        @Size(max = 300) String seriesName,
-        @Min(0) @Max(10000) Integer seriesVolume,
         @Min(0) @Max(10_000_00) Integer listPriceCents,
         @Size(max = 20000) String description) {
 }

@@ -34,13 +34,9 @@ public final class Similarity {
         return best;
     }
 
-    /** Spine text vs. an edition: spines often print "Series – Title", catalogues keep the series separately. */
+    /** Spine text vs. an edition, its subtitle included. */
     public static double edition(String spine, BookMetadata m) {
-        double best = title(spine, m.title(), m.subtitle());
-        if (m.seriesName() != null) {
-            best = Math.max(best, title(spine, m.seriesName() + " " + m.title(), null));
-        }
-        return best;
+        return title(spine, m.title(), m.subtitle());
     }
 
     public static String mainTitle(String title) {

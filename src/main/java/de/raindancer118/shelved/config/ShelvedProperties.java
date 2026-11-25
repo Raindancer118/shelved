@@ -6,7 +6,7 @@ import java.nio.file.Path;
 
 @ConfigurationProperties("shelved")
 public record ShelvedProperties(Path dataDir, String authMode, Anthropic anthropic, int scansPerHour, String googleBooksApiKey,
-                                String hardcoverApiToken, String publicUrl) {
+                                String publicUrl) {
 
     public record Anthropic(String apiKey, String model) {
         public boolean configured() {

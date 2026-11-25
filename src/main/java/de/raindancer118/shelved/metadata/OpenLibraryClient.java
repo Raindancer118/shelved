@@ -50,54 +50,6 @@ public class OpenLibraryClient {
     record SearchResult(List<SearchDoc> docs) {
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    record EditionRecord(List<String> series, List<String> publishers) {
-    }
-
-    public record SeriesHit(String name, int volume) {
-    }
-
-    // "Discworld, Book 1", "The Folk of the Air ; 2", "Discworld #41", "Mistborn (3)", "Tintenwelt-Trilogie, Bd. 2"
-    private static final java.util.regex.Pattern SERIES = java.util.regex.Pattern.compile(
-            "^(.+?)\\s*[,;:#(\\-–]*\\s*(?:(?:book|bk|band|bd|vol|volume|tome|teil|nr|no)\\.?\\s*)?#?(?<!\\d)(\\d{1,3})\\)?\\s*$",
-            java.util.regex.Pattern.CASE_INSENSITIVE);
-
-    /** The free-text series field of an edition. Only numbered entries count, and no publisher imprints. */
-    public Optional<SeriesHit> seriesByIsbn(String isbn13) {
-        try {
-            EditionRecord e = http.get().uri(URI.create("https://openlibrary.org/isbn/" + isbn13 + ".json"))
-                    .retrieve().body(EditionRecord.class);
-            if (e == null || e.series() == null) {
-                return Optional.empty();
-            }
-            String publisher = e.publishers() == null || e.publishers().isEmpty() ? null : e.publishers().getFirst();
-            return e.series().stream().map(OpenLibraryClient::parseSeries).flatMap(Optional::stream)
-                    .filter(h -> !MarcSruClient.Marc.imprint(h.name(), publisher))
-                    .findFirst();
-        } catch (org.springframework.web.client.HttpClientErrorException.NotFound ex) {
-            return Optional.empty(); // Open Library doesn't know every edition
-        } catch (RestClientException ex) {
-            log.warn("Open Library edition lookup failed: {}", ex.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    static Optional<SeriesHit> parseSeries(String raw) {
-        if (raw == null) {
-            return Optional.empty();
-        }
-        java.util.regex.Matcher m = SERIES.matcher(raw.trim());
-        if (!m.matches()) {
-            return Optional.empty();
-        }
-        Integer volume = MarcSruClient.volumeNumber(m.group(2));
-        String name = MarcSruClient.cleanSeries(m.group(1));
-        if (volume == null || name.isBlank() || MarcSruClient.notALiterarySeries(name)) {
-            return Optional.empty();
-        }
-        return Optional.of(new SeriesHit(name, volume));
-    }
-
     public Optional<BookMetadata> byIsbn(String isbn13) {
         URI uri = URI.create("https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn13 + "&format=json&jscmd=data");
         try {

@@ -3,7 +3,6 @@ package de.raindancer118.shelved.wishlist;
 import de.raindancer118.shelved.book.Names;
 import de.raindancer118.shelved.book.StringListConverter;
 import de.raindancer118.shelved.book.Titles;
-import de.raindancer118.shelved.series.SeriesNames;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -32,8 +31,6 @@ public class Wish {
     private List<String> authors = new ArrayList<>();
     private String publisher;
     private Integer publishedYear;
-    private String seriesName;
-    private Integer seriesVolume;
     private Integer listPriceCents;
     private String coverFile;
     private boolean keepWhenOwned;
@@ -68,12 +65,6 @@ public class Wish {
     public void setPublisher(String publisher) { this.publisher = publisher; }
     public Integer getPublishedYear() { return publishedYear; }
     public void setPublishedYear(Integer publishedYear) { this.publishedYear = publishedYear; }
-    public String getSeriesName() { return seriesName; }
-    public Integer getSeriesVolume() { return seriesVolume; }
-    public void setSeries(String name, Integer volume) {
-        this.seriesName = name == null || name.isBlank() ? null : SeriesNames.normalize(name);
-        this.seriesVolume = this.seriesName != null && volume != null && volume > 0 ? volume : null;
-    }
     public Integer getListPriceCents() { return listPriceCents; }
     public void setListPriceCents(Integer listPriceCents) { this.listPriceCents = listPriceCents; }
     public String getCoverFile() { return coverFile; }

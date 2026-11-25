@@ -2,10 +2,8 @@ package de.raindancer118.shelved;
 
 import de.raindancer118.shelved.book.CoverStore;
 import de.raindancer118.shelved.metadata.MetadataService;
-import de.raindancer118.shelved.metadata.WikidataClient;
 import de.raindancer118.shelved.book.BookRepository;
 import de.raindancer118.shelved.scan.ScanRepository;
-import de.raindancer118.shelved.series.SeriesCatalogRepository;
 import de.raindancer118.shelved.shelf.ShelfRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,25 +43,15 @@ public abstract class IntegrationTestBase {
     @Autowired
     private ScanRepository scanRepository;
     @Autowired
-    private SeriesCatalogRepository catalogRepository;
-    @Autowired
     private de.raindancer118.shelved.wishlist.WishRepository wishRepository;
     @MockitoBean
     protected MetadataService metadata;
     @MockitoBean
     protected CoverStore covers;
     @MockitoBean
-    protected WikidataClient wikidata;
-    @MockitoBean
     protected de.raindancer118.shelved.metadata.DnbClient dnb;
     @MockitoBean
-    protected de.raindancer118.shelved.metadata.K10plusClient k10plus;
-    @MockitoBean
-    protected de.raindancer118.shelved.metadata.LocClient loc;
-    @MockitoBean
     protected de.raindancer118.shelved.metadata.OpenLibraryClient openLibrary;
-    @MockitoBean
-    protected de.raindancer118.shelved.metadata.HardcoverClient hardcover;
 
 
     @BeforeEach
@@ -72,9 +60,6 @@ public abstract class IntegrationTestBase {
         bookRepository.deleteAll();
         scanRepository.deleteAll();
         shelfRepository.deleteAll();
-        catalogRepository.deleteAll();
         ai.tileCounts.clear();
-        ai.seriesQuestions.clear();
-        ai.catalogQuestions.clear();
     }
 }

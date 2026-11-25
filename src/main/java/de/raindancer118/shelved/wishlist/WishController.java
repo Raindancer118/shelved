@@ -5,8 +5,6 @@ import de.raindancer118.shelved.book.NotFoundException;
 import de.raindancer118.shelved.web.Owner;
 import de.raindancer118.shelved.web.Views;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.CacheControl;
@@ -33,15 +31,14 @@ import java.util.UUID;
 public class WishController {
 
     public record WishInput(@Size(max = 20) String isbn, @Size(max = 500) String title,
-                            @Size(max = 10) List<@Size(max = 200) String> authors,
-                            @Size(max = 300) String seriesName, @Min(0) @Max(10000) Integer seriesVolume) {
+                            @Size(max = 10) List<@Size(max = 200) String> authors) {
     }
 
     public record Resolve(@Size(max = 500) List<UUID> remove, @Size(max = 500) List<UUID> keep) {
     }
 
     public record WishView(UUID id, String isbn13, String title, String subtitle, List<String> authors, String publisher,
-                           Integer publishedYear, String seriesName, Integer seriesVolume, Integer listPriceCents,
+                           Integer publishedYear, Integer listPriceCents,
                            String cover, UUID ownedBookId, String ownedCover, boolean keepWhenOwned, Instant createdAt) {
     }
 
@@ -56,7 +53,7 @@ public class WishController {
     static WishView view(Wish w, de.raindancer118.shelved.book.Book owned) {
         String cover = w.getCoverFile() == null ? null : "/api/wishes/" + w.getId() + "/cover?v=" + w.getCoverFile().hashCode();
         return new WishView(w.getId(), w.getIsbn13(), w.getTitle(), w.getSubtitle(), w.getAuthors(), w.getPublisher(),
-                w.getPublishedYear(), w.getSeriesName(), w.getSeriesVolume(), w.getListPriceCents(), cover, owned == null ? null : owned.getId(),
+                w.getPublishedYear(), w.getListPriceCents(), cover, owned == null ? null : owned.getId(),
                 owned == null ? null : Views.cover(owned),
                 w.isKeepWhenOwned(), w.getCreatedAt());
     }
@@ -77,7 +74,7 @@ public class WishController {
 
     @PostMapping
     public ResponseEntity<WishView> add(Authentication auth, @Valid @RequestBody WishInput in) {
-        var a = wishes.add(Owner.of(auth), in.isbn(), in.title(), in.authors(), in.seriesName(), in.seriesVolume());
+        var a = wishes.add(Owner.of(auth), in.isbn(), in.title(), in.authors());
         return ResponseEntity.status(a.created() ? HttpStatus.CREATED : HttpStatus.OK).body(view(a.wish(), null));
     }
 

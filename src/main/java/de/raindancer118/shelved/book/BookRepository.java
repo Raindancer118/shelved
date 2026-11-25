@@ -14,7 +14,5 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
 
     List<Book> findByOwnerIdAndIsbn13(String ownerId, String isbn13);
 
-    List<Book> findByOwnerIdAndSeriesCheckedFalse(String ownerId);
-
     long countByOwnerId(String ownerId);
 }

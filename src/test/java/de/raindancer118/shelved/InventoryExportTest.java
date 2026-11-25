@@ -42,7 +42,7 @@ class InventoryExportTest extends IntegrationTestBase {
                         .content("{\"name\":\"Wohnzimmer\",\"boardWidthsMm\":[800,800]}"))
                 .andReturn().getResponse().getContentAsString(), "$.id");
         ai.nextShelf = new LibraryAi.ShelfReading(List.of(
-                ScanFlowTest.spine("Gevatter Tod", "Terry Pratchett", "", 0, "high")), List.of());
+                ScanFlowTest.spine("Gevatter Tod", "Terry Pratchett", "high")), List.of());
         when(metadata.search(any(), any(), any())).thenReturn(List.of(book("9783492281980", "Gevatter Tod", "Terry Pratchett", 1200, BookFormat.PAPERBACK)));
         String scan = JsonPath.read(mvc.perform(multipart("/api/scans")
                         .file(new MockMultipartFile("image", "shelf.jpg", "image/jpeg", ScanFlowTest.widePhoto()))

@@ -1,3 +1,0 @@
-{"head":{"vars":["series","seriesLabel","deLabel","ord","size"]},"results":{"bindings":[
-{"series":{"type":"uri","value":"http://www.wikidata.org/entity/Q2165240"},"seriesLabel":{"type":"literal","value":"Rowohlts Rotations-Romane"},"deLabel":{"xml:lang":"de","type":"literal","value":"Rowohlts Rotations-Romane"},"ord":{"type":"literal","value":"4755"},"size":{"datatype":"http://www.w3.org/2001/XMLSchema#integer","type":"literal","value":"2841"}}
-]}}

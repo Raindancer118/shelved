@@ -91,7 +91,7 @@ public class BookController {
             return Isbn.toIsbn13(digits).map(i -> i.equals(b.getIsbn13())).orElse(false);
         }
         String hay = Names.collationKey(String.join(" ", b.getTitle(), String.valueOf(b.getSubtitle()),
-                String.join(" ", b.getAuthors()), String.valueOf(b.getSeriesName()), String.valueOf(b.getIsbn13())));
+                String.join(" ", b.getAuthors()), String.valueOf(b.getIsbn13())));
         return java.util.Arrays.stream(needle.split("\\s+")).allMatch(hay::contains);
     }
 
@@ -113,14 +113,14 @@ public class BookController {
         String owner = Owner.of(auth);
         String isbn = Isbn.toIsbn13(req.isbn()).orElseThrow(() -> new IllegalArgumentException("Keine gültige ISBN"));
         BookMetadata m = metadata.byIsbn(isbn).orElseThrow(() -> new NotFoundException("Buch zu dieser ISBN"));
-        return added(owner, books.addFromMetadata(owner, m, BookService.SeriesHint.none(), Boolean.TRUE.equals(req.anotherCopy())));
+        return added(owner, books.addFromMetadata(owner, m, Boolean.TRUE.equals(req.anotherCopy())));
     }
 
     @PostMapping("/books")
     public ResponseEntity<Views.BookDetail> addManual(Authentication auth, @Valid @RequestBody BookInput in,
                                                       @RequestParam(defaultValue = "false") boolean anotherCopy) {
         String owner = Owner.of(auth);
-        return added(owner, books.addManual(owner, in, BookService.SeriesHint.none(), anotherCopy));
+        return added(owner, books.addManual(owner, in, anotherCopy));
     }
 
     @PostMapping("/books/{id}/copies")
@@ -199,6 +199,6 @@ public class BookController {
         }
         // prefer fresh data for ISBN-identified books instead of trusting the client copy
         BookMetadata data = m.isbn13() == null ? m : metadata.byIsbn(m.isbn13()).orElse(m);
-        return added(owner, books.addFromMetadata(owner, data, BookService.SeriesHint.none(), anotherCopy));
+        return added(owner, books.addFromMetadata(owner, data, anotherCopy));
     }
 }

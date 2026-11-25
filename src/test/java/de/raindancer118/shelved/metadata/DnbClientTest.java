@@ -97,84 +97,12 @@ class DnbClientTest {
     }
 
     @Test
-    void literarySeriesAndVolumeComeFromTheAuthorSeriesField() {
-        BookMetadata m = isbn("9783473585960");
-        assertThat(m.seriesName()).isEqualTo("Samurai");
-        assertThat(m.seriesVolume()).isEqualTo(8);
+    void aPartOfAMultiPartWorkIsTheBook() {
+        assertThat(isbn("9783570311707").title()).isEqualTo("Das erste Jahr");
     }
 
     @Test
-    void publisherSeriesLikeGoldmannAreNotLiterarySeries() {
-        BookMetadata m = isbn("9783442486823");
-        assertThat(m.seriesName()).isEqualTo("Chroniken der Unterwelt");
-        assertThat(m.seriesVolume()).isEqualTo(1);
-    }
-
-    @Test
-    void printEditionCarriesItsSeriesNumbering() {
-        BookMetadata m = isbn("9783570311707");
-        assertThat(m.title()).isEqualTo("Das erste Jahr");
-        assertThat(m.seriesName()).isEqualTo("Magic academy");
-        assertThat(m.seriesVolume()).isEqualTo(1);
-    }
-
-    @Test
-    void seriesNamesLoseTheirReiheSuffix() {
-        assertThat(DnbClient.cleanSeries("Die Magic Academy-Reihe")).isEqualTo("Die Magic Academy");
-        assertThat(DnbClient.volumeNumber("8. Band")).isEqualTo(8);
-        assertThat(DnbClient.volumeNumber("Buch 1")).isEqualTo(1);
-        assertThat(DnbClient.volumeNumber("8016 : Piper Fantasy")).isNull();
-    }
-
-    @Test
-    void catalogueWordingIsTurnedIntoTheSeriesName() {
-        assertThat(DnbClient.cleanSeries("\u0098Der ...\u009C Band der Tintenwelt-Reihe")).isEqualTo("Tintenwelt");
-        assertThat(DnbClient.cleanSeries("... Roman des Zyklus von der Scheibenwelt")).isEqualTo("Scheibenwelt");
-        assertThat(DnbClient.cleanSeries("Bd. ... der Mysteria-Trilogie")).isEqualTo("Mysteria");
-        assertThat(DnbClient.cleanSeries("Mysteria-Trilogie / Peter Freund")).isEqualTo("Mysteria");
-    }
-
-    @Test
-    void collectedWorksAndImprintsAreNoSeries() {
-        assertThat(DnbClient.notALiterarySeries("Werkausgabe")).isTrue();
-        assertThat(DnbClient.notALiterarySeries("Das dramatische Werk")).isTrue();
-        assertThat(DnbClient.notALiterarySeries("Bild-am-Sonntag-Fantasy-Bibliothek")).isTrue();
-        assertThat(DnbClient.notALiterarySeries("Klassiker in leichter Sprache")).isTrue();
-        assertThat(DnbClient.notALiterarySeries("Samurai")).isFalse();
-        assertThat(DnbClient.notALiterarySeries("Das Uhrwerk der Zeit")).isFalse();
-        assertThat(DnbClient.notALiterarySeries("Chroniken der Unterwelt")).isFalse();
-    }
-
-    @Test
-    void anImprintWithoutVolumeIsNoSeries() {
-        assertThat(isbn("9783492281980").seriesName()).isNull();
-    }
-
-    @Test
-    void imprintNumbersInSearchHitsAreIgnored() {
-        server.expect(requestTo(startsWith("https://services.dnb.de/sru/dnb")))
-                .andRespond(withSuccess(new ClassPathResource("fixtures/dnb-search-farben.xml"), MediaType.APPLICATION_XML));
-        assertThat(client.search("Die Farben der Magie", "Terry Pratchett")).extracting(BookMetadata::seriesName).containsOnlyNulls();
-    }
-
-    /** All volumes of a German series straight from the national library, no AI. */
-    @Test
-    void readsTheWholeSeriesFromTheCatalogue() {
-        server.expect(requestTo(startsWith("https://services.dnb.de/sru/dnb")))
-                .andExpect(decodedQuery("query=tit=Samurai and per=Bradford and mat=books"))
-                .andRespond(withSuccess(new ClassPathResource("fixtures/dnb-series-samurai.xml"), MediaType.APPLICATION_XML));
-
-        var volumes = client.seriesCatalog("Samurai", "Chris Bradford");
-
-        assertThat(volumes).extracting(de.raindancer118.shelved.series.SeriesCatalogVolume::number)
-                .containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9);
-        assertThat(volumes.get(1).title()).isEqualTo("Der Weg des Schwertes");
-        assertThat(volumes.get(7).title()).isEqualTo("Der Ring des Himmels");
-    }
-
-    @Test
-    void aPartNumberUnderAnElidedOrdinalIsNoVolume() {
-        // "... Roman des Zyklus von der Scheibenwelt ; 1., Das Licht der Phantasie" is volume 2 in truth
+    void thePartTitleIsTheTitle() {
         String xml = """
                 <searchRetrieveResponse><records><record><recordData>
                 <record xmlns="http://www.loc.gov/MARC21/slim">
@@ -186,6 +114,5 @@ class DnbClientTest {
                 </record></recordData></record></records></searchRetrieveResponse>""";
         BookMetadata m = DnbClient.parse(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8)).getFirst();
         assertThat(m.title()).isEqualTo("Das Licht der Phantasie");
-        assertThat(m.seriesName()).isNull();
     }
 }

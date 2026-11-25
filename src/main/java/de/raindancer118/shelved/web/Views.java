@@ -5,7 +5,6 @@ import de.raindancer118.shelved.book.BookFormat;
 import de.raindancer118.shelved.placement.PlacementService;
 import de.raindancer118.shelved.placement.ThicknessEstimator;
 import de.raindancer118.shelved.pricing.UsedPriceEstimator;
-import de.raindancer118.shelved.series.SeriesService;
 
 import java.time.Instant;
 import java.time.Year;
@@ -19,14 +18,14 @@ public final class Views {
     private Views() {
     }
 
-    public record BookSummary(UUID id, String isbn13, String title, List<String> authors, String authorSort, String seriesName,
-                              Integer seriesVolume, String cover, String location, int copies, Instant createdAt) {
+    public record BookSummary(UUID id, String isbn13, String title, List<String> authors, String authorSort,
+                              String cover, String location, int copies, Instant createdAt) {
     }
 
     public record BookDetail(UUID id, String isbn13, String title, String subtitle, List<String> authors,
                              String publisher, Integer publishedYear, Integer pageCount, Integer heightMm,
                              Integer thicknessMm, int estimatedThicknessMm, BookFormat format, String language,
-                             String description, String seriesName, Integer seriesVolume, String seriesKey, de.raindancer118.shelved.book.SeriesSource seriesSource,
+                             String description,
                              Integer listPriceCents, Integer usedPriceCents, Integer buybackPriceCents, String cover, UUID shelfId,
                              Integer boardNumber, Integer boardPosition, String location, String metadataSource,
                              int copies, Instant createdAt) {
@@ -37,16 +36,15 @@ public final class Views {
     }
 
     static BookSummary summary(Book b, Map<UUID, Integer> shelfNumbers) {
-        return new BookSummary(b.getId(), b.getIsbn13(), b.getTitle(), b.getAuthors(), b.getAuthorSort(), b.getSeriesName(),
-                b.getSeriesVolume(), cover(b), location(b, shelfNumbers), b.getCopies(), b.getCreatedAt());
+        return new BookSummary(b.getId(), b.getIsbn13(), b.getTitle(), b.getAuthors(), b.getAuthorSort(),
+                cover(b), location(b, shelfNumbers), b.getCopies(), b.getCreatedAt());
     }
 
     static BookDetail detail(Book b, Map<UUID, Integer> shelfNumbers) {
         return new BookDetail(b.getId(), b.getIsbn13(), b.getTitle(), b.getSubtitle(), b.getAuthors(), b.getPublisher(),
                 b.getPublishedYear(), b.getPageCount(), b.getHeightMm(), b.getThicknessMm(),
                 ThicknessEstimator.estimateMm(b.getThicknessMm(), b.getPageCount(), b.getFormat()), b.getFormat(),
-                b.getLanguage(), b.getDescription(), b.getSeriesName(), b.getSeriesVolume(),
-                b.getSeriesName() == null ? null : SeriesService.key(b), b.getSeriesSource(), b.getListPriceCents(),
+                b.getLanguage(), b.getDescription(), b.getListPriceCents(),
                 UsedPriceEstimator.privateCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 UsedPriceEstimator.buybackCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 cover(b), b.getShelfId(), b.getBoardNumber(), b.getBoardPosition(), location(b, shelfNumbers),

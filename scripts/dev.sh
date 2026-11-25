@@ -9,7 +9,7 @@ if ! docker ps --format '{{.Names}}' | grep -qx shelved-db; then
   until docker exec shelved-db pg_isready -U shelved >/dev/null 2>&1; do sleep 1; done
 fi
 set -a
-for f in .env.anthropic .env.google .env.hardcover; do [ -f "$f" ] && . "./$f"; done
+for f in .env.anthropic .env.google; do [ -f "$f" ] && . "./$f"; done
 set +a
 # extra arguments are passed on, e.g. --shelved.auth-mode=accounts to try the login pages
 args="$*"

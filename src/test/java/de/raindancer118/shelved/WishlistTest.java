@@ -27,7 +27,7 @@ class WishlistTest extends IntegrationTestBase {
 
     static BookMetadata tintenherz() {
         return new BookMetadata("9783791504650", "Tintenherz", "Tintenherz", null, List.of("Cornelia Funke"), "Funke, Cornelia",
-                "Dressler", 2003, 576, null, BookFormat.HARDCOVER, "ger", 2490, null, null, null, "DNB", "Tintenwelt", 1);
+                "Dressler", 2003, 576, null, BookFormat.HARDCOVER, "ger", 2490, null, null, null, "DNB");
     }
 
     private ResultActions postJson(String path, String json) throws Exception {
@@ -41,7 +41,6 @@ class WishlistTest extends IntegrationTestBase {
         String id = JsonPath.read(postJson("/api/wishes", "{\"isbn\":\"978-3-7915-0465-0\"}")
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Tintenherz"))
-                .andExpect(jsonPath("$.seriesName").value("Tintenwelt"))
                 .andExpect(jsonPath("$.listPriceCents").value(2490))
                 .andReturn().getResponse().getContentAsString(), "$.id");
 
@@ -69,9 +68,9 @@ class WishlistTest extends IntegrationTestBase {
     void addingAWishedBookAsksToRemoveIt() throws Exception {
         when(metadata.byIsbn("9783791504650")).thenReturn(Optional.of(tintenherz()));
         String byIsbn = JsonPath.read(postJson("/api/wishes", "{\"isbn\":\"9783791504650\"}").andReturn().getResponse().getContentAsString(), "$.id");
-        // a missing series volume has no ISBN, only title and author
+        // without an ISBN: title and author as typed
         String byTitle = JsonPath.read(postJson("/api/wishes",
-                "{\"title\":\"Tintenblut\",\"authors\":[\"Cornelia Funke\"],\"seriesName\":\"Tintenwelt\",\"seriesVolume\":2}")
+                "{\"title\":\"Tintenblut\",\"authors\":[\"Cornelia Funke\"]}")
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
         String other = JsonPath.read(postJson("/api/wishes", "{\"title\":\"Momo\",\"authors\":[\"Michael Ende\"]}")
                 .andReturn().getResponse().getContentAsString(), "$.id");

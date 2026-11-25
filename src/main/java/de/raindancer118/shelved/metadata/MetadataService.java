@@ -50,7 +50,7 @@ public class MetadataService {
         return openLibrary.byIsbn(isbn13);
     }
 
-    /** An unreachable DNB must not block adding a book: Google and Open Library still answer, the series resolver asks again. */
+    /** An unreachable DNB must not block adding a book: Google and Open Library still answer. */
     private static <T> T orElse(java.util.function.Supplier<T> lookup, T fallback) {
         try {
             return lookup.get();
@@ -94,9 +94,6 @@ public class MetadataService {
         }
         if (m.listPriceCents() != null) {
             s += 0.3; // a bound German retail price marks the regular trade edition
-        }
-        if (m.seriesName() != null) {
-            s += 0.2; // catalogued with its series: the national library's print record
         }
         if ("ger".equals(m.language())) {
             s += 0.3;
@@ -146,8 +143,6 @@ public class MetadataService {
                 // Google renders covers at 600 px, the DNB/MVB ones are ~380 px; CoverStore falls back to DNB anyway
                 "GOOGLE".equals(extra.source()) && extra.coverUrl() != null ? extra.coverUrl()
                         : primary.coverUrl() != null ? primary.coverUrl() : extra.coverUrl(),
-                primary.source(),
-                primary.seriesName() != null ? primary.seriesName() : extra.seriesName(),
-                primary.seriesName() != null ? primary.seriesVolume() : extra.seriesVolume());
+                primary.source());
     }
 }

@@ -32,11 +32,9 @@ public class PlacementService {
     public record Plan(List<BoardPlan> boards, List<Book> overflow, int toMove, int toPlace) {
     }
 
-    /** Library order: author surname, then series and volume, then year, then title. */
+    /** Library order: author surname, then year (keeps an author's books in publication order), then title. */
     public static final Comparator<Book> LIBRARY_ORDER = Comparator
             .comparing((Book b) -> b.getAuthorSort() == null ? "￿" : Names.collationKey(b.getAuthorSort()))
-            .thenComparing(b -> b.getSeriesName() == null ? "￿" : Names.collationKey(b.getSeriesName()))
-            .thenComparing(Book::getSeriesVolume, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(Book::getPublishedYear, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(b -> Names.collationKey(b.getTitleSort()));
 

@@ -278,7 +278,6 @@ public class ScanService {
 
     private Book create(String owner, ScanItem item, String chosenIsbn) {
         LibraryAi.SpineReading r = item.reading();
-        var hint = new BookService.SeriesHint(r.series(), r.volume() > 0 ? r.volume() : null);
         BookMetadata chosen = null;
         if (chosenIsbn != null) {
             chosen = java.util.stream.Stream.concat(java.util.stream.Stream.ofNullable(item.candidate()), item.alternatives().stream())
@@ -290,11 +289,11 @@ public class ScanService {
             chosen = item.candidate();
         }
         if (chosen != null) {
-            return books.createFromMetadata(owner, chosen, hint, false);
+            return books.createFromMetadata(owner, chosen, false);
         }
         var in = new de.raindancer118.shelved.book.BookInput(r.title(), null, r.authors(), null,
-                blank(r.publisher()), null, null, null, null, null, null, null, null);
-        BookService.Added a = books.addManual(owner, in, hint, false);
+                blank(r.publisher()), null, null, null, null, null, null);
+        BookService.Added a = books.addManual(owner, in, false);
         return a.book();
     }
 

@@ -1,11 +1,8 @@
 package de.raindancer118.shelved;
 
 import com.jayway.jsonpath.JsonPath;
-import de.raindancer118.shelved.ai.LibraryAi;
 import de.raindancer118.shelved.book.BookFormat;
 import de.raindancer118.shelved.metadata.BookMetadata;
-import de.raindancer118.shelved.metadata.WikidataClient;
-import de.raindancer118.shelved.series.SeriesCatalogVolume;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -14,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -27,6 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DirtiesContext
 class LibraryFlowTest extends IntegrationTestBase {
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     static BookMetadata gevatterTod() {
         return new BookMetadata("9783492281980", "Gevatter Tod", "Gevatter Tod", null, List.of("Terry Pratchett"),
@@ -43,12 +42,6 @@ class LibraryFlowTest extends IntegrationTestBase {
 
         // add by ISBN (catalogue lookup) and by hand
         when(metadata.byIsbn("9783492281980")).thenReturn(Optional.of(gevatterTod()));
-        when(wikidata.findSeries("Gevatter Tod", "Terry Pratchett"))
-                .thenReturn(Optional.of(new WikidataClient.SeriesMatch("Q3257270", "Scheibenwelt", 4, true)));
-        when(wikidata.catalog("Q3257270", "ger")).thenReturn(List.of(
-                new SeriesCatalogVolume(1, "Die Farben der Magie"), new SeriesCatalogVolume(2, "Das Licht der Phantasie"),
-                new SeriesCatalogVolume(3, "Das Erbe des Zauberers"), new SeriesCatalogVolume(4, "Gevatter Tod"),
-                new SeriesCatalogVolume(5, "Der Zauberhut")));
         String created = mvc.perform(post("/api/books/isbn").with(csrf()).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"isbn\":\"978-3-492-28198-0\"}"))
                 .andExpect(status().isCreated())
@@ -61,14 +54,8 @@ class LibraryFlowTest extends IntegrationTestBase {
 
         mvc.perform(post("/api/books").with(csrf()).contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"title":"Der Process","authors":["Franz Kafka"],"pageCount":280,"listPriceCents":700,
-                                 "seriesName":""}"""))
+                                {"title":"Der Process","authors":["Franz Kafka"],"pageCount":280,"listPriceCents":700}"""))
                 .andExpect(status().isCreated());
-
-        // Wikidata puts Gevatter Tod into Scheibenwelt, no AI involved
-        await().untilAsserted(() -> mvc.perform(get("/api/books/" + tod))
-                .andExpect(jsonPath("$.seriesName").value("Scheibenwelt"))
-                .andExpect(jsonPath("$.seriesVolume").value(4)));
 
         // sorted by author surname: Kafka before Pratchett
         mvc.perform(get("/api/books"))
@@ -91,19 +78,6 @@ class LibraryFlowTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.boards[0].books", hasSize(2)))
                 .andExpect(jsonPath("$.boards[0].books[0].status").value("NEW"));
 
-        // series: opening it loads the volume list from Wikidata
-        String key = JsonPath.read(mvc.perform(get("/api/series")).andReturn().getResponse().getContentAsString(), "$[0].key");
-        await().untilAsserted(() -> mvc.perform(get("/api/series/" + key))
-                .andExpect(jsonPath("$.name").value("Scheibenwelt"))
-                .andExpect(jsonPath("$.catalogStatus").value("DONE"))
-                .andExpect(jsonPath("$.catalogSource").value("WIKIDATA"))
-                .andExpect(jsonPath("$.missingCount").value(4))
-                .andExpect(jsonPath("$.volumes[2].title").value("Das Erbe des Zauberers"))
-                .andExpect(jsonPath("$.volumes[3].book.title").value("Gevatter Tod")));
-        // Gevatter Tod was placed by Wikidata; only the book nobody knew went to Claude
-        assertThat(ai.seriesQuestions.stream().flatMap(List::stream)).doesNotContain("Gevatter Tod");
-        assertThat(ai.catalogQuestions).isEmpty();
-
         // stats
         mvc.perform(get("/api/stats"))
                 .andExpect(jsonPath("$.books").value(2))
@@ -112,33 +86,22 @@ class LibraryFlowTest extends IntegrationTestBase {
 
         // edit and delete
         mvc.perform(put("/api/books/" + tod).with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"Gevatter Tod\",\"authors\":[\"Terry Pratchett\"],\"thicknessMm\":33,\"seriesName\":\"Scheibenwelt\",\"seriesVolume\":4}"))
+                        .content("{\"title\":\"Gevatter Tod\",\"authors\":[\"Terry Pratchett\"],\"thicknessMm\":33}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estimatedThicknessMm").value(33));
         mvc.perform(delete("/api/books/" + tod).with(csrf())).andExpect(status().isNoContent());
         mvc.perform(get("/api/books/" + tod)).andExpect(status().isNotFound());
     }
 
-    /** Claude only fills what Wikidata doesn't know, batched, and only for books without a series yet. */
+    /** Series were removed as a feature: no endpoint, no columns, no catalogue table left behind (V10). */
     @Test
-    void claudeIsOnlyTheFallback() throws Exception {
-        ai.seriesAnswer = List.of(new LibraryAi.SeriesGuess("Tintenherz", "Tintenwelt", 1));
-        ai.catalogAnswer = new LibraryAi.SeriesCatalog(List.of(new LibraryAi.CatalogVolume(1, "Tintenherz"),
-                new LibraryAi.CatalogVolume(2, "Tintenblut"), new LibraryAi.CatalogVolume(3, "Tintentod")), true, "Trilogie");
-        mvc.perform(post("/api/books").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"Tintenherz\",\"authors\":[\"Cornelia Funke\"]}"))
-                .andExpect(status().isCreated());
-
-        await().untilAsserted(() -> mvc.perform(get("/api/books").param("q", "tintenherz"))
-                .andExpect(jsonPath("$[0].seriesName").value("Tintenwelt")));
-        assertThat(ai.seriesQuestions).containsExactly(List.of("Tintenherz"));
-
-        String key = JsonPath.read(mvc.perform(get("/api/books").param("q", "tintenherz")).andReturn().getResponse().getContentAsString(), "$[0].id");
-        String seriesKey = JsonPath.read(mvc.perform(get("/api/books/" + key)).andReturn().getResponse().getContentAsString(), "$.seriesKey");
-        await().untilAsserted(() -> mvc.perform(get("/api/series/" + seriesKey))
-                .andExpect(jsonPath("$.catalogSource").value("CLAUDE"))
-                .andExpect(jsonPath("$.missingCount").value(2)));
-        assertThat(ai.catalogQuestions).containsExactly("Tintenwelt");
+    void seriesAreGone() throws Exception {
+        mvc.perform(get("/api/series")).andExpect(status().isNotFound());
+        assertThat(jdbc.queryForObject("""
+                select count(*) from information_schema.columns
+                where table_name in ('book', 'wish') and column_name like 'series%'""", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from information_schema.tables where table_name = 'series_catalog'",
+                Integer.class)).isZero();
     }
 
     @Test

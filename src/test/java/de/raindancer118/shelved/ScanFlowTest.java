@@ -36,12 +36,12 @@ class ScanFlowTest extends IntegrationTestBase {
                 BookFormat.PAPERBACK, "ger", 1000, null, null, null, "DNB");
     }
 
-    static LibraryAi.SpineReading spine(String title, String author, String series, int vol, String confidence) {
-        return spine(title, author, series, vol, confidence, 1);
+    static LibraryAi.SpineReading spine(String title, String author, String confidence) {
+        return spine(title, author, confidence, 1);
     }
 
-    static LibraryAi.SpineReading spine(String title, String author, String series, int vol, String confidence, int row) {
-        return new LibraryAi.SpineReading(title, List.of(author), series, vol, "", confidence, title, row);
+    static LibraryAi.SpineReading spine(String title, String author, String confidence, int row) {
+        return new LibraryAi.SpineReading(title, List.of(author), "", confidence, title, row);
     }
 
     static byte[] widePhoto() throws Exception {
@@ -62,9 +62,9 @@ class ScanFlowTest extends IntegrationTestBase {
                 .andExpect(status().isCreated());
 
         ai.nextShelf = new LibraryAi.ShelfReading(List.of(
-                spine("Die Farben der Magie", "Terry Pratchett", "Scheibenwelt", 1, "high"),
-                spine("Der Process", "Franz Kafka", "", 0, "high"),
-                spine("…drome der Stadt", "", "", 0, "low")), List.of());
+                spine("Die Farben der Magie", "Terry Pratchett", "high"),
+                spine("Der Process", "Franz Kafka", "high"),
+                spine("…drome der Stadt", "", "low")), List.of());
         when(metadata.search(eq("Die Farben der Magie"), eq("Terry Pratchett"), any()))
                 .thenReturn(List.of(meta("9783492280624", "Die Farben der Magie", "Terry Pratchett", "Piper")));
         when(metadata.search(eq("Der Process"), eq("Franz Kafka"), any()))
@@ -95,7 +95,6 @@ class ScanFlowTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.placed", hasSize(2)));
 
         mvc.perform(get("/api/books").param("q", "farben"))
-                .andExpect(jsonPath("$[0].seriesName").value("Scheibenwelt"))
                 .andExpect(jsonPath("$[0].location").value("R1 · B2 · 01"));
         mvc.perform(get("/api/books").param("q", "kafka"))
                 .andExpect(jsonPath("$[0].location").value("R1 · B2 · 02"));
@@ -112,10 +111,10 @@ class ScanFlowTest extends IntegrationTestBase {
                         .content("{\"name\":\"Billy\",\"boardWidthsMm\":[800,800,800,800]}"))
                 .andReturn().getResponse().getContentAsString(), "$.id");
         ai.nextShelf = new LibraryAi.ShelfReading(List.of(
-                spine("Vortex", "Anna Benning", "Vortex", 1, "high", 1),
-                spine("Dark Sigils", "Anna Benning", "Dark Sigils", 1, "high", 1),
-                spine("City of Bones", "Cassandra Clare", "Chroniken der Unterwelt", 1, "high", 2),
-                spine("Ganz unten", "Niemand", "", 0, "high", 3)), List.of());
+                spine("Vortex", "Anna Benning", "high", 1),
+                spine("Dark Sigils", "Anna Benning", "high", 1),
+                spine("City of Bones", "Cassandra Clare", "high", 2),
+                spine("Ganz unten", "Niemand", "high", 3)), List.of());
         when(metadata.search(any(), any(), any())).thenAnswer(inv -> List.of(meta(null, inv.getArgument(0), inv.getArgument(1), "Verlag")));
 
         String scan = JsonPath.read(mvc.perform(multipart("/api/scans")
@@ -142,9 +141,9 @@ class ScanFlowTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.boardsEstimated[1]").value(false))
                 .andReturn().getResponse().getContentAsString(), "$.id");
         ai.nextShelf = new LibraryAi.ShelfReading(List.of(
-                spine("Eins", "A Autor", "", 0, "high", 1),
-                spine("Zwei", "B Autor", "", 0, "high", 1),
-                spine("Drei", "C Autor", "", 0, "high", 2)),
+                spine("Eins", "A Autor", "high", 1),
+                spine("Zwei", "B Autor", "high", 1),
+                spine("Drei", "C Autor", "high", 2)),
                 List.of(new LibraryAi.BoardReading(1, 0.25, true), new LibraryAi.BoardReading(2, 0.1, true)));
         // 300 pages paperback ≈ 31 mm each → 62 mm fill a quarter → ~250 mm board
         when(metadata.search(any(), any(), any())).thenAnswer(inv -> List.of(meta(null, inv.getArgument(0), inv.getArgument(1), "Verlag")));
@@ -169,7 +168,7 @@ class ScanFlowTest extends IntegrationTestBase {
     @Test
     void aPhotoWithoutChoosingAModeIsOneBookOrAShelfDependingOnWhatIsOnIt() throws Exception {
         when(metadata.search(any(), any(), any())).thenReturn(List.of());
-        ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("Momo", "Michael Ende", "", 0, "high")), List.of());
+        ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("Momo", "Michael Ende", "high")), List.of());
         String single = JsonPath.read(mvc.perform(multipart("/api/scans").file(new MockMultipartFile("image", "p.jpg", "image/jpeg", widePhoto()))
                 .param("mode", "AUTO").with(csrf())).andReturn().getResponse().getContentAsString(), "$.id");
         await().untilAsserted(() -> mvc.perform(get("/api/scans/" + single)).andExpect(jsonPath("$.status").value("DONE")));
@@ -177,8 +176,8 @@ class ScanFlowTest extends IntegrationTestBase {
         assertThat(ai.tileCounts).isEmpty();
 
         // several spines: read again as a shelf (tiles, photo kept as evidence for the insurance list)
-        ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("A", "X", "", 0, "high"), spine("B", "X", "", 0, "high"),
-                spine("C", "X", "", 0, "high"), spine("D", "X", "", 0, "high")), List.of());
+        ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("A", "X", "high"), spine("B", "X", "high"),
+                spine("C", "X", "high"), spine("D", "X", "high")), List.of());
         String shelf = JsonPath.read(mvc.perform(multipart("/api/scans").file(new MockMultipartFile("image", "p.jpg", "image/jpeg", widePhoto()))
                 .param("mode", "AUTO").with(csrf())).andReturn().getResponse().getContentAsString(), "$.id");
         await().untilAsserted(() -> mvc.perform(get("/api/scans/" + shelf)).andExpect(jsonPath("$.status").value("DONE")));

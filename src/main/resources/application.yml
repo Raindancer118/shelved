@@ -58,6 +58,5 @@ shelved:
     model: ${SHELVED_MODEL:claude-sonnet-5-5}
   scans-per-hour: ${SHELVED_SCANS_PER_HOUR:40}
   google-books-api-key: ${GOOGLE_BOOKS_API_KEY:}
-  hardcover-api-token: ${HARDCOVER_API_TOKEN:}
   public-url: ${SHELVED_PUBLIC_URL:https://shelf.tstieh.de}
   mail-from: ${SHELVED_MAIL_FROM:shelved <noreply@tstieh.de>}

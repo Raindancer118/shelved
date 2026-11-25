@@ -54,9 +54,9 @@ public class WishService {
         return all(owner).stream().filter(e -> e.owned() != null && !e.wish().isKeepWhenOwned()).toList();
     }
 
-    /** By ISBN the catalogue fills in the rest; without one, title (and author) as typed, e.g. a missing series volume. */
+    /** By ISBN the catalogue fills in the rest; without one, title (and author) as typed. */
     @Transactional
-    public Added add(String owner, String isbn, String title, List<String> authors, String seriesName, Integer seriesVolume) {
+    public Added add(String owner, String isbn, String title, List<String> authors) {
         Wish w;
         String coverUrl = null;
         if (isbn != null && !isbn.isBlank()) {
@@ -70,14 +70,12 @@ public class WishService {
             w.setPublishedYear(m.publishedYear());
             w.setListPriceCents(m.listPriceCents());
             coverUrl = m.coverUrl();
-            w.setSeries(m.seriesName() != null ? m.seriesName() : seriesName, m.seriesName() != null ? m.seriesVolume() : seriesVolume);
         } else {
             if (title == null || title.isBlank()) {
                 throw new IllegalArgumentException("Titel oder ISBN fehlt");
             }
             w = new Wish(owner, title.trim());
             w.setAuthors(authors);
-            w.setSeries(seriesName, seriesVolume);
         }
 
         List<Book> library = books.all(owner);

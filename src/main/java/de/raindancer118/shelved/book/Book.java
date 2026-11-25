@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** Dynamic updates: background jobs (series lookup) must only write the columns they changed, not clobber a parallel move. */
+/** Dynamic updates: background jobs (cover download) must only write the columns they changed, not clobber a parallel move. */
 @Entity
 @DynamicUpdate
 @Table(name = "book")
@@ -44,19 +44,12 @@ public class Book {
     private BookFormat format;
     private String language;
     private String description;
-    private String seriesName;
-    private Integer seriesVolume;
-    /** Wikidata item of the series, when known. */
-    private String seriesRef;
-    @Enumerated(EnumType.STRING)
-    private SeriesSource seriesSource;
     private Integer listPriceCents;
     private String coverFile;
     private String metadataSource;
     private UUID shelfId;
     private Integer boardNumber;
     private Integer boardPosition;
-    private boolean seriesChecked;
     private int copies = 1;
     private Instant createdAt;
     private Instant updatedAt;
@@ -122,33 +115,6 @@ public class Book {
     public void setLanguage(String language) { this.language = language; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    public String getSeriesName() { return seriesName; }
-    public void setSeriesName(String seriesName) {
-        this.seriesName = seriesName == null || seriesName.isBlank() ? null
-                : de.raindancer118.shelved.series.SeriesNames.normalize(seriesName);
-    }
-    public SeriesSource getSeriesSource() { return seriesSource; }
-    public void setSeries(String name, Integer volume, SeriesSource source) {
-        setSeriesName(name);
-        setSeriesVolume(volume);
-        this.seriesSource = this.seriesName == null ? null : source; // null = recognised earlier, origin unknown
-    }
-    /** Also "no series" can be the user's decision; then no source may add one again. */
-    public void setSeriesManually(String name, Integer volume) {
-        setSeriesName(name);
-        setSeriesVolume(volume);
-        this.seriesSource = SeriesSource.MANUAL;
-        this.seriesChecked = true;
-    }
-
-    /** A hand-made or catalogued series is final; guesses may be improved by better sources. */
-    public boolean seriesSettled() {
-        return seriesSource == SeriesSource.MANUAL || seriesSource == SeriesSource.CATALOG;
-    }
-    public Integer getSeriesVolume() { return seriesVolume; }
-    public void setSeriesVolume(Integer seriesVolume) { this.seriesVolume = seriesVolume != null && seriesVolume > 0 ? seriesVolume : null; }
-    public String getSeriesRef() { return seriesRef; }
-    public void setSeriesRef(String seriesRef) { this.seriesRef = seriesRef; }
     public Integer getListPriceCents() { return listPriceCents; }
     public void setListPriceCents(Integer listPriceCents) { this.listPriceCents = listPriceCents; }
     public String getCoverFile() { return coverFile; }
@@ -170,8 +136,6 @@ public class Book {
         }
         this.copies = copies;
     }
-    public boolean isSeriesChecked() { return seriesChecked; }
-    public void setSeriesChecked(boolean seriesChecked) { this.seriesChecked = seriesChecked; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

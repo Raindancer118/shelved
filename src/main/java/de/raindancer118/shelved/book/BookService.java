@@ -3,7 +3,6 @@ package de.raindancer118.shelved.book;
 import de.raindancer118.shelved.metadata.BookMetadata;
 import de.raindancer118.shelved.metadata.MetadataService;
 import de.raindancer118.shelved.metadata.Similarity;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,32 +13,17 @@ import java.util.UUID;
 @Service
 public class BookService {
 
-    /** Published after books were added, so the series resolver can look at them. */
-    public record BooksAdded(String ownerId) {
-    }
-
     /** {@code created=false}: the book was already there and got one more copy. */
     public record Added(Book book, boolean created) {
-    }
-
-    public record SeriesHint(String name, Integer volume) {
-        public static SeriesHint none() {
-            return new SeriesHint(null, null);
-        }
-
-        boolean present() {
-            return name != null && !name.isBlank();
-        }
     }
 
     private final BookRepository books;
     private final CoverStore covers;
     private final MetadataService metadata;
-    private final ApplicationEventPublisher events;
     private final java.util.concurrent.Executor executor;
     private final org.springframework.transaction.support.TransactionTemplate tx;
 
-    public BookService(BookRepository books, CoverStore covers, MetadataService metadata, ApplicationEventPublisher events,
+    public BookService(BookRepository books, CoverStore covers, MetadataService metadata,
                        @org.springframework.beans.factory.annotation.Qualifier("aiExecutor") java.util.concurrent.Executor executor,
                        org.springframework.transaction.support.TransactionTemplate tx) {
         this.executor = executor;
@@ -47,7 +31,6 @@ public class BookService {
         this.books = books;
         this.covers = covers;
         this.metadata = metadata;
-        this.events = events;
     }
 
     @Transactional(readOnly = true)
@@ -61,19 +44,19 @@ public class BookService {
     }
 
     /** Single book: cover and blurb are fetched right away, so the detail page is complete when it opens. */
-    public Added addFromMetadata(String owner, BookMetadata m, SeriesHint hint, boolean anotherCopy) {
+    public Added addFromMetadata(String owner, BookMetadata m, boolean anotherCopy) {
         Optional<Book> existing = duplicate(owner, m.isbn13(), m.title(), m.authors());
         if (existing.isPresent()) {
             return new Added(oneMoreCopyOrRefuse(existing.get(), anotherCopy), false);
         }
-        return new Added(createFromMetadata(owner, m, hint, true), true);
+        return new Added(createFromMetadata(owner, m, true), true);
     }
 
     /**
      * Stores the book from catalogue data. With {@code enrichNow=false} (a whole shelf at once) cover and blurb
      * are downloaded in the background, otherwise accepting 40 books would take minutes and hit proxy timeouts.
      */
-    public Book createFromMetadata(String owner, BookMetadata m, SeriesHint hint, boolean enrichNow) {
+    public Book createFromMetadata(String owner, BookMetadata m, boolean enrichNow) {
         duplicate(owner, m.isbn13(), m.title(), m.authors()).ifPresent(d -> {
             throw new DuplicateBookException(d);
         });
@@ -89,12 +72,6 @@ public class BookService {
         b.setLanguage(m.language());
         b.setListPriceCents(m.listPriceCents());
         b.setMetadataSource(m.source());
-        if (m.seriesName() != null) {
-            b.setSeries(m.seriesName(), m.seriesVolume(), SeriesSource.CATALOG);
-            b.setSeriesChecked(true);
-        } else {
-            applySeries(b, hint);
-        }
         if (enrichNow) {
             enrich(b, m);
         }
@@ -114,7 +91,6 @@ public class BookService {
                 }));
             });
         }
-        events.publishEvent(new BooksAdded(owner));
         return saved;
     }
 
@@ -123,26 +99,21 @@ public class BookService {
         metadata.description(m).ifPresent(target::setDescription);
     }
 
-    public Added addManual(String owner, BookInput in, SeriesHint hint, boolean anotherCopy) {
+    public Added addManual(String owner, BookInput in, boolean anotherCopy) {
         Optional<Book> existing = duplicate(owner, Optional.ofNullable(in.isbn()).flatMap(Isbn::toIsbn13).orElse(null), in.title(), in.authors());
         if (existing.isPresent()) {
             return new Added(oneMoreCopyOrRefuse(existing.get(), anotherCopy), false);
         }
-        return new Added(addManual(owner, in, hint), true);
+        return new Added(addManual(owner, in), true);
     }
 
-    private Book addManual(String owner, BookInput in, SeriesHint hint) {
+    private Book addManual(String owner, BookInput in) {
         Book b = new Book(owner, in.title());
         apply(b, in);
-        if (in.seriesName() == null || in.seriesName().isBlank()) {
-            applySeries(b, hint);
-        }
         if (b.getIsbn13() != null) {
             covers.fetch(b.getId(), CoverStore.candidates(b.getIsbn13(), null)).ifPresent(b::setCoverFile);
         }
-        Book saved = books.save(b);
-        events.publishEvent(new BooksAdded(owner));
-        return saved;
+        return books.save(b);
     }
 
     private Book oneMoreCopyOrRefuse(Book existing, boolean anotherCopy) {
@@ -218,12 +189,6 @@ public class BookService {
                     || authors.stream().anyMatch(a -> Similarity.surname(a, otherAuthor)));
     }
 
-    private static void applySeries(Book b, SeriesHint hint) {
-        if (hint != null && hint.present()) {
-            b.setSeries(hint.name(), hint.volume(), SeriesSource.PHOTO);
-        }
-    }
-
     private static void apply(Book b, BookInput in) {
         b.setTitle(in.title().trim());
         b.setSubtitle(blankToNull(in.subtitle()));
@@ -236,14 +201,6 @@ public class BookService {
         b.setFormat(in.format());
         b.setListPriceCents(in.listPriceCents());
         b.setDescription(blankToNull(in.description()));
-        if (in.seriesName() != null) {
-            // only an actual change is the user's decision; saving the form unchanged keeps the source
-            String name = in.seriesName().isBlank() ? null : de.raindancer118.shelved.series.SeriesNames.normalize(in.seriesName());
-            Integer volume = name == null || in.seriesVolume() == null || in.seriesVolume() <= 0 ? null : in.seriesVolume();
-            if (!java.util.Objects.equals(name, b.getSeriesName()) || !java.util.Objects.equals(volume, b.getSeriesVolume())) {
-                b.setSeriesManually(name, volume);
-            }
-        }
     }
 
     private static String blankToNull(String s) {

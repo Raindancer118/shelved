@@ -16,7 +16,6 @@ import com.anthropic.models.messages.StructuredMessageCreateParams;
 import com.anthropic.models.messages.StructuredOutputConfig;
 import com.anthropic.models.messages.StructuredTextBlock;
 import com.anthropic.models.messages.TextBlockParam;
-import com.anthropic.models.messages.WebSearchTool20260209;
 import de.raindancer118.shelved.config.ShelvedProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,16 +40,13 @@ public class ClaudeLibraryAi implements LibraryAi {
             Skip books that are cut off at the left or right edge of the photo and clearly stand in a neighbouring bookcase.
             Write titles in the language printed on the spine (German editions keep their German titles).
             You may complete a partly readable title or add an author that is not printed only when you are sure
-            which book it is. Never invent books. If a spine is unreadable, still list it with confidence "low".
-            For series, name the literary series as readers know it (e.g. "Scheibenwelt", "Harry Potter"),
-            not a publisher imprint such as "Piper Fantasy" or "Fischer Taschenbuch".""";
+            which book it is. Never invent books. If a spine is unreadable, still list it with confidence "low".""";
 
 
     private static final String SINGLE_SYSTEM = """
             You identify books from a photo a user took of a book (cover, spine or title page) or a small stack.
             List each clearly shown book once. Write titles in the language printed on the book.
-            You may complete a title or author only when you are sure which book it is. Never invent books.
-            For series, name the literary series as readers know it, not a publisher imprint.""";
+            You may complete a title or author only when you are sure which book it is. Never invent books.""";
 
     /** Token usage of the most recent call, for logs and the model comparison. */
     public record Usage(String model, long inputTokens, long outputTokens) {
@@ -86,49 +82,16 @@ public class ClaudeLibraryAi implements LibraryAi {
         }
         content.add(text("Read all spines."));
         // reading spines needs eyes, not deliberation: low effort keeps the cost per photo at a few cents
-        return call(ShelfReading.class, SHELF_SYSTEM, content, OutputConfig.Effort.LOW, false, 32000);
+        return call(ShelfReading.class, SHELF_SYSTEM, content, OutputConfig.Effort.LOW, 32000);
     }
 
     @Override
     public ShelfReading readSingleBook(byte[] jpeg) {
         return call(ShelfReading.class, SINGLE_SYSTEM, List.of(image(jpeg), text("Which book(s) is this?")),
-                OutputConfig.Effort.LOW, false, 8000);
+                OutputConfig.Effort.LOW, 8000);
     }
 
-    @Override
-    public List<SeriesGuess> resolveSeries(List<BookRef> books) {
-        if (books.isEmpty()) {
-            return List.of();
-        }
-        String list = books.stream()
-                .map(b -> "- id=%s | %s | %s | %s %s".formatted(b.id(), b.title(), nz(b.author()), nz(b.publisher()),
-                        b.year() == null ? "" : b.year()))
-                .collect(Collectors.joining("\n"));
-        String prompt = """
-                For each book below, say which literary series it belongs to and its volume number in the series'
-                usual reading order (the numbering the publisher of this edition uses, e.g. Scheibenwelt numbering for
-                German Pratchett editions). Use the series name in the language of the title. Standalone books get an
-                empty series and volume 0. Omnibus editions get the number of their first contained volume.
-
-                """ + list;
-        SeriesGuesses r = call(SeriesGuesses.class, null, List.of(text(prompt)), OutputConfig.Effort.LOW, false, 8000);
-        return r.books() == null ? List.of() : r.books();
-    }
-
-    @Override
-    public SeriesCatalog seriesCatalog(String seriesName, String author, String language) {
-        String lang = language == null || language.startsWith("ger") || language.startsWith("de") ? "German" : "the original language";
-        String prompt = """
-                List every volume of the book series "%s"%s, numbered in the usual reading order,
-                with each volume's title as published in %s. Search the web to check numbering and the latest volumes.
-                Include only main novels of the series that carry a number, no short-story anthologies or companion
-                books unless the publisher numbers them as part of the series."""
-                .formatted(seriesName, author == null || author.isBlank() ? "" : " by " + author, lang);
-        return call(SeriesCatalog.class, null, List.of(text(prompt)), OutputConfig.Effort.MEDIUM, true, 16000);
-    }
-
-    private <T> T call(Class<T> type, String system, List<ContentBlockParam> content, OutputConfig.Effort effort,
-                       boolean webSearch, long maxTokens) {
+    private <T> T call(Class<T> type, String system, List<ContentBlockParam> content, OutputConfig.Effort effort, long maxTokens) {
         if (client == null) {
             throw new AiException("Kein Anthropic-API-Key konfiguriert");
         }
@@ -145,9 +108,6 @@ public class ClaudeLibraryAi implements LibraryAi {
             }
             if (system != null) {
                 b.system(system);
-            }
-            if (webSearch) {
-                b.addTool(WebSearchTool20260209.builder().maxUses(6L).build());
             }
             assistantTurns.forEach(b::addMessage);
             StructuredMessage<T> response;
