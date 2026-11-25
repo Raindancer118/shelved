@@ -22,6 +22,10 @@ public class FakeMailer implements Mailer {
                 .orElseThrow(() -> new AssertionError("No mail to " + to + " in " + sent));
     }
 
+    public Mail lastOrNull(String to) {
+        return sent.stream().filter(m -> m.to().equalsIgnoreCase(to)).reduce((a, b) -> b).orElse(null);
+    }
+
     /** The token from the link in the last mail to this address. */
     public String token(String to) {
         Matcher m = Pattern.compile("[?&/]token=([A-Za-z0-9_-]+)").matcher(last(to).text());

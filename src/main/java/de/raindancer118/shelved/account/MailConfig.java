@@ -28,13 +28,13 @@ public class MailConfig {
         return mail -> {
             try {
                 MimeMessage m = smtp.createMimeMessage();
-                MimeMessageHelper h = new MimeMessageHelper(m, mail.attachment() != null, StandardCharsets.UTF_8.name());
+                MimeMessageHelper h = new MimeMessageHelper(m, !mail.attachments().isEmpty(), StandardCharsets.UTF_8.name());
                 h.setFrom(from);
                 h.setTo(mail.to());
                 h.setSubject(mail.subject());
                 h.setText(mail.text(), false);
-                if (mail.attachment() != null) {
-                    h.addAttachment(mail.attachmentName(), new ByteArrayResource(mail.attachment()));
+                for (Mailer.Attachment a : mail.attachments()) {
+                    h.addAttachment(a.name(), new ByteArrayResource(a.bytes()), a.contentType());
                 }
                 smtp.send(m);
             } catch (Exception e) {
