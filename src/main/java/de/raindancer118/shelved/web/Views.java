@@ -28,11 +28,11 @@ public final class Views {
                              String description,
                              Integer listPriceCents, Integer usedPriceCents, Integer buybackPriceCents, String cover, UUID shelfId,
                              Integer boardNumber, Integer boardPosition, String location, String metadataSource,
-                             int copies, Instant createdAt, String backCover, String edgeColor) {
+                             int copies, Instant createdAt, String backCover, String spine, String edgeColor, String edgePhoto) {
     }
 
     public static String cover(Book b) {
-        return b.getCoverFile() == null ? null : "/api/books/" + b.getId() + "/cover?v=f" + b.getCoverFile().hashCode(); // f: served as the cut front since 0.9.1
+        return b.getCoverFile() == null ? null : "/api/books/" + b.getId() + "/cover?v=f2" + b.getCoverFile().hashCode(); // f2: cut front without a Farbschnitt strip since 0.16
     }
 
     static BookSummary summary(Book b, Map<UUID, Integer> shelfNumbers) {
@@ -49,8 +49,21 @@ public final class Views {
                 UsedPriceEstimator.buybackCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 cover(b), b.getShelfId(), b.getBoardNumber(), b.getBoardPosition(), location(b, shelfNumbers),
                 b.getMetadataSource(), b.getCopies(), b.getCreatedAt(),
-                b.getBackCoverFile() == null ? null : "/api/books/" + b.getId() + "/back?v=" + b.getBackCoverFile().hashCode(),
-                b.getEdgeColor());
+                photo(b, Book.Side.BACK), photo(b, Book.Side.SPINE), b.getEdgeColor(), edgePhoto(b));
+    }
+
+    /** Own photo first; without one and without a colour chosen by hand, the page block of the publisher's mockup. */
+    private static String edgePhoto(Book b) {
+        String own = photo(b, Book.Side.EDGE);
+        if (own != null || b.getEdgeColor() != null || b.getCoverFile() == null) {
+            return own;
+        }
+        return "/api/books/" + b.getId() + "/edge-photo?v=m" + b.getCoverFile().hashCode();
+    }
+
+    private static String photo(Book b, Book.Side side) {
+        String file = b.getPhoto(side);
+        return file == null ? null : "/api/books/" + b.getId() + "/" + side.path + "?v=" + file.hashCode();
     }
 
 

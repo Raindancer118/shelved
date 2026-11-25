@@ -273,7 +273,7 @@ async function viewBook(id) {
       <b>${b.copies}</b><button class="round sm" id="more" aria-label="Ein Exemplar mehr">${icons.plus}</button></dd>`;
   paint(`
     ${backBar('#/', `<a class="round" href="#/book/${b.id}/edit" aria-label="Bearbeiten">${icons.pen}</a>`)}
-    <div class="stage">${book3d(b, { thicknessMm: b.estimatedThicknessMm, backCover: b.backCover, edgeColor: b.edgeColor })}</div>
+    <div class="stage">${book3d(b, { thicknessMm: b.estimatedThicknessMm, backCover: b.backCover, spine: b.spine, edgePhoto: b.edgePhoto, edgeColor: b.edgeColor })}</div>
     <h1 class="dtitle">${esc(b.title)}</h1>
     ${b.subtitle ? `<p class="dsub">${esc(b.subtitle)}</p>` : ''}
     <p class="dauthor">${authorLinks(b.authors)}</p>
@@ -301,6 +301,8 @@ async function viewBook(id) {
   });
 }
 
+const FACES = [['spine', 'spine', 'Buchrücken'], ['back', 'backCover', 'Rückseite'], ['edge-photo', 'edgePhoto', 'Farbschnitt']];
+
 /** Edit page part for the 3D book: front and back photo, and the colour of the page edges. */
 function lookFields(b) {
   const edge = b.edgeColor == null ? 'auto' : b.edgeColor === 'none' ? 'none' : 'color';
@@ -308,9 +310,12 @@ function lookFields(b) {
   return `<fieldset class="look"><legend>Aussehen</legend>
       <div class="pics">
         <label class="btn ghost">${icons.cam} Cover ersetzen<input class="sr" type="file" accept="image/jpeg,image/png" data-side="cover"></label>
-        <label class="btn ghost">${icons.cam} Rückseite ${b.backCover ? 'ersetzen' : 'fotografieren'}<input class="sr" type="file" accept="image/jpeg,image/png" data-side="back"></label>
-        ${b.backCover ? `<button class="btn ghost" type="button" id="noback">Rückseite entfernen</button>` : ''}
       </div>
+      <div class="list faces">${FACES.map(([side, key, name]) => `<div class="row">
+        <div class="grow"><b>${name}</b><small>${b[key] ? 'eigenes Foto' : side === 'spine' ? 'aus Titel und Coverfarbe gesetzt' : side === 'back' ? 'aus Klappentext und ISBN gesetzt' : 'Papier oder Farbe von unten'}</small></div>
+        ${b[key] ? `<button class="link" type="button" data-remove="${side}">Entfernen</button>` : ''}
+        <label class="round" aria-label="${name} fotografieren">${icons.cam}<input class="sr" type="file" accept="image/jpeg,image/png" data-side="${side}"></label></div>`).join('')}</div>
+      <small class="note">Fotografier die Seite einfach schräg auf dem Tisch, shelved schneidet sie gerade heraus.</small>
       <p class="sub">Farbschnitt</p>
       <div class="opts">${radio('auto', 'Automatisch')}${radio('none', 'Keiner')}
         <span class="opt">${radio('color', 'Farbe')}<input type="color" name="edgeColor" aria-label="Farbe des Farbschnitts" value="${esc(edge === 'color' ? b.edgeColor : '#7a1f2b')}"></span></div>
@@ -322,19 +327,22 @@ function wireLookFields(id) {
   document.querySelectorAll('.look input[type=file]').forEach(input => input.addEventListener('change', async e => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const side = e.target.dataset.side;
     const form = new FormData();
-    form.append('image', await prepareImage(file, 1200), 'image.jpg');
-    await upload(`/api/books/${id}/${e.target.dataset.side}`, form, 'PUT');
+    // a spine is a narrow strip of the photo: it needs the extra pixels
+    form.append('image', await prepareImage(file, side === 'cover' ? 1200 : 2000), 'image.jpg');
+    if (side !== 'cover') toast('Wird gerade herausgeschnitten …');
+    await upload(`/api/books/${id}/${side}`, form, 'PUT');
     invalidate();
-    toast(e.target.dataset.side === 'back' ? 'Rückseite gespeichert' : 'Cover gespeichert');
+    toast('Foto gespeichert');
     go(`/book/${id}`);
   }));
-  document.getElementById('noback')?.addEventListener('click', async () => {
-    await del(`/api/books/${id}/back`);
+  document.querySelectorAll('.look [data-remove]').forEach(btn => btn.addEventListener('click', async () => {
+    await del(`/api/books/${id}/${btn.dataset.remove}`);
     invalidate();
-    toast('Rückseite entfernt');
+    toast('Foto entfernt');
     route();
-  });
+  }));
   document.querySelector('.look input[type=color]')?.addEventListener('input', () => { document.querySelector('.look input[value=color]').checked = true; });
 }
 

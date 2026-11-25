@@ -50,6 +50,16 @@ public class ClaudeLibraryAi implements LibraryAi {
             List each clearly shown book once. Write titles in the language printed on the book.
             You may complete a title or author only when you are sure which book it is. Never invent books.""";
 
+    private static final String FACE_SYSTEM = """
+            You locate one face of a physical book in a photo so it can be cut out and straightened.
+            Faces: "back cover" (the rear board or jacket), "spine" (the narrow side with title and author, where the
+            pages are bound), "fore edge" (the side opposite the spine showing the stacked page edges, often with a
+            coloured or patterned Farbschnitt), all between the book's head (top) and tail (bottom).
+            Give the four corners of exactly that face, measured as precisely as you can on the photo, as fractions of
+            the photo's width and height. Head and tail follow the book, not the photo: if the book lies sideways, the
+            head is where the top of the printed text or artwork points. Corners must lie on the face itself, never
+            on background or on a neighbouring face. If the face is not clearly visible, answer found = false.""";
+
     /** Token usage of the most recent call, for logs and the model comparison. */
     public record Usage(String model, long inputTokens, long outputTokens) {
     }
@@ -91,6 +101,12 @@ public class ClaudeLibraryAi implements LibraryAi {
     public ShelfReading readSingleBook(byte[] jpeg) {
         return call(ShelfReading.class, SINGLE_SYSTEM, List.of(image(jpeg), text("Which book(s) is this?")),
                 OutputConfig.Effort.LOW, 8000);
+    }
+
+    @Override
+    public FaceLocation locateFace(byte[] jpeg, String face) {
+        return call(FaceLocation.class, FACE_SYSTEM, List.of(image(jpeg), text("Locate the " + face + " of the book.")),
+                OutputConfig.Effort.LOW, 4000);
     }
 
     private <T> T call(Class<T> type, String system, List<ContentBlockParam> content, OutputConfig.Effort effort, long maxTokens) {

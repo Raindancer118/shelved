@@ -275,7 +275,7 @@ public class LibraryService {
         String owner = libraryId.toString();
         jdbc.queryForList("select cover_file from book where owner_id = ? and cover_file is not null", String.class, owner)
                 .forEach(covers::delete);
-        jdbc.queryForList("select back_cover_file from book where owner_id = ? and back_cover_file is not null", String.class, owner)
+        jdbc.queryForList("select f from book, unnest(array[back_cover_file, edge_photo_file, spine_file]) f where owner_id = ? and f is not null", String.class, owner)
                 .forEach(covers::delete);
         jdbc.queryForList("select cover_file from wish where owner_id = ? and cover_file is not null", String.class, owner)
                 .forEach(covers::delete);

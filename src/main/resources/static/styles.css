@@ -202,6 +202,8 @@ p.empty { padding: 24px 0; }
 .b3d .spine span { writing-mode: vertical-rl; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-height: 90%;
   font-size: min(12px, calc(var(--d) * .42)); line-height: 1; }
 .b3d .spine b { font-weight: 600; }
+.b3d .spine img, .b3d .fore img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
+.b3d .spine:has(img) { filter: brightness(.92); }
 .b3d .spine small { opacity: .75; margin-top: .8em; font-size: inherit; }
 /* page block: one hairline per few sheets, on paper or on the Farbschnitt */
 .b3d .fore, .b3d .top, .b3d .bottom { background: var(--lines), var(--edge); }

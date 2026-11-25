@@ -61,5 +61,6 @@ public abstract class IntegrationTestBase {
         scanRepository.deleteAll();
         shelfRepository.deleteAll();
         ai.tileCounts.clear();
+        ai.nextFace = de.raindancer118.shelved.ai.LibraryAi.FaceLocation.none();
     }
 }

@@ -21,11 +21,13 @@ public class BookService {
     private final CoverStore covers;
     private final MetadataService metadata;
     private final java.util.concurrent.Executor executor;
+    private final FacePhotos facePhotos;
     private final org.springframework.transaction.support.TransactionTemplate tx;
 
     public BookService(BookRepository books, CoverStore covers, MetadataService metadata,
                        @org.springframework.beans.factory.annotation.Qualifier("aiExecutor") java.util.concurrent.Executor executor,
-                       org.springframework.transaction.support.TransactionTemplate tx) {
+                       org.springframework.transaction.support.TransactionTemplate tx, FacePhotos facePhotos) {
+        this.facePhotos = facePhotos;
         this.executor = executor;
         this.tx = tx;
         this.books = books;
@@ -149,7 +151,9 @@ public class BookService {
         Book b = get(owner, id);
         books.delete(b);
         covers.delete(b.getCoverFile());
-        covers.delete(b.getBackCoverFile());
+        for (Book.Side side : Book.Side.values()) {
+            covers.delete(b.getPhoto(side));
+        }
     }
 
     @Transactional
@@ -162,19 +166,31 @@ public class BookService {
     }
 
     @Transactional
-    public Book replaceBack(String owner, UUID id, byte[] image, String ext) {
+    public Book replacePhoto(String owner, UUID id, Book.Side side, byte[] image, String ext) {
         Book b = get(owner, id);
-        String old = b.getBackCoverFile();
-        b.setBackCoverFile(covers.save(b.getId(), image, ext));
+        String old = b.getPhoto(side);
+        FacePhotos.Picture pic = facePhotos.straighten(image, ext, side, side == Book.Side.BACK ? frontAspect(b) : null);
+        b.setPhoto(side, covers.save(b.getId(), pic.bytes(), pic.ext()));
         covers.delete(old);
         return b;
     }
 
+    private Double frontAspect(Book b) {
+        return covers.path(b.getCoverFile()).map(covers::flat).map(p -> {
+            try {
+                java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(p.toFile());
+                return img == null ? null : (double) img.getWidth() / img.getHeight();
+            } catch (java.io.IOException e) {
+                return null;
+            }
+        }).orElse(null);
+    }
+
     @Transactional
-    public Book removeBack(String owner, UUID id) {
+    public Book removePhoto(String owner, UUID id, Book.Side side) {
         Book b = get(owner, id);
-        covers.delete(b.getBackCoverFile());
-        b.setBackCoverFile(null);
+        covers.delete(b.getPhoto(side));
+        b.setPhoto(side, null);
         return b;
     }
 

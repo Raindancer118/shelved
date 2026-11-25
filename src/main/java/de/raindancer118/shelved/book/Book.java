@@ -49,6 +49,9 @@ public class Book {
     private Integer listPriceCents;
     private String coverFile;
     private String backCoverFile;
+    /** A photo of the fore edge, for Farbschnitte with a pattern. */
+    private String edgePhotoFile;
+    private String spineFile;
     /** Colour of sprayed page edges as #rrggbb, "none" for plain ones, null when nobody said. */
     private String edgeColor;
     private String metadataSource;
@@ -128,6 +131,36 @@ public class Book {
     public void setCoverFile(String coverFile) { this.coverFile = coverFile; }
     public String getBackCoverFile() { return backCoverFile; }
     public void setBackCoverFile(String backCoverFile) { this.backCoverFile = backCoverFile; }
+    public String getEdgePhotoFile() { return edgePhotoFile; }
+
+    /** The pictures of a book besides its cover: the URL segment, and how the face is called when asking Claude. */
+    public enum Side {
+        BACK("back", "back cover"), SPINE("spine", "spine"), EDGE("edge-photo", "fore edge");
+
+        public final String path;
+        public final String face;
+
+        Side(String path, String face) {
+            this.path = path;
+            this.face = face;
+        }
+    }
+
+    public String getPhoto(Side side) {
+        return switch (side) {
+            case BACK -> backCoverFile;
+            case SPINE -> spineFile;
+            case EDGE -> edgePhotoFile;
+        };
+    }
+
+    public void setPhoto(Side side, String file) {
+        switch (side) {
+            case BACK -> backCoverFile = file;
+            case SPINE -> spineFile = file;
+            case EDGE -> edgePhotoFile = file;
+        }
+    }
     public String getEdgeColor() { return edgeColor; }
     public void setEdgeColor(String edgeColor) { this.edgeColor = edgeColor; }
     public String getMetadataSource() { return metadataSource; }

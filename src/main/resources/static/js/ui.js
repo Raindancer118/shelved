@@ -39,7 +39,7 @@ export function colorFor(text) {
 const googleId = url => /books\.google\.[a-z.]+\/books\/content\?.*\bid=([\w-]{6,20})/.exec(url ?? '')?.[1];
 
 export const coverSrc = b => b.cover
-  ?? (b.isbn13 ? `/api/covers/${b.isbn13}?v=f` : googleId(b.coverUrl) ? `/api/covers/google/${googleId(b.coverUrl)}` : null);
+  ?? (b.isbn13 ? `/api/covers/${b.isbn13}?v=f2` : googleId(b.coverUrl) ? `/api/covers/google/${googleId(b.coverUrl)}` : null);
 
 export function cover(b, { lazy = true } = {}) {
   const src = coverSrc(b);
@@ -151,13 +151,16 @@ const HEIGHT_MM = { HARDCOVER: 215, PAPERBACK: 187 };
  * and the ISBN), the spine, and the page block in its real thickness, coloured when the edges are sprayed.
  * Drag to turn it, tap to flip it over. Colours for spine, back and a guessed Farbschnitt come from the cover.
  */
-export function book3d(b, { thicknessMm, backCover = null, edgeColor = null } = {}) {
+export function book3d(b, { thicknessMm, backCover = null, spine = null, edgePhoto = null, edgeColor = null } = {}) {
   const pages = b.pageCount ? b.pageCount * 0.1 + (b.format === 'HARDCOVER' ? 6 : 1) : 24;
   const t = Math.max(4, Math.round(thicknessMm ?? pages));
   const heightMm = b.heightMm ?? HEIGHT_MM[b.format] ?? 200;
   const sprayed = edgeColor && edgeColor !== 'none' ? edgeColor
     : edgeColor === 'none' ? null : [b.title, b.subtitle, b.description].some(s => SPRAYED.test(s ?? '')) ? 'auto' : null;
   const author = (b.authors ?? [])[0] ?? '';
+  // without an own photo: the Farbschnitt shown on the publisher's mockup (wishes and editions; books get it from the server)
+  edgePhoto ??= 'edgePhoto' in b || edgeColor ? null : (coverSrc(b) ?? '').replace(/^(\/api\/(?:wishes\/[\w-]+|covers\/\d{13}))(?:\/cover)?\?/, '$1/edge?');
+  if (edgePhoto && !/\/edge/.test(edgePhoto)) edgePhoto = null;
   const back = backCover
     ? `<img src="${esc(backCover)}" alt="" decoding="async">`
     : `<div class="gen">${b.description ? `<p>${esc(b.description.slice(0, 700))}</p>` : `<p class="t">${esc(b.title)}</p>`}
@@ -169,8 +172,9 @@ export function book3d(b, { thicknessMm, backCover = null, edgeColor = null } = 
     <div class="body">
       <div class="face front">${cover(b, { lazy: false })}</div>
       <div class="face back">${back}</div>
-      <div class="face spine"><span><b>${esc(b.title)}</b>${author ? ` <small>${esc(author)}</small>` : ''}</span></div>
-      <div class="face fore"></div><div class="face top"></div><div class="face bottom"></div>
+      <div class="face spine">${spine ? `<img src="${esc(spine)}" alt="" decoding="async">`
+        : `<span><b>${esc(b.title)}</b>${author ? ` <small>${esc(author)}</small>` : ''}</span>`}</div>
+      <div class="face fore">${edgePhoto ? `<img src="${esc(edgePhoto)}" alt="" decoding="async">` : ''}</div><div class="face top"></div><div class="face bottom"></div>
     </div></div>`;
 }
 
@@ -218,9 +222,16 @@ export function mountBook3d(root = document) {
         el.style.setProperty('--spine-ink', ink(c.spine));
         el.style.setProperty('--back', hex(c.back));
         el.style.setProperty('--back-ink', ink(c.back));
-        if (el.dataset.edge === 'auto') el.style.setProperty('--edge', hex(c.strong));
+        if (el.dataset.edge === 'auto' && !el.querySelector('.fore img')) el.style.setProperty('--edge', hex(c.strong));
       } catch { /* a cover from elsewhere taints the canvas; the CSS defaults stay */ }
     };
+    // a photographed Farbschnitt: its average colour tints head and tail of the page block
+    const edgeImg = el.querySelector('.fore img');
+    const edgeTint = () => { try { el.style.setProperty('--edge', hex(coverColours(edgeImg).back)); } catch { /* keep default */ } };
+    if (edgeImg) {
+      if (edgeImg.complete && edgeImg.naturalWidth) edgeTint(); else edgeImg.addEventListener('load', edgeTint, { once: true });
+      edgeImg.addEventListener('error', () => edgeImg.remove(), { once: true }); // no mockup: paper or Farbschnitt colour
+    }
     const ready = () => { size(); colour(); };
     if (front?.complete && front.naturalWidth) ready(); else { size(); front?.addEventListener('load', ready, { once: true }); }
 

@@ -9,6 +9,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class FakeLibraryAi implements LibraryAi {
 
     public volatile ShelfReading nextShelf = new ShelfReading(List.of(), List.of());
+    public volatile FaceLocation nextFace = FaceLocation.none();
     public final List<Integer> tileCounts = new CopyOnWriteArrayList<>();
 
     @Override
@@ -25,5 +26,10 @@ public class FakeLibraryAi implements LibraryAi {
     @Override
     public ShelfReading readSingleBook(byte[] jpeg) {
         return nextShelf;
+    }
+
+    @Override
+    public FaceLocation locateFace(byte[] jpeg, String face) {
+        return nextFace;
     }
 }

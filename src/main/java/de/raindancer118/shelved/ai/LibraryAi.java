@@ -14,6 +14,33 @@ public interface LibraryAi {
 
     ShelfReading readSingleBook(byte[] jpeg);
 
+    /** Where one face of a book ("back cover", "spine", "fore edge") lies in a photo, to cut it out straight. */
+    FaceLocation locateFace(byte[] jpeg, String face);
+
+    record Corner(
+            @JsonPropertyDescription("Horizontal position as a fraction of the photo width, 0.0 = left edge, 1.0 = right edge")
+            double x,
+            @JsonPropertyDescription("Vertical position as a fraction of the photo height, 0.0 = top edge, 1.0 = bottom edge")
+            double y) {
+    }
+
+    record FaceLocation(
+            @JsonPropertyDescription("true only if the asked face of the book is clearly visible with all four corners")
+            boolean found,
+            @JsonPropertyDescription("Corner where the head (top edge) of the book meets the face's left side as you look at the face")
+            Corner headLeft,
+            @JsonPropertyDescription("Corner where the head (top edge) of the book meets the face's right side")
+            Corner headRight,
+            @JsonPropertyDescription("Corner where the tail (bottom edge) of the book meets the face's right side")
+            Corner tailRight,
+            @JsonPropertyDescription("Corner where the tail (bottom edge) of the book meets the face's left side")
+            Corner tailLeft) {
+
+        public static FaceLocation none() {
+            return new FaceLocation(false, null, null, null, null);
+        }
+    }
+
     record SpineReading(
             @JsonPropertyDescription("Title as printed on the spine or cover, completed only if you are sure which book it is")
             String title,

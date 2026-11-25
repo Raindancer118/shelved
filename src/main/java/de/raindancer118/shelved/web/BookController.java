@@ -163,22 +163,33 @@ public class BookController {
         return type.endsWith("png") ? "png" : "jpg";
     }
 
-    @GetMapping("/books/{id}/back")
-    public ResponseEntity<FileSystemResource> back(Authentication auth, @PathVariable UUID id) {
+        private static Book.Side side(String path) {
+        return java.util.Arrays.stream(Book.Side.values()).filter(s -> s.path.equals(path)).findFirst()
+                .orElseThrow(() -> new NotFoundException("Bild"));
+    }
+
+    @GetMapping("/books/{id}/{side:back|spine|edge-photo}")
+    public ResponseEntity<FileSystemResource> photo(Authentication auth, @PathVariable UUID id, @PathVariable String side) {
         Book b = books.get(Owner.of(auth), id);
-        return CoverResponse.of(covers.path(b.getBackCoverFile()).orElseThrow(() -> new NotFoundException("Rückseite")), true);
+        Book.Side s = side(side);
+        var path = covers.path(b.getPhoto(s));
+        if (path.isEmpty() && s == Book.Side.EDGE) {
+            path = covers.path(b.getCoverFile()).flatMap(covers::edge);
+        }
+        return CoverResponse.of(path.orElseThrow(() -> new NotFoundException("Bild")), true);
     }
 
-    @PutMapping(value = "/books/{id}/back", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Views.BookDetail uploadBack(Authentication auth, @PathVariable UUID id, @RequestParam("image") MultipartFile image) throws IOException {
+    @PutMapping(value = "/books/{id}/{side:back|spine|edge-photo}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Views.BookDetail uploadPhoto(Authentication auth, @PathVariable UUID id, @PathVariable String side,
+                                        @RequestParam("image") MultipartFile image) throws IOException {
         String owner = Owner.of(auth);
-        return Views.detail(books.replaceBack(owner, id, image.getBytes(), imageExt(image)), shelfNumbers(owner));
+        return Views.detail(books.replacePhoto(owner, id, side(side), image.getBytes(), imageExt(image)), shelfNumbers(owner));
     }
 
-    @DeleteMapping("/books/{id}/back")
-    public Views.BookDetail removeBack(Authentication auth, @PathVariable UUID id) {
+    @DeleteMapping("/books/{id}/{side:back|spine|edge-photo}")
+    public Views.BookDetail removePhoto(Authentication auth, @PathVariable UUID id, @PathVariable String side) {
         String owner = Owner.of(auth);
-        return Views.detail(books.removeBack(owner, id), shelfNumbers(owner));
+        return Views.detail(books.removePhoto(owner, id, side(side)), shelfNumbers(owner));
     }
 
     public record EdgeInput(String color) {
@@ -194,6 +205,11 @@ public class BookController {
     public ResponseEntity<FileSystemResource> catalogCover(@PathVariable String isbn) {
         var path = covers.catalogCover(isbn).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
         return CoverResponse.of(path, false);
+    }
+
+    @GetMapping("/covers/{isbn}/edge")
+    public ResponseEntity<FileSystemResource> catalogEdge(@PathVariable String isbn) {
+        return CoverResponse.of(covers.catalogCover(isbn).flatMap(covers::edge).orElseThrow(() -> new NotFoundException("Schnitt")), false);
     }
 
     @GetMapping("/covers/google/{volumeId}")

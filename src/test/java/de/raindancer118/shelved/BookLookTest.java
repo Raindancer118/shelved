@@ -54,6 +54,61 @@ class BookLookTest extends IntegrationTestBase {
     }
 
     @Test
+    void aPatternedEdgeIsAPhotoOfTheForeEdge(@org.junit.jupiter.api.io.TempDir Path dir) throws Exception {
+        String id = book("Roman");
+        ByteArrayOutputStream jpg = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(30, 90, BufferedImage.TYPE_INT_RGB), "jpg", jpg);
+        Path stored = Files.write(dir.resolve("edge.jpg"), jpg.toByteArray());
+        when(covers.save(any(), any(), eq("jpg"))).thenReturn("edge.jpg");
+        when(covers.path("edge.jpg")).thenReturn(Optional.of(stored));
+        mvc.perform(multipart("/api/books/" + id + "/edge-photo").file(new MockMultipartFile("image", "e.jpg", "image/jpeg", jpg.toByteArray()))
+                        .with(r -> { r.setMethod("PUT"); return r; }).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.edgePhoto").value(startsWith("/api/books/" + id + "/edge-photo")))
+                .andExpect(jsonPath("$.backCover").value(nullValue()));
+        mvc.perform(get("/api/books/" + id + "/edge-photo")).andExpect(status().isOk());
+        mvc.perform(delete("/api/books/" + id + "/edge-photo").with(csrf())).andExpect(jsonPath("$.edgePhoto").value(nullValue()));
+    }
+
+    @Test
+    void aPhotoOfTheBackIsCutOutStraight() throws Exception {
+        String id = book("Roman");
+        ByteArrayOutputStream jpg = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(400, 300, BufferedImage.TYPE_INT_RGB), "jpg", jpg);
+        ai.nextFace = new de.raindancer118.shelved.ai.LibraryAi.FaceLocation(true,
+                new de.raindancer118.shelved.ai.LibraryAi.Corner(0.3, 0.1), new de.raindancer118.shelved.ai.LibraryAi.Corner(0.7, 0.12),
+                new de.raindancer118.shelved.ai.LibraryAi.Corner(0.72, 0.9), new de.raindancer118.shelved.ai.LibraryAi.Corner(0.28, 0.88));
+        org.mockito.ArgumentCaptor<byte[]> saved = org.mockito.ArgumentCaptor.forClass(byte[].class);
+        when(covers.save(any(), saved.capture(), eq("jpg"))).thenReturn("back.jpg");
+        mvc.perform(multipart("/api/books/" + id + "/back").file(new MockMultipartFile("image", "b.jpg", "image/jpeg", jpg.toByteArray()))
+                        .with(r -> { r.setMethod("PUT"); return r; }).with(csrf()))
+                .andExpect(status().isOk());
+        BufferedImage stored = ImageIO.read(new java.io.ByteArrayInputStream(saved.getValue()));
+        org.assertj.core.api.Assertions.assertThat(stored.getWidth()).isBetween(150, 170);
+        org.assertj.core.api.Assertions.assertThat(stored.getHeight()).isBetween(220, 240);
+    }
+
+    @Test
+    void withoutAPhotoTheFarbschnittComesFromThePublishersMockup(@org.junit.jupiter.api.io.TempDir Path dir) throws Exception {
+        String id = book("Roman");
+        ByteArrayOutputStream jpg = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(60, 90, BufferedImage.TYPE_INT_RGB), "jpg", jpg);
+        Path front = Files.write(dir.resolve("front.jpg"), jpg.toByteArray());
+        Path edge = Files.write(dir.resolve("front.jpg.edge.jpg"), jpg.toByteArray());
+        when(covers.save(any(), any(), eq("jpg"))).thenReturn("front.jpg");
+        when(covers.path("front.jpg")).thenReturn(Optional.of(front));
+        when(covers.edge(front)).thenReturn(Optional.of(edge));
+        mvc.perform(multipart("/api/books/" + id + "/cover").file(new MockMultipartFile("image", "f.jpg", "image/jpeg", jpg.toByteArray()))
+                        .with(r -> { r.setMethod("PUT"); return r; }).with(csrf()))
+                .andExpect(jsonPath("$.edgePhoto").value(startsWith("/api/books/" + id + "/edge-photo?v=m")));
+        mvc.perform(get("/api/books/" + id + "/edge-photo")).andExpect(status().isOk());
+
+        // a colour chosen by hand wins over the mockup
+        mvc.perform(put("/api/books/" + id + "/edge").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"color\":\"none\"}"))
+                .andExpect(jsonPath("$.edgePhoto").value(nullValue()));
+    }
+
+    @Test
     void backCoverIsStoredServedAndRemoved(@org.junit.jupiter.api.io.TempDir Path dir) throws Exception {
         String id = book("Roman");
         ByteArrayOutputStream jpg = new ByteArrayOutputStream();
