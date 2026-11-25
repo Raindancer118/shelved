@@ -288,9 +288,13 @@ public abstract class MarcSruClient {
         return m.find() ? (int) Math.round(Double.parseDouble(m.group(1).replace(',', '.')) * 10) : null;
     }
 
+    private static final Pattern CQL_KEYWORD = Pattern.compile("(?i)\\b(and|or|not|prox)\\b");
+
     private static String clean(String s) {
-        // dashes, colons and quotes break CQL or narrow the match ("Mysteria – Das Tor des Feuers")
-        return s == null ? "" : s.replaceAll("[\"()=<>/\\\\–—:;,.!?„“”'&-]", " ").replaceAll("\\s+", " ").trim();
+        // dashes, colons and quotes break CQL or narrow the match ("Mysteria – Das Tor des Feuers");
+        // a bare "not" in a title is CQL's NOT ("This Kingdom Will Not Kill Me" found nothing), so keywords are quoted
+        String words = s == null ? "" : s.replaceAll("[\"()=<>/\\\\–—:;,.!?„“”'&-]", " ").replaceAll("\\s+", " ").trim();
+        return CQL_KEYWORD.matcher(words).replaceAll("\"$1\"");
     }
 
     private static String surnameOf(String author) {

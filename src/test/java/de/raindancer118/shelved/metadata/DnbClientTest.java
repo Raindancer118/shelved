@@ -101,6 +101,16 @@ class DnbClientTest {
         assertThat(isbn("9783570311707").title()).isEqualTo("Das erste Jahr");
     }
 
+    /** "This Kingdom Will Not Kill Me": an unquoted "not" is CQL's NOT and the German edition was never found. */
+    @Test
+    void cqlKeywordsInATitleAreSearchedAsWords() {
+        server.expect(requestTo(startsWith("https://services.dnb.de/sru/dnb")))
+                .andExpect(decodedQuery("query=tit=This Kingdom Will \"Not\" Kill Me and per=Andrews and mat=books"))
+                .andRespond(withSuccess(new ClassPathResource("fixtures/dnb-search-farben.xml"), MediaType.APPLICATION_XML));
+        client.search("This Kingdom Will Not Kill Me", "Ilona Andrews");
+        server.verify();
+    }
+
     @Test
     void thePartTitleIsTheTitle() {
         String xml = """
