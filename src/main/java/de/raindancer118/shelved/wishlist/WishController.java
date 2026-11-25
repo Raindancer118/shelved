@@ -3,6 +3,7 @@ package de.raindancer118.shelved.wishlist;
 import de.raindancer118.shelved.book.CoverStore;
 import de.raindancer118.shelved.book.NotFoundException;
 import de.raindancer118.shelved.web.Owner;
+import de.raindancer118.shelved.web.Views;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -41,7 +42,7 @@ public class WishController {
 
     public record WishView(UUID id, String isbn13, String title, String subtitle, List<String> authors, String publisher,
                            Integer publishedYear, String seriesName, Integer seriesVolume, Integer listPriceCents,
-                           String cover, UUID ownedBookId, boolean keepWhenOwned, Instant createdAt) {
+                           String cover, UUID ownedBookId, String ownedCover, boolean keepWhenOwned, Instant createdAt) {
     }
 
     private final WishService wishes;
@@ -52,15 +53,16 @@ public class WishController {
         this.covers = covers;
     }
 
-    static WishView view(Wish w, UUID ownedBookId) {
+    static WishView view(Wish w, de.raindancer118.shelved.book.Book owned) {
         String cover = w.getCoverFile() == null ? null : "/api/wishes/" + w.getId() + "/cover?v=" + w.getCoverFile().hashCode();
         return new WishView(w.getId(), w.getIsbn13(), w.getTitle(), w.getSubtitle(), w.getAuthors(), w.getPublisher(),
-                w.getPublishedYear(), w.getSeriesName(), w.getSeriesVolume(), w.getListPriceCents(), cover, ownedBookId,
+                w.getPublishedYear(), w.getSeriesName(), w.getSeriesVolume(), w.getListPriceCents(), cover, owned == null ? null : owned.getId(),
+                owned == null ? null : Views.cover(owned),
                 w.isKeepWhenOwned(), w.getCreatedAt());
     }
 
     private static List<WishView> views(List<WishService.Entry> entries) {
-        return entries.stream().map(e -> view(e.wish(), e.owned() == null ? null : e.owned().getId())).toList();
+        return entries.stream().map(e -> view(e.wish(), e.owned())).toList();
     }
 
     @GetMapping

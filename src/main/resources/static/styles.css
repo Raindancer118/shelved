@@ -299,6 +299,8 @@ dialog.sheet[open] { animation: rise var(--dur-card) var(--ease); }
 dialog.sheet h2 { font: 600 20px/1.25 var(--sans); letter-spacing: -0.01em; margin-bottom: 8px; padding-right: 32px; }
 dialog.sheet p { color: var(--t2); }
 dialog.sheet .list { margin-top: 12px; max-height: 50vh; overflow: auto; }
+dialog.sheet .list:has(> :only-child) .cover { width: 56px; }
+dialog.sheet .row b { white-space: normal; }
 dialog.sheet .actions { justify-content: flex-start; }
 dialog.sheet .actions .btn { flex: 0 0 auto; }
 dialog.sheet .close { position: absolute; top: 16px; right: 16px; }

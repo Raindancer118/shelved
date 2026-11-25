@@ -32,7 +32,7 @@ public final class Views {
                              int copies, Instant createdAt) {
     }
 
-    static String cover(Book b) {
+    public static String cover(Book b) {
         return b.getCoverFile() == null ? null : "/api/books/" + b.getId() + "/cover?v=" + b.getCoverFile().hashCode();
     }
 

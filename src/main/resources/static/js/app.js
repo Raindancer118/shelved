@@ -127,13 +127,16 @@ async function askAboutWishes() {
   const done = await get('/api/wishes/fulfilled').catch(() => []);
   if (!done.length) return;
   const one = done.length === 1;
+  // the cover of the book that just arrived; the wish itself often has none
+  const art = w => cover({ ...w, cover: w.ownedCover ?? w.cover });
   const r = await dialog({
     title: 'Von der Wunschliste nehmen?',
     body: one
-      ? `<p>„${esc(done[0].title)}“ steht jetzt in deiner Bibliothek.</p>`
+      ? `<p>Das Buch steht jetzt in deiner Bibliothek.</p>
+         <div class="list"><div class="row">${art(done[0])}<div class="grow"><b>${esc(done[0].title)}</b><small>${esc(wishMeta(done[0]))}</small></div></div></div>`
       : `<p>Diese ${done.length} Bücher stehen jetzt in deiner Bibliothek.</p>
-         <div class="list">${done.map(w => `<label class="row"><input class="check" type="checkbox" data-wish="${w.id}" checked>
-           <div class="grow"><b>${esc(w.title)}</b><small>${esc(authors(w.authors))}</small></div></label>`).join('')}</div>`,
+         <div class="list">${done.map(w => `<label class="row"><input class="check" type="checkbox" data-wish="${w.id}" checked>${art(w)}
+           <div class="grow"><b>${esc(w.title)}</b><small>${esc(wishMeta(w))}</small></div></label>`).join('')}</div>`,
     buttons: [{ label: one ? 'Von der Liste nehmen' : 'Angehakte entfernen', value: 'remove' }, { label: 'Auf der Liste lassen', value: 'keep', kind: 'ghost' }],
   });
   if (!r) return; // closed without answer: ask again next time
