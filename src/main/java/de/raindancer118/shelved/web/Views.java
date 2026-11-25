@@ -44,7 +44,7 @@ public final class Views {
         return new BookDetail(b.getId(), b.getIsbn13(), b.getTitle(), b.getSubtitle(), b.getAuthors(), b.getPublisher(),
                 b.getPublishedYear(), b.getPageCount(), b.getHeightMm(), b.getThicknessMm(),
                 ThicknessEstimator.estimateMm(b.getThicknessMm(), b.getPageCount(), b.getFormat()), b.getFormat(),
-                b.getLanguage(), b.getDescription(), b.getListPriceCents(),
+                b.getLanguage(), de.raindancer118.shelved.metadata.Texts.plain(b.getDescription()), b.getListPriceCents(),
                 UsedPriceEstimator.privateCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 UsedPriceEstimator.buybackCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 cover(b), b.getShelfId(), b.getBoardNumber(), b.getBoardPosition(), location(b, shelfNumbers),

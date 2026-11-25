@@ -131,6 +131,14 @@ class DnbClientTest {
         server.verify();
     }
 
+    /** New titles sometimes carry only "26" as year of publication ("This Kingdom Will Not Kill Me"). */
+    @Test
+    void aTwoDigitYearIsReadAsAFullYear() {
+        assertThat(DnbClient.year("26")).isEqualTo(2026);
+        assertThat(DnbClient.year("98")).isEqualTo(1998);
+        assertThat(DnbClient.year("2019")).isEqualTo(2019);
+    }
+
     @Test
     void thePartTitleIsTheTitle() {
         String xml = """

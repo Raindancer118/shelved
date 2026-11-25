@@ -33,7 +33,7 @@ public class GoogleBooksClient {
     @JsonIgnoreProperties(ignoreUnknown = true)
     record VolumeInfo(String title, String subtitle, List<String> authors, String publisher, String publishedDate,
                       String description, List<Identifier> industryIdentifiers, Integer pageCount, String language,
-                      ImageLinks imageLinks) {
+                      ImageLinks imageLinks, Double averageRating, Integer ratingsCount) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -67,7 +67,18 @@ public class GoogleBooksClient {
                 .toList();
     }
 
+    /** Google's star average for an edition, when people rated it there. */
+    public Optional<Rating> rating(String isbn13) {
+        return volumes("isbn:" + isbn13, 1).stream().findFirst()
+                .filter(v -> v.averageRating() != null && v.ratingsCount() != null && v.ratingsCount() > 0)
+                .map(v -> new Rating("Google Books", v.averageRating(), v.ratingsCount()));
+    }
+
     private List<BookMetadata> query(String q, int max) {
+        return volumes(q, max).stream().filter(v -> v.title() != null).map(GoogleBooksClient::toMetadata).toList();
+    }
+
+    private List<VolumeInfo> volumes(String q, int max) {
         if (!enabled()) {
             return List.of();
         }
@@ -84,8 +95,7 @@ public class GoogleBooksClient {
             if (v == null || v.items() == null) {
                 return List.of();
             }
-            return v.items().stream().filter(i -> i.volumeInfo() != null && i.volumeInfo().title() != null)
-                    .map(i -> toMetadata(i.volumeInfo())).toList();
+            return v.items().stream().map(Volume::volumeInfo).filter(java.util.Objects::nonNull).toList();
         } catch (RestClientException e) {
             log.warn("Google Books failed: {}", e.getMessage().replace(apiKey, "***"));
             return List.of();
@@ -100,7 +110,7 @@ public class GoogleBooksClient {
                 authors.isEmpty() ? null : Names.sortForm(authors.getFirst()), v.publisher(),
                 MarcSruClient.year(v.publishedDate()), v.pageCount() == null || v.pageCount() <= 0 ? null : v.pageCount(),
                 null, null, v.language() == null ? null : LANG.getOrDefault(v.language(), v.language()), null, null,
-                plain(v.description()), cover(v.imageLinks()), "GOOGLE");
+                Texts.plain(v.description()), cover(v.imageLinks()), "GOOGLE");
     }
 
     static String cover(ImageLinks links) {
@@ -109,14 +119,6 @@ public class GoogleBooksClient {
         }
         // thumbnails are 128 px; "fife" asks Google's image server for a bigger rendition of the same scan
         return links.thumbnail().replace("http://", "https://").replace("&edge=curl", "") + "&fife=w600";
-    }
-
-    private static String plain(String html) {
-        if (html == null) {
-            return null;
-        }
-        return html.replaceAll("<br\\s*/?>|</p>", "\n").replaceAll("<[^>]+>", "")
-                .replace("&amp;", "&").replace("&quot;", "\"").replace("&#39;", "'").trim();
     }
 
     private static String surname(String author) {

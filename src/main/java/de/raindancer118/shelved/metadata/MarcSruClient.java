@@ -273,8 +273,20 @@ public abstract class MarcSruClient {
             return null;
         }
         Matcher m = YEAR.matcher(s);
-        return m.find() ? Integer.parseInt(m.group()) : null;
+        if (m.find()) {
+            return Integer.parseInt(m.group());
+        }
+        // new titles sometimes carry only "26"
+        Matcher two = TWO_DIGIT_YEAR.matcher(s);
+        if (two.matches()) {
+            int yy = Integer.parseInt(two.group(1));
+            int century = yy <= java.time.Year.now().getValue() % 100 + 1 ? 2000 : 1900;
+            return century + yy;
+        }
+        return null;
     }
+
+    private static final Pattern TWO_DIGIT_YEAR = Pattern.compile("\\D*(\\d{2})\\D*");
 
     /** "327, 286 Seiten" is an omnibus: both novels count. "XII, 300 S." counts 300. */
     static Integer pages(String extent) {

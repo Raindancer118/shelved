@@ -107,7 +107,7 @@ public class MetadataService {
     /** The blurb: from the catalogue answer if there was one, else the DNB "Inhaltstext" page. */
     public Optional<String> description(BookMetadata m) {
         if (m.description() != null && !m.description().isBlank()) {
-            return Optional.of(m.description());
+            return Optional.of(Texts.plain(m.description()));
         }
         if (m.descriptionUrl() == null) {
             return Optional.empty();
@@ -117,11 +117,7 @@ public class MetadataService {
             if (html == null) {
                 return Optional.empty();
             }
-            String text = html.replaceAll("(?s)<head>.*?</head>", "")
-                    .replaceAll("<br\\s*/?>", "\n")
-                    .replaceAll("<[^>]+>", "")
-                    .replace("&amp;", "&").replace("&quot;", "\"").replace("&lt;", "<").replace("&gt;", ">").replace("&#39;", "'")
-                    .trim();
+            String text = Texts.plain(html);
             return text.isBlank() ? Optional.empty() : Optional.of(text);
         } catch (RestClientException e) {
             return Optional.empty();
