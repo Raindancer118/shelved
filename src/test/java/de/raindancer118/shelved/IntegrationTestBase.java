@@ -46,6 +46,8 @@ public abstract class IntegrationTestBase {
     private ScanRepository scanRepository;
     @Autowired
     private SeriesCatalogRepository catalogRepository;
+    @Autowired
+    private de.raindancer118.shelved.wishlist.WishRepository wishRepository;
     @MockitoBean
     protected MetadataService metadata;
     @MockitoBean
@@ -66,6 +68,7 @@ public abstract class IntegrationTestBase {
 
     @BeforeEach
     void cleanSlate() {
+        wishRepository.deleteAll();
         bookRepository.deleteAll();
         scanRepository.deleteAll();
         shelfRepository.deleteAll();

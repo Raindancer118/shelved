@@ -275,11 +275,14 @@ public class LibraryService {
         String owner = libraryId.toString();
         jdbc.queryForList("select cover_file from book where owner_id = ? and cover_file is not null", String.class, owner)
                 .forEach(covers::delete);
+        jdbc.queryForList("select cover_file from wish where owner_id = ? and cover_file is not null", String.class, owner)
+                .forEach(covers::delete);
         jdbc.queryForList("select photo_file from scan where owner_id = ? and photo_file is not null", String.class, owner)
                 .forEach(photos::delete);
         jdbc.update("delete from book where owner_id = ?", owner);
         jdbc.update("delete from shelf where owner_id = ?", owner);
         jdbc.update("delete from scan where owner_id = ?", owner);
+        jdbc.update("delete from wish where owner_id = ?", owner);
         libraries.deleteById(libraryId); // memberships and invitations cascade
     }
 

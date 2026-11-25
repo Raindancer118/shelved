@@ -208,11 +208,14 @@ public class BookService {
         if (title == null || title.isBlank()) {
             return List.of();
         }
-        return books.findByOwnerId(owner).stream()
-                .filter(b -> Similarity.title(title, b.getTitle()) >= 0.8)
-                .filter(b -> author == null || author.isBlank() || b.getAuthors().isEmpty()
-                        || b.getAuthors().stream().anyMatch(a -> Similarity.surname(a, author)))
-                .toList();
+        return books.findByOwnerId(owner).stream().filter(b -> sameWork(b.getTitle(), b.getAuthors(), title, author)).toList();
+    }
+
+    /** Similar title and the same author surname; a side without authors doesn't rule it out. */
+    public static boolean sameWork(String title, List<String> authors, String otherTitle, String otherAuthor) {
+        return title != null && otherTitle != null && Similarity.title(otherTitle, title) >= 0.8
+                && (otherAuthor == null || otherAuthor.isBlank() || authors == null || authors.isEmpty()
+                    || authors.stream().anyMatch(a -> Similarity.surname(a, otherAuthor)));
     }
 
     private static void applySeries(Book b, SeriesHint hint) {

@@ -200,10 +200,12 @@ class AccountFlowTest {
         register("allein@example.org", "lang-genug-123", "Allein");
         Cookie allein = login("allein@example.org", "lang-genug-123");
         json(post("/api/books"), "{\"title\":\"Allein\",\"authors\":[\"A\"]}", allein).andExpect(status().isCreated());
+        json(post("/api/wishes"), "{\"title\":\"Gewünscht\",\"authors\":[\"B\"]}", allein).andExpect(status().isCreated());
         json(delete("/api/account"), "{\"password\":\"falsch-falsch\"}", allein).andExpect(status().isForbidden());
         json(delete("/api/account"), "{\"password\":\"lang-genug-123\"}", allein).andExpect(status().isNoContent());
         assertThat(jdbc.queryForObject("select count(*) from account where email='allein@example.org'", Integer.class)).isZero();
         assertThat(jdbc.queryForObject("select count(*) from book where title='Allein'", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from wish where title='Gewünscht'", Integer.class)).isZero();
         json(post("/api/auth/login"), "{\"email\":\"allein@example.org\",\"password\":\"lang-genug-123\"}", null)
                 .andExpect(status().isUnauthorized());
     }
