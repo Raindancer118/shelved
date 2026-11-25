@@ -36,4 +36,11 @@ public final class Titles {
         }
         return t;
     }
+
+    private static final java.util.regex.Pattern BRACKET_LETTERS = java.util.regex.Pattern.compile("(\\p{L})\\((\\p{L}+)\\)");
+
+    /** "Bis(s) zum Abendrot" → "Biss zum Abendrot": letters that a bracket only sets apart belong to the word. */
+    public static String joinBracketLetters(String s) {
+        return s == null ? null : BRACKET_LETTERS.matcher(s).replaceAll("$1$2");
+    }
 }

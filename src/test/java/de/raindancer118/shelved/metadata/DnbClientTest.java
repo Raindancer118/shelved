@@ -111,6 +111,16 @@ class DnbClientTest {
         server.verify();
     }
 
+    /** "Bis(s) zum Abendrot": the brackets split the word; "Bis s" finds nothing, "Biss" finds the books. */
+    @Test
+    void lettersInBracketsStayPartOfTheWord() {
+        server.expect(requestTo(startsWith("https://services.dnb.de/sru/dnb")))
+                .andExpect(decodedQuery("query=tit=Biss zum Abendrot and per=Meyer and mat=books"))
+                .andRespond(withSuccess(new ClassPathResource("fixtures/dnb-search-farben.xml"), MediaType.APPLICATION_XML));
+        client.search("Bis(s) zum Abendrot", "Stephenie Meyer");
+        server.verify();
+    }
+
     @Test
     void thePartTitleIsTheTitle() {
         String xml = """

@@ -72,7 +72,7 @@ public final class Similarity {
         if (s == null) {
             return Set.of();
         }
-        return Arrays.stream(Names.collationKey(Titles.sortForm(s)).split("[^\\p{L}\\p{N}]+"))
+        return Arrays.stream(Names.collationKey(Titles.sortForm(Titles.joinBracketLetters(s))).split("[^\\p{L}\\p{N}]+"))
                 .filter(t -> !t.isBlank())
                 .collect(Collectors.toSet());
     }

@@ -293,7 +293,7 @@ public abstract class MarcSruClient {
     private static String clean(String s) {
         // dashes, colons and quotes break CQL or narrow the match ("Mysteria – Das Tor des Feuers");
         // a bare "not" in a title is CQL's NOT ("This Kingdom Will Not Kill Me" found nothing), so keywords are quoted
-        String words = s == null ? "" : s.replaceAll("[\"()=<>/\\\\–—:;,.!?„“”'&-]", " ").replaceAll("\\s+", " ").trim();
+        String words = s == null ? "" : Titles.joinBracketLetters(s).replaceAll("[\"()=<>/\\\\–—:;,.!?„“”'&-]", " ").replaceAll("\\s+", " ").trim();
         return CQL_KEYWORD.matcher(words).replaceAll("\"$1\"");
     }
 
