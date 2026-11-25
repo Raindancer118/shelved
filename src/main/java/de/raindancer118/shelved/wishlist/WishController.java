@@ -51,7 +51,7 @@ public class WishController {
     }
 
     static WishView view(Wish w, de.raindancer118.shelved.book.Book owned) {
-        String cover = w.getCoverFile() == null ? null : "/api/wishes/" + w.getId() + "/cover?v=f" + w.getCoverFile().hashCode(); // f: served as the cut front since 0.9.1
+        String cover = w.getCoverFile() == null ? null : "/api/wishes/" + w.getId() + "/cover?v=f2" + w.getCoverFile().hashCode(); // f2: cut front without a Farbschnitt strip since 0.16
         return new WishView(w.getId(), w.getIsbn13(), w.getTitle(), w.getSubtitle(), w.getAuthors(), w.getPublisher(),
                 w.getPublishedYear(), w.getListPriceCents(), cover, owned == null ? null : owned.getId(),
                 owned == null ? null : Views.cover(owned),
@@ -102,5 +102,12 @@ public class WishController {
         Wish w = wishes.get(Owner.of(auth), id);
         var path = covers.path(w.getCoverFile()).map(covers::flat).orElseThrow(() -> new NotFoundException("Cover"));
         return CoverResponse.of(path, true);
+    }
+
+    /** The Farbschnitt from the publisher's mockup, if the cover is one. */
+    @GetMapping("/{id}/edge")
+    public ResponseEntity<FileSystemResource> edge(Authentication auth, @PathVariable UUID id) {
+        Wish w = wishes.get(Owner.of(auth), id);
+        return CoverResponse.of(covers.path(w.getCoverFile()).flatMap(covers::edge).orElseThrow(() -> new NotFoundException("Schnitt")), true);
     }
 }

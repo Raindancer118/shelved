@@ -35,11 +35,12 @@ public class CoverStore {
     public CoverStore(ShelvedProperties props, RestClient externalHttp) {
         this.dir = props.dataDir().resolve("covers");
         this.catalogDir = dir.resolve("catalog");
-        this.flatDir = dir.resolve("flat");
+        this.flatDir = dir.resolve("flat2"); // flat2: since 0.16 a Farbschnitt no longer counts as part of the front
         this.http = externalHttp;
         try {
             Files.createDirectories(catalogDir);
             Files.createDirectories(flatDir);
+            org.springframework.util.FileSystemUtils.deleteRecursively(dir.resolve("flat")); // the old cuts, derived data
         } catch (IOException e) {
             throw new UncheckedIOException("Cannot create cover directory " + dir, e);
         }
@@ -207,17 +208,27 @@ public class CoverStore {
         }
         try {
             java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(original.toFile());
-            java.awt.image.BufferedImage front = img == null ? null : CoverFlattener.flatten(img);
-            if (front == null || front == img) {
+            CoverFlattener.Parts parts = img == null ? new CoverFlattener.Parts(null, null) : CoverFlattener.split(img);
+            if (parts.edge() != null) {
+                javax.imageio.ImageIO.write(parts.edge(), "jpg", flatDir.resolve(name + ".edge.jpg").toFile());
+            }
+            if (parts.front() == null || parts.front() == img) {
                 Files.createFile(same);
                 return original;
             }
-            javax.imageio.ImageIO.write(front, "jpg", cut.toFile());
+            javax.imageio.ImageIO.write(parts.front(), "jpg", cut.toFile());
             return cut;
         } catch (IOException e) {
             log.debug("Cover {} not checked for a mockup: {}", name, e.getMessage());
             return original;
         }
+    }
+
+    /** The page block a publisher's mockup shows next to the front, straightened: the official Farbschnitt. */
+    public Optional<Path> edge(Path original) {
+        flat(original); // works out front and edge together, once
+        Path edge = flatDir.resolve(original.getFileName() + ".edge.jpg");
+        return Files.isRegularFile(edge) ? Optional.of(edge) : Optional.empty();
     }
 
     /**
@@ -256,6 +267,7 @@ public class CoverStore {
             try {
                 Files.deleteIfExists(flatDir.resolve(p.getFileName() + ".jpg"));
                 Files.deleteIfExists(flatDir.resolve(p.getFileName() + ".same"));
+                Files.deleteIfExists(flatDir.resolve(p.getFileName() + ".edge.jpg"));
                 Files.deleteIfExists(p);
             } catch (IOException e) {
                 log.warn("Could not delete cover {}", p);

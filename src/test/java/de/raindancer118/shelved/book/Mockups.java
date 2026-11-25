@@ -36,6 +36,31 @@ final class Mockups {
         return img;
     }
 
+    /**
+     * A special edition: hardcover front over the full height, right of it the slightly shorter page block in a
+     * dark sprayed edge with orange stripes, the way publishers show a Farbschnitt.
+     */
+    static BufferedImage sprayedHardcover() {
+        BufferedImage img = new BufferedImage(316, 436, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, 316, 436);
+        g.setColor(new Color(20, 30, 60)); // the Farbschnitt, 9 px shorter top and bottom
+        g.fillPolygon(new int[]{258, 300, 300, 258}, new int[]{18, 20, 412, 415}, 4);
+        g.setColor(new Color(230, 120, 30));
+        for (int y = 48; y < 408; y += 40) {
+            g.fillRect(258, y, 42, 8);
+        }
+        g.setColor(new Color(225, 205, 160)); // the back board's edge beyond the pages
+        g.fillRect(300, 14, 5, 404);
+        g.setColor(new Color(225, 200, 140)); // the front: light gold with a dark title
+        g.fillRect(12, 9, 248, 418);
+        g.setColor(new Color(40, 30, 20));
+        g.fillRect(48, 148, 170, 60);
+        g.dispose();
+        return img;
+    }
+
     /** A white cover: hardly any colour on the front, only thin outlines tell front and page block apart. */
     static BufferedImage whitePaperback() {
         BufferedImage img = new BufferedImage(398, 599, BufferedImage.TYPE_INT_RGB);

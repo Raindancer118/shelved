@@ -81,6 +81,22 @@ class CoverStoreTest {
         assertThat(covers.flat(original)).isEqualTo(flat);
     }
 
+    /** A special edition's mockup shows its Farbschnitt: that part is kept for the 3D book. */
+    @Test
+    void theSprayedEdgeOfAMockupIsKept() throws Exception {
+        java.io.ByteArrayOutputStream jpg = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(Mockups.sprayedHardcover(), "jpg", jpg);
+        Path sprayed = covers.path(covers.save(java.util.UUID.randomUUID(), jpg.toByteArray(), "jpg")).orElseThrow();
+        java.io.ByteArrayOutputStream flatJpg = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(200, 300, java.awt.image.BufferedImage.TYPE_INT_RGB), "jpg", flatJpg);
+        Path plain = covers.path(covers.save(java.util.UUID.randomUUID(), flatJpg.toByteArray(), "jpg")).orElseThrow();
+
+        Path edge = covers.edge(sprayed).orElseThrow();
+        assertThat(javax.imageio.ImageIO.read(edge.toFile()).getHeight()).isGreaterThan(300);
+        assertThat(covers.edge(sprayed)).contains(edge);
+        assertThat(covers.edge(plain)).isEmpty();
+    }
+
     /** Covers stored before mockups were cut are prepared once after the start, not on the first slow page view. */
     @Test
     void existingCoversArePreparedOnce() {

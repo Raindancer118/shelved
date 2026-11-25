@@ -61,6 +61,6 @@ class CoverBackfillTest extends IntegrationTestBase {
 
         assertThat(backfill.fill()).isEqualTo(1);
 
-        mvc.perform(get("/api/books/" + id)).andExpect(jsonPath("$.cover").value(org.hamcrest.Matchers.containsString("?v=f" + "real.jpg".hashCode())));
+        mvc.perform(get("/api/books/" + id)).andExpect(jsonPath("$.cover").value(org.hamcrest.Matchers.containsString("?v=f2" + "real.jpg".hashCode())));
     }
 }

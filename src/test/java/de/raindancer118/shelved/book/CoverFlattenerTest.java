@@ -24,6 +24,33 @@ class CoverFlattenerTest {
         }
     }
 
+    /** Fourth Wing: the Farbschnitt is as dark as a cover, only the shorter page block tells it apart. */
+    @Test
+    void aSprayedEdgeIsNotPartOfTheFrontButComesOutOnItsOwn() {
+        CoverFlattener.Parts parts = CoverFlattener.split(Mockups.sprayedHardcover());
+        assertThat(parts.front().getWidth()).isBetween(236, 250);
+        assertThat(parts.front().getHeight()).isBetween(404, 420);
+        assertThat(parts.edge()).isNotNull();
+        assertThat(parts.edge().getWidth()).isBetween(30, 44);
+        assertThat(parts.edge().getHeight()).isBetween(380, 400);
+        for (int y = 20; y < parts.edge().getHeight() - 20; y += 50) {
+            assertThat(new Color(parts.edge().getRGB(parts.edge().getWidth() - 1, y)).getBlue()).as("no back board at the far end").isLessThan(120);
+        }
+        Color top = new Color(parts.edge().getRGB(parts.edge().getWidth() / 2, 4));
+        assertThat(top.getBlue()).as("no white above the page block").isLessThan(120);
+        int orange = 0;
+        for (int y = 0; y < parts.edge().getHeight(); y++) {
+            orange += new Color(parts.edge().getRGB(parts.edge().getWidth() / 2, y)).getRed() > 200 ? 1 : 0;
+        }
+        assertThat(orange).as("the stripes of the Farbschnitt").isGreaterThan(40);
+    }
+
+    @Test
+    void aPlainMockupHasItsPaperEdge() {
+        assertThat(CoverFlattener.split(Mockups.paperback()).edge()).isNotNull();
+        assertThat(CoverFlattener.split(Mockups.whitePaperback()).edge()).isNull();
+    }
+
     /** "Never Be My Date": a white front, so only the outlines show where the front ends and the page block begins. */
     @Test
     void aWhiteMockupIsCutAtItsOutlines() {
