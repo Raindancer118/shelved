@@ -22,6 +22,8 @@ const routes = [
   [/^\/stats$/, viewStats, 'stats'],
   [/^\/wishes$/, viewWishes, 'wishes'],
   [/^\/wish\/([\w-]+)$/, viewWish, 'wishes'],
+  [/^\/ausgabe\/(.+)$/, viewEdition, 'library'],
+  [/^\/autor\/(.+)$/, viewAuthor, 'library'],
   [/^\/wishes\/(add|barcode|search)$/, () => viewFind('wish'), 'wishes'],
   [/^\/login$/, viewLogin, null],
   [/^\/register$/, viewRegister, null],
@@ -239,7 +241,7 @@ async function viewLibrary() {
   const results = document.getElementById('results');
   document.getElementById('q').addEventListener('input', e => {
     state.query = e.target.value;
-    results.innerHTML = gridHtml(filtered(sorted(list)));
+    results.innerHTML = authorHint(state.query) + gridHtml(filtered(sorted(list)));
     applyVars(results);
   });
   app.querySelectorAll('[data-sort]').forEach(b => b.addEventListener('click', () => { state.sort = b.dataset.sort; viewLibrary().then(() => applyVars(app)); }));
@@ -274,7 +276,7 @@ async function viewBook(id) {
     <div class="stage"><label title="Cover ändern">${cover(b, { lazy: false })}<input id="coverfile" class="sr" type="file" accept="image/jpeg,image/png"></label></div>
     <h1 class="dtitle">${esc(b.title)}</h1>
     ${b.subtitle ? `<p class="dsub">${esc(b.subtitle)}</p>` : ''}
-    <p class="dauthor">${esc(authors(b.authors))}</p>
+    <p class="dauthor">${authorLinks(b.authors)}</p>
     <div class="list">
       <div class="loc">
         <div><b class="${b.location ? 'mono' : ''}">${esc(b.location ?? 'Ohne Platz')}</b><small>${b.location ? 'steht hier laut letztem Regalfoto' : 'noch keinem Regal zugeordnet'}${targetLabel && targetLabel !== b.location ? ` · gehört nach <strong>${esc(targetLabel)}</strong>` : ''}</small></div>
@@ -508,35 +510,157 @@ async function importPhotos(files, out, purpose, leave = () => {}) {
 }
 
 /** What was typed: an ISBN is looked up, anything else searched in the catalogues by title and author. */
+// Catalogue hits by key, so a hit can open its own page and come back without asking the catalogues again.
+const editions = new Map();
+const editionKey = m => m.isbn13 ?? `t-${encodeURIComponent((m.title + '|' + (m.authors ?? []).join(',')).slice(0, 120))}`;
+
 async function find(term, out, purpose) {
   const digits = term.replace(/[^0-9xX]/g, '');
   if ((digits.length === 10 || digits.length === 13) && digits.length >= term.replace(/[\s-]/g, '').length) {
     return showIsbn(digits, out, purpose);
   }
   out.innerHTML = pendingView('Kataloge werden gefragt …');
-  const hits = await get(`/api/catalog?title=${encodeURIComponent(term)}`);
+  const [hits, people] = await Promise.all([get(`/api/catalog?title=${encodeURIComponent(term)}`), get(`/api/authors?q=${encodeURIComponent(term)}`).catch(() => [])]);
   const manual = purpose === 'wish' ? '' : '<p class="note"><a class="link" href="#/new">Nicht dabei? Selbst eintragen</a></p>';
-  if (!hits.length) { out.innerHTML = `<p class="note">Keine Treffer für „${esc(term)}“.</p>${manual}`; return; }
-  out.innerHTML = `<div class="list">${hits.map((m, i) => `
-    <button class="row" data-i="${i}" type="button">${cover({ title: m.title, authors: m.authors })}
-      <div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small><small>${esc([m.publisher, m.publishedYear].filter(Boolean).join(' · '))}</small></div>
-      ${purpose === 'wish' ? icons.bookmark : icons.plus}</button>`).join('')}</div>${manual}`;
-  applyVars(out);
-  out.querySelectorAll('[data-i]').forEach(btn => btn.addEventListener('click', async () => {
-    btn.disabled = true;
-    const m = hits[Number(btn.dataset.i)];
-    if (purpose === 'wish') {
-      const w = await addWish(m.isbn13 ? { isbn: m.isbn13 } : { title: m.title, authors: m.authors }).finally(() => { btn.disabled = false; });
-      if (w) go('/wishes');
-      return;
+  hits.forEach(m => editions.set(editionKey(m), m));
+  // sorting and filters work on what is already here, no second round to the catalogues
+  const view = { kind: param('autoren') !== null && people.length ? 'authors' : 'books', sort: 'rel', german: false };
+  const SORTS = { rel: 'Relevanz', new: 'Neueste', old: 'Älteste' };
+  const shown = () => {
+    let list = view.german ? hits.filter(m => m.language === 'ger') : [...hits];
+    const year = m => m.publishedYear ?? (view.sort === 'new' ? -Infinity : Infinity);
+    if (view.sort === 'new') list.sort((a, b) => year(b) - year(a));
+    if (view.sort === 'old') list.sort((a, b) => year(a) - year(b));
+    return list;
+  };
+  const render = () => {
+    const kinds = `<div class="seg" role="tablist"><button role="tab" class="${view.kind === 'books' ? 'on' : ''}" data-kind="books">Bücher ${hits.length}</button>
+      <button role="tab" class="${view.kind === 'authors' ? 'on' : ''}" data-kind="authors">Autoren ${people.length}</button></div>`;
+    if (view.kind === 'authors') {
+      out.innerHTML = kinds + (people.length ? `<div class="list">${people.map(authorRow).join('')}</div>` : `<p class="note">Keine Autoren zu „${esc(term)}“.</p>`);
+    } else {
+      const list = shown();
+      out.innerHTML = `${kinds}<div class="chips">${Object.entries(SORTS).map(([k, v]) => `<button class="chip ${view.sort === k ? 'on' : ''}" data-sort="${k}">${v}</button>`).join('')}
+          <button class="chip ${view.german ? 'on' : ''}" data-german>Nur Deutsch</button></div>
+        ${list.length ? `<div class="list">${list.map(m => editionRow(m, purpose)).join('')}</div>`
+          : `<p class="note">${hits.length ? 'Keine deutsche Ausgabe unter den Treffern.' : `Keine Bücher zu „${esc(term)}“.`}</p>`}${manual}`;
+      out.querySelectorAll('[data-sort]').forEach(c => c.addEventListener('click', () => { view.sort = c.dataset.sort; render(); }));
+      out.querySelector('[data-german]').addEventListener('click', () => { view.german = !view.german; render(); });
     }
+    out.querySelectorAll('[data-kind]').forEach(c => c.addEventListener('click', () => { view.kind = c.dataset.kind; render(); }));
+    applyVars(out);
+  };
+  render();
+}
+
+const editionRow = (m, purpose) => `<a class="row tall" href="#/ausgabe/${encodeURIComponent(editionKey(m))}${purpose === 'wish' ? '?wunsch' : ''}">${cover(m)}
+  <div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small><small>${esc([m.publisher, m.publishedYear].filter(Boolean).join(' · '))}</small></div>
+  ${icons.next}</a>`;
+
+/** Round portrait, or the initials when there is no photo. */
+const portrait = (a, size = '') => `<span class="portrait ${size}">${a.photo ? `<img src="${esc(a.photo)}" alt="" loading="lazy">` : ''}<i>${esc(a.name.split(/\s+/).map(w => w[0]).slice(0, 2).join(''))}</i></span>`;
+
+const authorRow = a => `<a class="row" href="#/autor/${encodeURIComponent(a.name)}">${portrait(a)}
+  <div class="grow"><b>${esc(a.name)}</b><small>${esc([a.topWork && 'bekannt für ' + a.topWork, a.birthDate && 'geb. ' + a.birthDate.match(/\d{4}/)?.[0]].filter(Boolean).join(' · '))}</small></div>
+  ${icons.next}</a>`;
+
+/** In a local search: a way to the authors of that name, from the library or the wish list. */
+const authorHint = (q, wish = false) => q.trim().length < 3 ? ''
+  : `<div class="list"><a class="row" href="#/${wish ? 'wishes/add' : 'add'}?eingabe&autoren&q=${encodeURIComponent(q.trim())}"><span class="portrait"><i>${icons.user}</i></span>
+    <div class="grow"><b>Autoren zu „${esc(q.trim())}“</b><small>Profil mit allen Büchern auf Deutsch</small></div>${icons.next}</a></div>`;
+
+/** Links an author's name to their profile. */
+const authorLinks = list => (list ?? []).map(n => `<a class="author-link" href="#/autor/${encodeURIComponent(n)}">${esc(n)}</a>`).join(', ');
+
+/** An author: round portrait, a short bio behind a tap, and their books in German. */
+async function viewAuthor(name) {
+  const [p, mine, wishList] = await Promise.all([get(`/api/authors/profile?name=${encodeURIComponent(name)}`), books(), wishes()]);
+  p.books.forEach(m => editions.set(editionKey(m), m));
+  const owns = m => mine.some(b => (m.isbn13 && b.isbn13 === m.isbn13) || b.title.toLowerCase() === m.title.toLowerCase());
+  const wished = m => wishList.some(w => (m.isbn13 && w.isbn13 === m.isbn13) || w.title.toLowerCase() === m.title.toLowerCase());
+  const years = [p.birthDate?.match(/\d{4}/)?.[0], p.deathDate?.match(/\d{4}/)?.[0]].filter(Boolean);
+  const owned = p.books.filter(owns).length;
+  let order = 'new';
+  const list = () => [...p.books].sort((a, b) => order === 'new' ? (b.publishedYear ?? 0) - (a.publishedYear ?? 0) : (a.publishedYear ?? 9999) - (b.publishedYear ?? 9999));
+  const rows = () => list().map(m => editionRow(m).replace(`${icons.next}</a>`,
+    `${owns(m) ? '<span class="tag owned">Hast du</span>' : wished(m) ? '<span class="tag new">Gemerkt</span>' : icons.next}</a>`)).join('');
+  paint(`
+    ${backBar('javascript:history.back()')}
+    <div class="profile">
+      ${portrait(p, 'big')}
+      <h1 class="dtitle">${esc(p.name)}</h1>
+      ${years.length ? `<p class="dauthor">${years.length === 2 ? years.join('–') : 'geb. ' + years[0]}</p>` : ''}
+      ${p.bio ? `<button class="btn ghost" id="biotoggle" aria-expanded="false">Kurzbiografie</button><p class="blurb bio" id="bio" hidden>${esc(p.bio)}</p>` : ''}
+    </div>
+    <h3 class="sec">Auf Deutsch${p.books.length ? ` · ${p.books.length} ${p.books.length === 1 ? 'Buch' : 'Bücher'}${owned ? `, ${owned} davon hast du` : ''}` : ''}</h3>
+    ${p.books.length ? `<div class="chips"><button class="chip on" data-order="new">Neueste</button><button class="chip" data-order="old">Älteste</button></div>
+      <div class="list" id="books">${rows()}</div>` : '<p class="note">Die Deutsche Nationalbibliothek kennt keine Bücher unter diesem Namen.</p>'}`);
+  document.getElementById('biotoggle')?.addEventListener('click', e => {
+    const bio = document.getElementById('bio');
+    bio.hidden = !bio.hidden;
+    e.currentTarget.setAttribute('aria-expanded', String(!bio.hidden));
+    e.currentTarget.textContent = bio.hidden ? 'Kurzbiografie' : 'Weniger';
+  });
+  app.querySelectorAll('[data-order]').forEach(c => c.addEventListener('click', () => {
+    order = c.dataset.order;
+    app.querySelectorAll('[data-order]').forEach(x => x.classList.toggle('on', x === c));
+    document.getElementById('books').innerHTML = rows();
+    applyVars(document.getElementById('books'));
+  }));
+}
+
+/** One edition from the catalogues, before it is ours: what it is, and taking it in or wishing for it. */
+async function viewEdition(key) {
+  const forWish = param('wunsch') !== null;
+  let m = editions.get(key);
+  let owned = [];
+  if (/^97[89]\d{10}$/.test(key)) {
+    const r = await get(`/api/lookup?isbn=${key}`);
+    m = r.metadata ?? m;
+    owned = r.owned;
+  }
+  if (!m) { go(forWish ? '/wishes/add?eingabe' : '/add?eingabe'); return; }
+  const wished = (await wishes()).find(w => (m.isbn13 && w.isbn13 === m.isbn13) || w.title === m.title);
+  const LANGS = { ger: 'Deutsch', eng: 'Englisch', fre: 'Französisch', spa: 'Spanisch', ita: 'Italienisch' };
+  const facts = [
+    ['Verlag', m.publisher],
+    ['Erschienen', m.publishedYear],
+    ['Seiten', m.pageCount],
+    ['Sprache', m.language && (LANGS[m.language] ?? m.language)],
+    ['ISBN', m.isbn13 && { mono: m.isbn13 }],
+    ['Neupreis', m.listPriceCents != null && euros(m.listPriceCents)],
+  ].filter(([, v]) => v);
+  const add = `<button class="btn ${forWish ? 'ghost' : ''}" id="take">${icons.plus} In die Bibliothek</button>`;
+  const wish = wished ? '' : `<button class="btn ${forWish ? '' : 'ghost'}" id="wishit">${icons.bookmark} Merken</button>`;
+  paint(`
+    ${backBar('javascript:history.back()')}
+    <div class="stage">${cover(m, { lazy: false })}</div>
+    <h1 class="dtitle">${esc(m.title)}</h1>
+    ${m.subtitle ? `<p class="dsub">${esc(m.subtitle)}</p>` : ''}
+    <p class="dauthor">${authorLinks(m.authors)}</p>
+    ${owned.length ? `<div class="list"><a class="row" href="#/book/${owned[0].id}"><span class="tag owned">Hast du</span>
+      <div class="grow"><b>Steht schon in deiner Bibliothek</b></div>${icons.next}</a></div>`
+      : wished ? `<div class="list"><a class="row" href="#/wish/${wished.id}"><span class="tag new">Gemerkt</span>
+      <div class="grow"><b>Steht auf deiner Wunschliste</b></div>${icons.next}</a></div>` : ''}
+    <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v.mono ? `<span class="mono">${esc(v.mono)}</span>` : esc(v)}</dd>`).join('')}</dl>
+    ${m.description ? `<p class="blurb clamp" id="blurb">${esc(m.description)}</p>` : ''}
+    ${owned.length ? '' : `<div class="actions">${forWish ? wish + add : add + wish}</div>`}`);
+  document.getElementById('blurb')?.addEventListener('click', e => e.currentTarget.classList.toggle('clamp'));
+  document.getElementById('take')?.addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
     const b = await addOrCopy(another => post(`/api/books/from-catalog?anotherCopy=${another}`, m)).finally(() => { btn.disabled = false; });
     if (!b) return;
     invalidate();
     toast(`„${b.title}“ hinzugefügt`);
     await askAboutWishes();
     go(`/book/${b.id}`);
-  }));
+  });
+  document.getElementById('wishit')?.addEventListener('click', async e => {
+    e.currentTarget.disabled = true;
+    const w = await addWish(m.isbn13 ? { isbn: m.isbn13 } : { title: m.title, authors: m.authors });
+    if (w) route();
+  });
 }
 
 async function showIsbn(isbn, out, purpose) {
@@ -557,7 +681,7 @@ async function showIsbn(isbn, out, purpose) {
     const m = r.metadata;
     const add = `<button class="btn" data-act="add">${icons.plus} In die Bibliothek</button>`;
     const wish = wished ? '' : `<button class="btn ${purpose === 'wish' ? '' : 'ghost'}" data-act="wish">${icons.bookmark} Merken</button>`;
-    out.innerHTML = `<div class="result"><div class="list"><div class="row">${cover({ title: m.title, authors: m.authors })}<div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small>
+    out.innerHTML = `<div class="result"><div class="list"><div class="row">${cover(m)}<div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small>
       <small>${esc([m.publisher, m.publishedYear, m.listPriceCents != null && euros(m.listPriceCents)].filter(Boolean).join(' · '))}</small></div>
       ${wished ? '<span class="tag new">Gemerkt</span>' : '<span class="tag plain">Neu</span>'}</div></div>
       <div class="actions">${purpose === 'wish' ? wish : add + wish}</div></div>`;
@@ -646,7 +770,7 @@ async function viewScan(id) {
     const r = it.reading;
     const options = [it.candidate, ...(it.alternatives ?? [])].filter(Boolean);
     const [cls, label] = STATUS[it.status];
-    return `<div class="row scan">
+    return `<div class="row tall">
       ${it.status === 'OWNED' ? `<span class="pos" aria-label="hast du">${icons.check}</span>` : `<input class="check" type="checkbox" data-i="${it.index}" ${it.status === 'NEW' ? 'checked' : ''} aria-label="${wish ? 'merken' : 'übernehmen'}">`}
       ${cover(options[0] ?? { title: r.title ?? '?', authors: r.authors })}
       <div class="grow"><b>${esc(options[0]?.title ?? r.title ?? '?')}</b>
@@ -718,8 +842,8 @@ async function viewWishes() {
     const more = term => `<div class="actions"><a class="btn ghost" href="#/wishes/add?eingabe&q=${encodeURIComponent(term)}">${icons.search} „${esc(term)}“ im Katalog suchen</a></div>`;
     if (!list.length) return q ? more(q) : `<div class="empty"><h2>Merk dir Bücher, die dir fehlen</h2>
       <p>Titel oder Autor oben eingeben oder mit der Kamera Barcode oder Cover fotografieren. Kommt ein Buch später in die Bibliothek, fragt shelved, ob es von der Liste darf.</p></div>`;
-    if (q && !o.length && !d.length) return `<p class="note">Auf der Liste steht nichts zu „${esc(q)}“.</p>${more(q)}`;
-    return `${o.length ? `<div class="list">${o.map(w => `<div class="row"><a class="row-main" href="#/wish/${w.id}">${cover(w)}
+    if (q && !o.length && !d.length) return `${authorHint(q, true)}<p class="note">Auf der Liste steht nichts zu „${esc(q)}“.</p>${more(q)}`;
+    return `${q ? authorHint(q, true) : ''}${o.length ? `<div class="list">${o.map(w => `<div class="row"><a class="row-main" href="#/wish/${w.id}">${cover(w)}
       <div class="grow"><b>${esc(w.title)}</b><small>${esc(wishMeta(w))}</small>${w.isbn13 ? `<small class="mono">${esc(w.isbn13)}</small>` : ''}</div>
       ${w.listPriceCents != null ? `<span class="num">${esc(euros(w.listPriceCents))}</span>` : ''}</a>${remove(w)}</div>`).join('')}</div>`
       : q ? '' : '<p class="note">Alles, was du dir gemerkt hast, steht schon in der Bibliothek.</p>'}
@@ -773,7 +897,7 @@ async function viewWish(id) {
     <div class="stage">${cover(w, { lazy: false })}</div>
     <h1 class="dtitle">${esc(w.title)}</h1>
     ${w.subtitle ? `<p class="dsub">${esc(w.subtitle)}</p>` : ''}
-    <p class="dauthor">${esc(authors(w.authors))}</p>
+    <p class="dauthor">${authorLinks(w.authors)}</p>
     ${w.ownedBookId ? `<div class="list"><a class="row" href="#/book/${w.ownedBookId}"><span class="tag owned">Hast du</span>
       <div class="grow"><b>Steht schon in deiner Bibliothek</b></div>${icons.next}</a></div>` : ''}
     <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v.mono ? `<span class="mono">${esc(v.mono)}</span>` : esc(v)}</dd>`).join('')}</dl>
@@ -1157,6 +1281,8 @@ document.addEventListener('click', e => { if (e.target.closest('[data-theme-togg
 // Covers fade in once loaded; until then their box is the skeleton.
 document.addEventListener('load', e => { if (e.target.matches?.('.cover img')) e.target.closest('.cover').classList.add('loaded'); }, true);
 document.addEventListener('error', e => { if (e.target.matches?.('.cover img')) e.target.closest('.cover').classList.add('loaded', 'broken'); }, true);
+// no portrait: the initials underneath stay
+document.addEventListener('error', e => { if (e.target.matches?.('.portrait img')) e.target.remove(); }, true);
 navigator.serviceWorker?.register('/sw.js').catch(() => { /* covers just come from the network */ });
 window.addEventListener('hashchange', route);
 window.addEventListener('unhandledrejection', e => toast(e.reason?.message ?? 'Fehler', true));

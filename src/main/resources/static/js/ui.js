@@ -35,7 +35,11 @@ export function colorFor(text) {
  * by the server), else a typographic cover in a stable colour. The typographic one lies underneath and shows when
  * the image fails; while the image loads, the box is the skeleton.
  */
-export const coverSrc = b => b.cover ?? (b.isbn13 ? `/api/covers/${b.isbn13}?v=f` : null);
+// Google's volume id, for hits without ISBN (self-published titles); its cover URL is never loaded directly (CSP)
+const googleId = url => /books\.google\.[a-z.]+\/books\/content\?.*\bid=([\w-]{6,20})/.exec(url ?? '')?.[1];
+
+export const coverSrc = b => b.cover
+  ?? (b.isbn13 ? `/api/covers/${b.isbn13}?v=f` : googleId(b.coverUrl) ? `/api/covers/google/${googleId(b.coverUrl)}` : null);
 
 export function cover(b, { lazy = true } = {}) {
   const src = coverSrc(b);
