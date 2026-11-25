@@ -32,13 +32,18 @@ export function colorFor(text) {
   return PALETTE[h % PALETTE.length];
 }
 
-/** Real cover if we have one, otherwise a typographic cover in a stable colour. */
+/**
+ * The one cover component for every list: our stored cover, else the cover of the edition by ISBN (fetched and kept
+ * by the server), else a typographic cover in a stable colour. The typographic one lies underneath and shows when
+ * the image fails; while the image loads, the box is the skeleton.
+ */
+export const coverSrc = b => b.cover ?? (b.isbn13 ? `/api/covers/${b.isbn13}` : null);
+
 export function cover(b, { lazy = true } = {}) {
-  if (b.cover) {
-    return `<div class="cover"><img src="${esc(b.cover)}" alt="" ${lazy ? 'loading="lazy"' : ''} decoding="async"></div>`;
-  }
+  const src = coverSrc(b);
   const author = (b.authors ?? [])[0] ?? '';
-  return `<div class="cover"><div class="typo" data-vars='${esc(JSON.stringify({ '--c': colorFor(b.title + author) }))}'><b>${esc(b.title)}</b><small>${esc(author)}</small></div></div>`;
+  const typo = `<div class="typo" data-vars='${esc(JSON.stringify({ '--c': colorFor(b.title + author) }))}'><b>${esc(b.title)}</b><small>${esc(author)}</small></div>`;
+  return `<div class="cover">${typo}${src ? `<img src="${esc(src)}" alt="" ${lazy ? 'loading="lazy"' : ''} decoding="async">` : ''}</div>`;
 }
 
 /** CSP forbids inline style attributes, so CSS variables travel as data-vars and are applied here. */

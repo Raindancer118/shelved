@@ -161,6 +161,15 @@ public class BookController {
         return Views.detail(books.replaceCover(owner, id, image.getBytes(), type.endsWith("png") ? "png" : "jpg"), shelfNumbers(owner));
     }
 
+    @GetMapping("/covers/{isbn}")
+    public ResponseEntity<FileSystemResource> catalogCover(@PathVariable String isbn) {
+        var path = covers.catalogCover(isbn).orElseThrow(() -> new NotFoundException("Cover"));
+        MediaType type = path.toString().endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
+        return ResponseEntity.ok().contentType(type)
+                .cacheControl(CacheControl.maxAge(Duration.ofDays(30)).cachePrivate())
+                .body(new FileSystemResource(path));
+    }
+
     /** "Hab ich das schon?" for a scanned barcode, plus catalogue data to add it right away. */
     @GetMapping("/lookup")
     public Lookup lookup(Authentication auth, @RequestParam String isbn) {

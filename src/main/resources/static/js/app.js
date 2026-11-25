@@ -1,5 +1,5 @@
 import { api, get, post, put, del, upload, poll, PUBLIC } from './api.js';
-import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor, themeButton, toggleTheme, dialog } from './ui.js';
+import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor, themeButton, toggleTheme, dialog, coverSrc } from './ui.js';
 import { liveCamera, cameraAvailable, prepareImage, capturePhoto } from './camera.js';
 
 const app = document.getElementById('app');
@@ -129,7 +129,7 @@ async function warmCovers() {
   const sw = navigator.serviceWorker?.controller;
   if (!sw) return;
   const [list, wish] = await Promise.all([books(), wishes()]).catch(() => [[], []]);
-  const urls = [...list, ...wish].map(b => b.cover).filter(Boolean).sort();
+  const urls = [...list, ...wish].map(coverSrc).filter(Boolean).sort();
   const key = urls.join();
   if (key === warmed) return;
   warmed = key;
