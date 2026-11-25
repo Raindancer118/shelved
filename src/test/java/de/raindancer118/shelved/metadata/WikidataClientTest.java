@@ -41,6 +41,15 @@ class WikidataClientTest {
     }
 
     @Test
+    void publisherNumberingIsNoSeries() {
+        // rororo numbers its paperbacks into the thousands; with 2841 titles it would win as "the biggest series"
+        server.expect(requestTo(startsWith("https://query.wikidata.org/sparql")))
+                .andRespond(withSuccess(new ClassPathResource("fixtures/wikidata-work-rororo.json"), MediaType.APPLICATION_JSON));
+
+        assertThat(client.findSeries("Marcelle, Chantal, Lisa", "Simone de Beauvoir")).isEmpty();
+    }
+
+    @Test
     void readsTheWholeCatalogInOrderWithGermanTitles() {
         server.expect(requestTo(startsWith("https://query.wikidata.org/sparql")))
                 .andRespond(withSuccess(new ClassPathResource("fixtures/wikidata-catalog-scheibenwelt.json"), MediaType.APPLICATION_JSON));

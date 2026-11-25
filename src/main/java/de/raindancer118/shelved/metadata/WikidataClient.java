@@ -67,8 +67,11 @@ public class WikidataClient {
                   OPTIONAL { ?series rdfs:label ?deLabel . FILTER(LANG(?deLabel) = "de") }
                   SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
                 } GROUP BY ?series ?seriesLabel ?deLabel ?ord""".formatted(literal(title), literal(surname));
-        // the biggest series wins: "Scheibenwelt-Romane" (63 works) over the sub-series "Rincewind" (8)
+        // the biggest series wins: "Scheibenwelt-Romane" (63 works) over the sub-series "Rincewind" (8).
+        // Publisher numbering ("Rowohlts Rotations-Romane" 4755) is no reading series, same limit as for catalogues.
         return run(query).stream()
+                .filter(b -> !b.containsKey("ord") || MarcSruClient.volumeNumber(b.get("ord").value()) != null)
+                .filter(b -> !MarcSruClient.notALiterarySeries(b.get("seriesLabel").value()))
                 .max(Comparator.comparingInt(b -> parseInt(b, "size", 0)))
                 .map(b -> new SeriesMatch(qid(b.get("series").value()),
                         cleanSeriesName((b.containsKey("deLabel") ? b.get("deLabel") : b.get("seriesLabel")).value()),
