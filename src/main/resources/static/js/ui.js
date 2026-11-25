@@ -122,3 +122,136 @@ export function dialog({ title, body, buttons }) {
     d.querySelector('.actions .btn')?.focus();
   });
 }
+
+// ---------------------------------------------------------------- 3D-Buch
+
+const EAN_L = ['0001101', '0011001', '0010011', '0111101', '0100011', '0110001', '0101111', '0111011', '0110111', '0001011'];
+const EAN_PARITY = ['LLLLLL', 'LLGLGG', 'LLGGLG', 'LLGGGL', 'LGLLGG', 'LGGLLG', 'LGGGLL', 'LGLGLG', 'LGLGGL', 'LGGLGL'];
+
+/** The EAN-13 bars of an ISBN, as printed on every back cover. */
+export function ean13(isbn) {
+  if (!/^\d{13}$/.test(isbn ?? '')) return '';
+  const d = [...isbn].map(Number);
+  const r = c => [...c].map(b => b === '1' ? '0' : '1').join('');
+  let bits = '101';
+  for (let i = 1; i <= 6; i++) bits += EAN_PARITY[d[0]][i - 1] === 'L' ? EAN_L[d[i]] : [...r(EAN_L[d[i]])].reverse().join('');
+  bits += '01010';
+  for (let i = 7; i <= 12; i++) bits += r(EAN_L[d[i]]);
+  bits += '101';
+  const guard = i => i < 3 || (i >= 45 && i < 50) || i >= 92;
+  const bars = [...bits].map((b, i) => b === '1' ? `<rect x="${i}" width="1" height="${guard(i) ? 40 : 36}"/>` : '').join('');
+  return `<svg class="ean" viewBox="0 0 95 40" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>`;
+}
+
+const SPRAYED = /farbschnitt|farbige[mnr]? (buch)?schnitt|(sprayed|stained|painted|colou?red) edges/i;
+const HEIGHT_MM = { HARDCOVER: 215, PAPERBACK: 187 };
+
+/**
+ * The book as an object: the cover in front, the real back if someone photographed it (else one set from the blurb
+ * and the ISBN), the spine, and the page block in its real thickness, coloured when the edges are sprayed.
+ * Drag to turn it, tap to flip it over. Colours for spine, back and a guessed Farbschnitt come from the cover.
+ */
+export function book3d(b, { thicknessMm, backCover = null, edgeColor = null } = {}) {
+  const pages = b.pageCount ? b.pageCount * 0.1 + (b.format === 'HARDCOVER' ? 6 : 1) : 24;
+  const t = Math.max(4, Math.round(thicknessMm ?? pages));
+  const heightMm = b.heightMm ?? HEIGHT_MM[b.format] ?? 200;
+  const sprayed = edgeColor && edgeColor !== 'none' ? edgeColor
+    : edgeColor === 'none' ? null : [b.title, b.subtitle, b.description].some(s => SPRAYED.test(s ?? '')) ? 'auto' : null;
+  const author = (b.authors ?? [])[0] ?? '';
+  const back = backCover
+    ? `<img src="${esc(backCover)}" alt="" decoding="async">`
+    : `<div class="gen">${b.description ? `<p>${esc(b.description.slice(0, 700))}</p>` : `<p class="t">${esc(b.title)}</p>`}
+        ${b.isbn13 ? `<div class="code">${ean13(b.isbn13)}<span>${esc(b.isbn13)}</span></div>` : ''}</div>`;
+  const vars = { '--ratio': (t / heightMm).toFixed(4), '--inset': b.format === 'HARDCOVER' ? '2px' : '0px' };
+  if (sprayed && sprayed !== 'auto') vars['--edge'] = sprayed;
+  return `<div class="b3d" tabindex="0" role="img" aria-label="${esc(b.title)} als 3D-Buch, zum Drehen ziehen, zum Umdrehen tippen"
+      data-vars='${esc(JSON.stringify(vars))}' ${sprayed === 'auto' ? 'data-edge="auto"' : ''}>
+    <div class="body">
+      <div class="face front">${cover(b, { lazy: false })}</div>
+      <div class="face back">${back}</div>
+      <div class="face spine"><span><b>${esc(b.title)}</b>${author ? ` <small>${esc(author)}</small>` : ''}</span></div>
+      <div class="face fore"></div><div class="face top"></div><div class="face bottom"></div>
+    </div></div>`;
+}
+
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const hex = ([r, g, b]) => '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+const ink = ([r, g, b]) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.55 ? '#161616' : '#f6f6f6';
+
+/** Spine (the cover's left edge), back (its average) and the strongest colour (a guessed Farbschnitt). */
+function coverColours(img) {
+  const c = document.createElement('canvas');
+  c.width = 32; c.height = 48;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, 0, 0, 32, 48);
+  const px = g.getImageData(0, 0, 32, 48).data;
+  const avg = (x0, x1) => {
+    const s = [0, 0, 0]; let n = 0;
+    for (let y = 0; y < 48; y++) for (let x = x0; x < x1; x++) { const i = (y * 32 + x) * 4; s[0] += px[i]; s[1] += px[i + 1]; s[2] += px[i + 2]; n++; }
+    return s.map(v => v / n);
+  };
+  let best = null, bestScore = 0;
+  for (let i = 0; i < px.length; i += 4) {
+    const [r, g2, b] = [px[i], px[i + 1], px[i + 2]];
+    const max = Math.max(r, g2, b), min = Math.min(r, g2, b);
+    const score = (max - min) * (1 - Math.abs(max + min - 255) / 255);
+    if (score > bestScore) { bestScore = score; best = [r, g2, b]; }
+  }
+  return { spine: avg(0, 2), back: avg(0, 32), strong: bestScore > 40 ? best : avg(0, 32) };
+}
+
+export function mountBook3d(root = document) {
+  root.querySelectorAll('.b3d:not([data-live])').forEach(el => {
+    el.dataset.live = '';
+    const front = el.querySelector('.front img');
+    const size = () => {
+      const h = el.clientHeight;
+      const aspect = front?.naturalWidth ? clamp(front.naturalWidth / front.naturalHeight, 0.55, 0.85) : 2 / 3;
+      el.style.setProperty('--w', `${Math.round(h * aspect)}px`);
+      el.style.setProperty('--d', `${Math.max(6, Math.round(h * Number(getComputedStyle(el).getPropertyValue('--ratio'))))}px`);
+    };
+    const colour = () => {
+      if (!front?.naturalWidth) return;
+      try {
+        const c = coverColours(front);
+        el.style.setProperty('--spine', hex(c.spine));
+        el.style.setProperty('--spine-ink', ink(c.spine));
+        el.style.setProperty('--back', hex(c.back));
+        el.style.setProperty('--back-ink', ink(c.back));
+        if (el.dataset.edge === 'auto') el.style.setProperty('--edge', hex(c.strong));
+      } catch { /* a cover from elsewhere taints the canvas; the CSS defaults stay */ }
+    };
+    const ready = () => { size(); colour(); };
+    if (front?.complete && front.naturalWidth) ready(); else { size(); front?.addEventListener('load', ready, { once: true }); }
+
+    let ry = -28, rx = -6, drag = null;
+    const set = () => { el.style.setProperty('--ry', `${ry}deg`); el.style.setProperty('--rx', `${rx}deg`); };
+    set();
+    el.addEventListener('pointerdown', e => {
+      drag = { x: e.clientX, y: e.clientY, ry, rx, moved: 0 };
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('dragging');
+    });
+    el.addEventListener('pointermove', e => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      drag.moved = Math.max(drag.moved, Math.hypot(dx, dy));
+      ry = drag.ry + dx * 0.6;
+      rx = clamp(drag.rx - dy * 0.3, -30, 30);
+      set();
+    });
+    const end = () => {
+      if (!drag) return;
+      el.classList.remove('dragging');
+      if (drag.moved < 6) { ry += 180; set(); }
+      drag = null;
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener('keydown', e => {
+      const step = { ArrowLeft: -20, ArrowRight: 20 }[e.key];
+      if (step) { ry += step; set(); e.preventDefault(); }
+      if (e.key === 'Enter' || e.key === ' ') { ry += 180; set(); e.preventDefault(); }
+    });
+  });
+}

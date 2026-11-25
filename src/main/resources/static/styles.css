@@ -174,8 +174,44 @@ p.empty { padding: 24px 0; }
 
 /* ---------- Detail ---------- */
 .stage { background: var(--soft); margin: 0 calc(var(--page) * -1); padding: 24px 0 28px; display: flex; justify-content: center; }
-.stage .cover { width: 152px; }
-.stage label { cursor: pointer; display: block; border-radius: 4px; }
+.stage > .cover { width: 200px; }
+/* The book as an object. Faces sit on a box of --w x --h x --d; hardcover boards stand --inset over the pages. */
+.b3d { --h: 300px; --w: 200px; --d: 28px; --rx: -6deg; --ry: -28deg; --inset: 0px;
+  --edge: #ebe6dc; --spine: #3b3b3b; --spine-ink: #f6f6f6; --back: #2b2b2b; --back-ink: #f6f6f6;
+  height: var(--h); width: 100%; display: grid; place-items: center; perspective: 1400px; perspective-origin: 50% 15%;
+  touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 4px; outline-offset: 8px; }
+.b3d.dragging { cursor: grabbing; }
+.b3d img { pointer-events: none; -webkit-user-drag: none; } /* else a mouse drag picks up the picture instead of turning the book */
+.b3d .body { position: relative; width: var(--w); height: var(--h); transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry)); transition: transform 700ms var(--ease); }
+.b3d.dragging .body { transition: none; }
+.b3d .face { position: absolute; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.b3d .front, .b3d .back { inset: 0; overflow: hidden; }
+.b3d .front { transform: translateZ(calc(var(--d) / 2)); border-radius: 1px 3px 3px 1px; }
+.b3d .front .cover { height: 100%; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+.b3d .back { transform: rotateY(180deg) translateZ(calc(var(--d) / 2)); border-radius: 3px 1px 1px 3px; background: var(--back); color: var(--back-ink); }
+.b3d .back img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.b3d .gen { height: 100%; padding: 12% 11%; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+.b3d .gen p { font-size: 9px; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 14; -webkit-box-orient: vertical; text-rendering: geometricPrecision; }
+.b3d .gen p.t { font: 600 13px/1.2 var(--sans); }
+.b3d .code { align-self: flex-end; width: 48%; background: #fff; padding: 4px 5px 2px; display: grid; }
+.b3d .ean { width: 100%; height: 24px; fill: #111; }
+.b3d .code span { font: 500 6px/1.4 var(--mono); color: #111; text-align: center; letter-spacing: .04em; }
+.b3d .spine { width: var(--d); height: var(--h); left: calc(50% - var(--d) / 2); transform: rotateY(-90deg) translateZ(calc(var(--w) / 2));
+  background: var(--spine); color: var(--spine-ink); filter: brightness(.86); display: grid; place-items: center; overflow: hidden; }
+.b3d .spine span { writing-mode: vertical-rl; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-height: 90%;
+  font-size: min(12px, calc(var(--d) * .42)); line-height: 1; }
+.b3d .spine b { font-weight: 600; }
+.b3d .spine small { opacity: .75; margin-top: .8em; font-size: inherit; }
+/* page block: one hairline per few sheets, on paper or on the Farbschnitt */
+.b3d .fore, .b3d .top, .b3d .bottom { background: var(--lines), var(--edge); }
+.b3d .fore { --lines: repeating-linear-gradient(90deg, rgb(0 0 0 / .07) 0 1px, transparent 1px 3px);
+  width: calc(var(--d) - 2 * var(--inset)); height: calc(var(--h) - 2 * var(--inset)); top: var(--inset);
+  left: calc(50% - (var(--d) - 2 * var(--inset)) / 2); transform: rotateY(90deg) translateZ(calc(var(--w) / 2 - var(--inset))); filter: brightness(.95); }
+.b3d .top, .b3d .bottom { --lines: repeating-linear-gradient(180deg, rgb(0 0 0 / .07) 0 1px, transparent 1px 3px);
+  width: calc(var(--w) - var(--inset)); height: calc(var(--d) - 2 * var(--inset)); left: 0; top: calc(50% - (var(--d) - 2 * var(--inset)) / 2); }
+.b3d .top { transform: rotateX(90deg) translateZ(calc(var(--h) / 2 - var(--inset))); }
+.b3d .bottom { transform: rotateX(-90deg) translateZ(calc(var(--h) / 2 - var(--inset))); filter: brightness(.8); }
 @media (min-width: 760px) { .stage { margin: 0; border-radius: 6px; } }
 .dtitle { font: 600 33px/1.1 var(--sans); letter-spacing: -0.015em; margin: 20px 0 4px; overflow-wrap: break-word; hyphens: auto; }
 .dsub { font-size: 15px; color: var(--t2); margin-bottom: 4px; }
@@ -280,6 +316,15 @@ a.row, button.row { cursor: pointer; }
 .field input, .field select, .field textarea { width: 100%; border: 1px solid var(--field); border-radius: 6px; padding: 8px 12px; background: var(--surface); min-height: var(--tap); font-size: 16px; }
 .field input::placeholder { color: var(--t3); }
 .field textarea { min-height: 120px; resize: vertical; }
+.look { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.look legend { font: 600 13px var(--sans); color: var(--t1); margin-bottom: 8px; }
+.look .sub { font: 600 13px var(--sans); color: var(--t2); margin-top: 8px; }
+.look .pics, .look .opts { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.look .pics .btn { cursor: pointer; }
+.look .opt { display: inline-flex; align-items: center; gap: 8px; min-height: var(--tap); font-size: 15px; cursor: pointer; }
+.look .note { font-size: 13px; color: var(--t3); }
+.look .opt input { width: 18px; height: 18px; accent-color: var(--ink); }
+.look input[type=color] { width: 44px; height: 32px; padding: 0; border: 1px solid var(--field); border-radius: 4px; background: none; cursor: pointer; }
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 /* ---------- Kamera & Scan ---------- */
@@ -363,6 +408,7 @@ dialog.sheet .close { position: absolute; top: 16px; right: 16px; }
   .loc b { font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .b3d .body { transition: none; }
   .cover:has(> img):not(.loaded), .skeleton .cover, .sk { animation: none; }
   .fcam-sheet { animation: fade 150ms linear; }
   .fcam-track line { display: none; }

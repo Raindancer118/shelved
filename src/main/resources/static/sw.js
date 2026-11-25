@@ -1,7 +1,7 @@
 // Keeps the covers of the library and the wish list on the device. Cover URLs carry ?v=<hash of the file>,
 // so a cached response never goes stale: a new cover is a new URL. Nothing else is touched.
 const CACHE = 'shelved-covers-v3';
-const COVER = /^\/api\/((books|wishes)\/[\w-]+\/cover|covers\/\d{13})$/;
+const COVER = /^\/api\/((books|wishes)\/[\w-]+\/(cover|back)|covers\/\d{13})$/;
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil((async () => {

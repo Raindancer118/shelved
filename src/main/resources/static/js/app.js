@@ -1,5 +1,5 @@
 import { api, get, post, put, del, upload, poll, PUBLIC } from './api.js';
-import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor, themeButton, toggleTheme, dialog, coverSrc } from './ui.js';
+import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor, themeButton, toggleTheme, dialog, coverSrc, book3d, mountBook3d } from './ui.js';
 import { liveCamera, cameraAvailable, prepareImage, capturePhoto, pickPhotos, barcodeTracker } from './camera.js';
 
 const app = document.getElementById('app');
@@ -104,7 +104,7 @@ async function addOrCopy(call) {
     return call(true);
   }
 }
-function paint(html) { clearTimeout(skeletonTimer); app.innerHTML = html; applyVars(app); }
+function paint(html) { clearTimeout(skeletonTimer); app.innerHTML = html; applyVars(app); mountBook3d(app); }
 
 // Shown when a view takes longer than a blink: the shape of what is coming, no spinner.
 let skeletonTimer;
@@ -273,7 +273,7 @@ async function viewBook(id) {
       <b>${b.copies}</b><button class="round sm" id="more" aria-label="Ein Exemplar mehr">${icons.plus}</button></dd>`;
   paint(`
     ${backBar('#/', `<a class="round" href="#/book/${b.id}/edit" aria-label="Bearbeiten">${icons.pen}</a>`)}
-    <div class="stage"><label title="Cover ändern">${cover(b, { lazy: false })}<input id="coverfile" class="sr" type="file" accept="image/jpeg,image/png"></label></div>
+    <div class="stage">${book3d(b, { thicknessMm: b.estimatedThicknessMm, backCover: b.backCover, edgeColor: b.edgeColor })}</div>
     <h1 class="dtitle">${esc(b.title)}</h1>
     ${b.subtitle ? `<p class="dsub">${esc(b.subtitle)}</p>` : ''}
     <p class="dauthor">${authorLinks(b.authors)}</p>
@@ -292,16 +292,6 @@ async function viewBook(id) {
   const setCopies = async n => { await post(`/api/books/${b.id}/copies`, { copies: n }); invalidate(); route(); };
   document.getElementById('more').addEventListener('click', () => setCopies(b.copies + 1));
   document.getElementById('less').addEventListener('click', () => setCopies(b.copies - 1));
-  document.getElementById('coverfile').addEventListener('change', async e => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const form = new FormData();
-    form.append('image', await prepareImage(file, 1200), 'cover.jpg');
-    await upload(`/api/books/${b.id}/cover`, form, 'PUT');
-    invalidate();
-    toast('Cover gespeichert');
-    route();
-  });
   document.getElementById('delete').addEventListener('click', async () => {
     if (!await ask(`„${b.title}“ löschen?`, 'Das Buch verschwindet aus der Bibliothek, samt Cover und Regalplatz.', 'Löschen', 'Abbrechen', true)) return;
     await del(`/api/books/${b.id}`);
@@ -309,6 +299,43 @@ async function viewBook(id) {
     toast('Gelöscht');
     go('/');
   });
+}
+
+/** Edit page part for the 3D book: front and back photo, and the colour of the page edges. */
+function lookFields(b) {
+  const edge = b.edgeColor == null ? 'auto' : b.edgeColor === 'none' ? 'none' : 'color';
+  const radio = (v, label) => `<label class="opt"><input type="radio" name="edge" value="${v}" ${edge === v ? 'checked' : ''}> ${label}</label>`;
+  return `<fieldset class="look"><legend>Aussehen</legend>
+      <div class="pics">
+        <label class="btn ghost">${icons.cam} Cover ersetzen<input class="sr" type="file" accept="image/jpeg,image/png" data-side="cover"></label>
+        <label class="btn ghost">${icons.cam} Rückseite ${b.backCover ? 'ersetzen' : 'fotografieren'}<input class="sr" type="file" accept="image/jpeg,image/png" data-side="back"></label>
+        ${b.backCover ? `<button class="btn ghost" type="button" id="noback">Rückseite entfernen</button>` : ''}
+      </div>
+      <p class="sub">Farbschnitt</p>
+      <div class="opts">${radio('auto', 'Automatisch')}${radio('none', 'Keiner')}
+        <span class="opt">${radio('color', 'Farbe')}<input type="color" name="edgeColor" aria-label="Farbe des Farbschnitts" value="${esc(edge === 'color' ? b.edgeColor : '#7a1f2b')}"></span></div>
+      <small class="note">Automatisch: Steht in den Katalogdaten „mit Farbschnitt“, nimmt shelved die kräftigste Farbe vom Cover.</small>
+    </fieldset>`;
+}
+
+function wireLookFields(id) {
+  document.querySelectorAll('.look input[type=file]').forEach(input => input.addEventListener('change', async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('image', await prepareImage(file, 1200), 'image.jpg');
+    await upload(`/api/books/${id}/${e.target.dataset.side}`, form, 'PUT');
+    invalidate();
+    toast(e.target.dataset.side === 'back' ? 'Rückseite gespeichert' : 'Cover gespeichert');
+    go(`/book/${id}`);
+  }));
+  document.getElementById('noback')?.addEventListener('click', async () => {
+    await del(`/api/books/${id}/back`);
+    invalidate();
+    toast('Rückseite entfernt');
+    route();
+  });
+  document.querySelector('.look input[type=color]')?.addEventListener('input', () => { document.querySelector('.look input[value=color]').checked = true; });
 }
 
 async function viewEdit(id) {
@@ -330,8 +357,10 @@ async function viewEdit(id) {
         ${field('thicknessMm', 'Dicke in mm (leer = schätzen)', b.thicknessMm, 'number', 'min="1" max="300"')}</div>
       ${field('price', 'Neupreis in €', b.listPriceCents != null ? (b.listPriceCents / 100).toFixed(2).replace('.', ',') : '', 'text', 'inputmode="decimal"')}
       <div class="field"><label for="description">Klappentext</label><textarea id="description" name="description">${esc(b.description ?? '')}</textarea></div>
+      ${id ? lookFields(b) : ''}
       <button class="btn block" type="submit">Speichern</button>
     </form>`);
+  if (id) wireLookFields(id);
   document.getElementById('f').addEventListener('submit', async e => {
     e.preventDefault();
     const f = new FormData(e.target);
@@ -347,6 +376,10 @@ async function viewEdit(id) {
     };
     const saved = id ? await put(`/api/books/${id}`, body) : await addOrCopy(another => post(`/api/books?anotherCopy=${another}`, body));
     if (!saved) return;
+    if (id) {
+      const edge = { auto: null, none: 'none', color: f.get('edgeColor') }[f.get('edge')];
+      if (edge !== (b.edgeColor ?? null)) await put(`/api/books/${id}/edge`, { color: edge });
+    }
     invalidate();
     toast('Gespeichert');
     if (!id) await askAboutWishes();
@@ -672,7 +705,7 @@ async function viewEdition(key) {
   const wish = wished ? '' : `<button class="btn ${forWish ? '' : 'ghost'}" id="wishit">${icons.bookmark} Merken</button>`;
   paint(`
     ${backBar('javascript:history.back()')}
-    <div class="stage">${cover(m, { lazy: false })}</div>
+    <div class="stage">${book3d(m)}</div>
     <h1 class="dtitle">${esc(m.title)}</h1>
     ${m.subtitle ? `<p class="dsub">${esc(m.subtitle)}</p>` : ''}
     <p class="dauthor">${authorLinks(m.authors)}</p>
@@ -934,7 +967,7 @@ async function viewWish(id) {
   ].filter(([, v]) => v);
   paint(`
     ${backBar('#/wishes')}
-    <div class="stage">${cover(w, { lazy: false })}</div>
+    <div class="stage">${book3d(w)}</div>
     <h1 class="dtitle">${esc(w.title)}</h1>
     ${w.subtitle ? `<p class="dsub">${esc(w.subtitle)}</p>` : ''}
     <p class="dauthor">${authorLinks(w.authors)}</p>
