@@ -46,7 +46,9 @@ public class CoverStore {
         return java.util.stream.Stream.of(
                         metadataCoverUrl,
                         isbn13 == null ? null : "https://portal.dnb.de/opac/mvb/cover?isbn=" + isbn13,
-                        isbn13 == null ? null : "https://covers.openlibrary.org/b/isbn/" + isbn13 + "-L.jpg?default=false")
+                        isbn13 == null ? null : "https://covers.openlibrary.org/b/isbn/" + isbn13 + "-L.jpg?default=false",
+                        // English editions are often only known to Google; for unknown ISBNs it sends a 1 KB placeholder (below MIN_BYTES)
+                        isbn13 == null ? null : "https://books.google.com/books/content?printsec=frontcover&img=1&zoom=1&vid=ISBN" + isbn13)
                 .filter(Objects::nonNull).distinct().toList();
     }
 

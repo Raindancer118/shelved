@@ -47,9 +47,23 @@ class CoverStoreTest {
     void noCoverAnywhereIsRememberedSoHitListsDontAskAgain() {
         server.expect(ExpectedCount.once(), requestTo("https://portal.dnb.de/opac/mvb/cover?isbn=9783000000002")).andRespond(withResourceNotFound());
         server.expect(ExpectedCount.once(), requestTo("https://covers.openlibrary.org/b/isbn/9783000000002-L.jpg?default=false")).andRespond(withResourceNotFound());
+        server.expect(ExpectedCount.once(), requestTo(GOOGLE + "9783000000002")).andRespond(withSuccess(new byte[1_269], MediaType.IMAGE_PNG));
 
         assertThat(covers.catalogCover("9783000000002")).isEmpty();
         assertThat(covers.catalogCover("9783000000002")).isEmpty();
+        server.verify();
+    }
+
+    private static final String GOOGLE = "https://books.google.com/books/content?printsec=frontcover&img=1&zoom=1&vid=ISBN";
+
+    /** English editions: neither the DNB nor Open Library know them, Google Books does. */
+    @Test
+    void googleBooksIsTheLastResort() {
+        server.expect(requestTo("https://portal.dnb.de/opac/mvb/cover?isbn=9781250377272")).andRespond(withResourceNotFound());
+        server.expect(requestTo("https://covers.openlibrary.org/b/isbn/9781250377272-L.jpg?default=false")).andRespond(withResourceNotFound());
+        server.expect(requestTo(GOOGLE + "9781250377272")).andRespond(withSuccess(new byte[15_000], MediaType.IMAGE_JPEG));
+
+        assertThat(covers.catalogCover("9781250377272")).isPresent();
         server.verify();
     }
 
