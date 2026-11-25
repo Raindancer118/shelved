@@ -37,6 +37,8 @@
         <dependency><groupId>com.google.zxing</groupId><artifactId>core</artifactId><version>3.5.4</version></dependency>
         <dependency><groupId>com.google.zxing</groupId><artifactId>javase</artifactId><version>3.5.4</version></dependency>
         <dependency><groupId>com.drewnoakes</groupId><artifactId>metadata-extractor</artifactId><version>2.22.0</version></dependency>
+        <!-- the data export PDF is laid out in HTML/CSS (house style, cover grid) and rendered here -->
+        <dependency><groupId>io.github.openhtmltopdf</groupId><artifactId>openhtmltopdf-pdfbox</artifactId><version>1.1.117</version></dependency>
         <dependency><groupId>com.github.librepdf</groupId><artifactId>openpdf</artifactId><version>3.0.5</version>
             <!-- brotli only for compressed fonts; its native lib is glibc-only and the image is alpine -->
             <exclusions><exclusion><groupId>com.aayushatharva.brotli4j</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>

@@ -15,10 +15,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /** Registration, confirmation, password login and reset, and everything a person may do with their account. */
@@ -37,12 +34,17 @@ public class AccountService {
     private final ShelvedProperties props;
     private final JsonMapper json;
     private final LoginThrottle throttle;
+    private final DataExport export;
+    private final de.raindancer118.shelved.book.CoverStore covers;
     private final PasswordEncoder encoder = new BCryptPasswordEncoder(12);
     // same cost for unknown addresses, so timing doesn't tell which accounts exist
     private final String dummyHash = encoder.encode("unknown-account-dummy");
 
     public AccountService(AccountRepository accounts, AccountTokenRepository tokens, MembershipRepository memberships,
-                          LibraryService libraries, Mailer mailer, ShelvedProperties props, JsonMapper json, LoginThrottle throttle) {
+                          LibraryService libraries, Mailer mailer, ShelvedProperties props, JsonMapper json, LoginThrottle throttle,
+                          DataExport export, de.raindancer118.shelved.book.CoverStore covers) {
+        this.export = export;
+        this.covers = covers;
         this.accounts = accounts;
         this.tokens = tokens;
         this.memberships = memberships;
@@ -215,23 +217,19 @@ public class AccountService {
         if (a.getEmail() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Zu deinem Konto ist keine E-Mail-Adresse hinterlegt");
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("exportiertAm", Instant.now().toString());
-        data.put("konto", Map.of("id", a.getId(), "email", a.getEmail(), "name", String.valueOf(a.getDisplayName()),
-                "angelegtAm", a.getCreatedAt().toString(), "emailBestaetigt", a.isEmailVerified(),
-                "anmeldungUeberPortal", a.getOidcSubject() != null, "passwortGesetzt", a.getPasswordHash() != null));
-        List<Map<String, Object>> libs = memberships.findByAccountIdOrderByCreatedAt(accountId).stream()
-                .map(m -> Map.<String, Object>of("bibliothek", libraries.library(m.getLibraryId()).getName(),
-                        "rolle", m.getRole().name(), "mitgliedSeit", m.getCreatedAt().toString()))
-                .toList();
-        data.put("mitgliedschaften", libs);
-        byte[] body = json.writerWithDefaultPrettyPrinter().writeValueAsString(data).getBytes(StandardCharsets.UTF_8);
+        DataExport.Export data = export.collect(a);
+        byte[] pdf = ExportPdf.render(data, file -> covers.path(file).map(covers::flat));
+        byte[] machine = json.writerWithDefaultPrettyPrinter().writeValueAsString(data).getBytes(StandardCharsets.UTF_8);
         mailer.send(new Mailer.Mail(a.getEmail(), "Deine Daten bei shelved", """
                 Hallo %s,
 
-                im Anhang findest du alle Daten, die shelved zu deinem Konto speichert (Art. 15 DSGVO).
-                Die Bücher deiner Bibliotheken kannst du jederzeit unter Statistik als Liste herunterladen.
-                """.formatted(greeting(a)), "shelved-daten.json", body));
+                im Anhang findest du alles, was shelved über dich speichert (Art. 15 DSGVO):
+
+                shelved-daten.pdf   zum Lesen und Ausdrucken, mit allen Büchern, deiner Wunschliste und deinen Regalen
+                shelved-daten.json  dieselben Daten maschinenlesbar, zum Mitnehmen in eine andere App
+                """.formatted(greeting(a)), List.of(
+                new Mailer.Attachment("shelved-daten.pdf", "application/pdf", pdf),
+                new Mailer.Attachment("shelved-daten.json", "application/json", machine))));
     }
 
     // ------------------------------------------------------------------ helpers

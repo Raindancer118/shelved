@@ -11,4 +11,8 @@ public interface ScanRepository extends JpaRepository<Scan, UUID> {
     java.util.List<Scan> findByStatus(Scan.Status status);
 
     java.util.List<Scan> findByOwnerIdAndModeAndStatusAndPhotoFileNotNullOrderByCreatedAtDesc(String ownerId, Scan.Mode mode, Scan.Status status);
+
+    long countByOwnerId(String ownerId);
+
+    long countByOwnerIdAndPhotoFileNotNull(String ownerId);
 }

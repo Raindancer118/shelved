@@ -1276,7 +1276,7 @@ async function viewAccount() {
       <button class="btn ghost" type="submit">Passwort speichern</button></form>
 
     <h3 class="sec">Daten</h3>
-    <p class="note">Eine Kopie aller Daten zu deinem Konto kommt als Datei per Mail an deine Adresse.</p>
+    <p class="note">Alles, was shelved über dich speichert, kommt per Mail: als PDF mit allen Büchern, Wünschen und Regalen zum Lesen und als JSON-Datei zum Mitnehmen.</p>
     <div class="actions"><button class="btn ghost" id="export">Datenauskunft anfordern</button><button class="btn quiet" id="logout">Abmelden</button></div>
 
     <h3 class="sec">Konto löschen</h3>

@@ -1,5 +1,6 @@
 package de.raindancer118.shelved;
 
+import de.raindancer118.shelved.account.Mailer;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -210,14 +212,27 @@ class AccountFlowTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    /** Art. 15 GDPR: everything about the person, as a readable PDF and as machine-readable JSON (Art. 20). */
     @Test
-    void dataExportArrivesByMail() throws Exception {
+    void dataExportArrivesByMailAsPdfAndJsonWithAllBooks() throws Exception {
         register("auskunft@example.org", "lang-genug-123", "Auskunft");
         Cookie s = login("auskunft@example.org", "lang-genug-123");
+        json(post("/api/books"), "{\"title\":\"Momo\",\"authors\":[\"Michael Ende\"]}", s).andExpect(status().isCreated());
+        json(post("/api/wishes"), "{\"title\":\"Die unendliche Geschichte\",\"authors\":[\"Michael Ende\"]}", s).andExpect(status().isCreated());
+
         json(post("/api/account/export"), "{}", s).andExpect(status().isAccepted());
-        var m = mail.last("auskunft@example.org");
+
+        // the PDF is rendered in the background; the registration mail came before
+        var m = await().until(() -> mail.lastOrNull("auskunft@example.org"), x -> x != null && x.subject().contains("Daten"));
         assertThat(m.subject()).contains("Daten");
-        assertThat(m.attachmentName()).endsWith(".json");
-        assertThat(new String(m.attachment(), StandardCharsets.UTF_8)).contains("auskunft@example.org", "Auskunft", "OWNER");
+        assertThat(m.attachments()).extracting(Mailer.Attachment::name).containsExactly("shelved-daten.pdf", "shelved-daten.json");
+
+        byte[] pdf = m.attachments().get(0).bytes();
+        try (var doc = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            String text = new org.apache.pdfbox.text.PDFTextStripper().getText(doc).replaceAll("\\s+", " "); // titles wrap in the cards
+            assertThat(text).contains("Deine Daten", "auskunft@example.org", "Momo", "Die unendliche Geschichte", "Eigentümer");
+        }
+        assertThat(new String(m.attachments().get(1).bytes(), StandardCharsets.UTF_8))
+                .contains("auskunft@example.org", "Auskunft", "OWNER", "Momo", "Die unendliche Geschichte");
     }
 }
