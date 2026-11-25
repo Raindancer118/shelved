@@ -284,9 +284,11 @@ async function viewBook(id) {
     </div>
     <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v.mono ? `<span class="mono">${esc(v.mono)}</span>` : esc(v)}</dd>`).join('')}${copiesRow}</dl>
     ${b.description ? `<p class="blurb clamp" id="blurb">${esc(b.description)}</p>` : ''}
+    ${insightsSlot(b.isbn13, b.title, (b.authors ?? [])[0])}
     <div class="actions"><a class="btn ghost" href="#/book/${b.id}/edit">${icons.pen} Bearbeiten</a><button class="btn danger" id="delete">Löschen</button></div>`);
 
   document.getElementById('blurb')?.addEventListener('click', e => e.currentTarget.classList.toggle('clamp'));
+  fillInsights();
   const setCopies = async n => { await post(`/api/books/${b.id}/copies`, { copies: n }); invalidate(); route(); };
   document.getElementById('more').addEventListener('click', () => setCopies(b.copies + 1));
   document.getElementById('less').addEventListener('click', () => setCopies(b.copies - 1));
@@ -569,6 +571,40 @@ const authorHint = (q, wish = false) => q.trim().length < 3 ? ''
   : `<div class="list"><a class="row" href="#/${wish ? 'wishes/add' : 'add'}?eingabe&autoren&q=${encodeURIComponent(q.trim())}"><span class="portrait"><i>${icons.user}</i></span>
     <div class="grow"><b>Autoren zu „${esc(q.trim())}“</b><small>Profil mit allen Büchern auf Deutsch</small></div>${icons.next}</a></div>`;
 
+/** ISBN-13 (978…) to ISBN-10, which Amazon uses as product number for books. */
+function isbn10(isbn13) {
+  if (!/^978\d{10}$/.test(isbn13 ?? '')) return null;
+  const core = isbn13.slice(3, 12);
+  const sum = [...core].reduce((acc, d, i) => acc + Number(d) * (10 - i), 0);
+  const check = (11 - (sum % 11)) % 11;
+  return core + (check === 10 ? 'X' : String(check));
+}
+
+/**
+ * What others think and where to buy: star averages from the sources that allow showing them, and the shops'
+ * pages for this ISBN. Loaded after the page, it never holds it up.
+ */
+const insightsSlot = (isbn, title = '', author = '') => isbn
+  ? `<div id="insights" data-isbn="${esc(isbn)}" data-title="${esc(title)}" data-author="${esc(author)}"></div>` : '';
+async function fillInsights() {
+  const slot = document.getElementById('insights');
+  if (!slot) return;
+  const isbn = slot.dataset.isbn;
+  const q = new URLSearchParams({ isbn, title: slot.dataset.title, author: slot.dataset.author });
+  const ratings = await get(`/api/ratings?${q}`).catch(() => []);
+  const ten = isbn10(isbn);
+  const shops = [
+    ten && ['Amazon', `https://www.amazon.de/dp/${ten}`],
+    ['Thalia', `https://www.thalia.de/suche?sq=${isbn}`],
+    ['Hugendubel', `https://www.hugendubel.de/de/search?searchTerm=${isbn}`],
+  ].filter(Boolean);
+  slot.innerHTML = `${ratings.length ? `<h3 class="sec">Bewertungen</h3><div class="list">${ratings.map(r => `<div class="row">
+      <span class="stars" aria-label="${r.average.toLocaleString('de-DE', { maximumFractionDigits: 1 })} von 5 Sternen">${'★'.repeat(Math.round(r.average))}<s>${'★'.repeat(5 - Math.round(r.average))}</s></span>
+      <div class="grow"><b>${r.average.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} von 5</b><small>${r.count.toLocaleString('de-DE')} ${r.count === 1 ? 'Bewertung' : 'Bewertungen'} bei ${esc(r.source)}</small></div></div>`).join('')}</div>` : ''}
+    <h3 class="sec">Im Shop ansehen</h3>
+    <div class="chips">${shops.map(([n, u]) => `<a class="chip" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(n)} ↗</a>`).join('')}</div>`;
+}
+
 /** Links an author's name to their profile. */
 const authorLinks = list => (list ?? []).map(n => `<a class="author-link" href="#/autor/${encodeURIComponent(n)}">${esc(n)}</a>`).join(', ');
 
@@ -644,8 +680,10 @@ async function viewEdition(key) {
       <div class="grow"><b>Steht auf deiner Wunschliste</b></div>${icons.next}</a></div>` : ''}
     <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v.mono ? `<span class="mono">${esc(v.mono)}</span>` : esc(v)}</dd>`).join('')}</dl>
     ${m.description ? `<p class="blurb clamp" id="blurb">${esc(m.description)}</p>` : ''}
+    ${insightsSlot(m.isbn13, m.title, (m.authors ?? [])[0])}
     ${owned.length ? '' : `<div class="actions">${forWish ? wish + add : add + wish}</div>`}`);
   document.getElementById('blurb')?.addEventListener('click', e => e.currentTarget.classList.toggle('clamp'));
+  fillInsights();
   document.getElementById('take')?.addEventListener('click', async e => {
     const btn = e.currentTarget;
     btn.disabled = true;
@@ -901,10 +939,14 @@ async function viewWish(id) {
     ${w.ownedBookId ? `<div class="list"><a class="row" href="#/book/${w.ownedBookId}"><span class="tag owned">Hast du</span>
       <div class="grow"><b>Steht schon in deiner Bibliothek</b></div>${icons.next}</a></div>` : ''}
     <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v.mono ? `<span class="mono">${esc(v.mono)}</span>` : esc(v)}</dd>`).join('')}</dl>
+    ${w.description ? `<p class="blurb clamp" id="blurb">${esc(w.description)}</p>` : ''}
+    ${insightsSlot(w.isbn13, w.title, (w.authors ?? [])[0])}
     <div class="actions">
       ${w.ownedBookId ? '' : `<button class="btn" id="take">${icons.plus} In die Bibliothek</button>`}
       <button class="btn ghost" id="drop">${icons.x} Von der Liste nehmen</button>
     </div>`);
+  document.getElementById('blurb')?.addEventListener('click', e => e.currentTarget.classList.toggle('clamp'));
+  fillInsights();
   document.getElementById('take')?.addEventListener('click', async e => {
     const btn = e.currentTarget;
     btn.disabled = true;
