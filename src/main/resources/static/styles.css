@@ -50,7 +50,8 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; }
-body { background: var(--bg); color: var(--t1); font: 400 15px/1.5 var(--sans); min-height: 100dvh; font-variant-numeric: tabular-nums; }
+/* A long word with the phone's text size turned up must never widen the page. */
+body { overflow-x: clip; background: var(--bg); color: var(--t1); font: 400 15px/1.5 var(--sans); min-height: 100dvh; font-variant-numeric: tabular-nums; }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
@@ -62,6 +63,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .row:focus-vi
 .app.wide { max-width: 1300px; }
 
 /* ---------- Kopf ---------- */
+.head > div:first-child { min-width: 0; }
 .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin: 8px 0 16px; }
 .head h1 { font: 600 33px/1.1 var(--sans); letter-spacing: -0.015em; }
 .head small { display: block; font-size: 13px; color: var(--t3); margin-top: 4px; }
@@ -98,6 +100,8 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity var(--dur-menu) var(--ease); }
 .cover.loaded img { opacity: 1; }
 .cover.broken img { display: none; }
+/* the typographic cover waits underneath: hidden while an image is coming, shown if it never does */
+.cover:has(> img):not(.broken) .typo { visibility: hidden; }
 /* Loading: the empty cover box and grey lines in the shape of the content. */
 .cover:has(> img):not(.loaded), .skeleton .cover, .sk { animation: sk-pulse 1.1s ease-in-out infinite alternate; }
 @keyframes sk-pulse { from { opacity: 1; } to { opacity: .55; } }
@@ -114,10 +118,10 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .typo small { font: 500 11px var(--sans); opacity: .85; }
 
 /* ---------- Raster ---------- */
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 12px; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 12px; }
 @media (min-width: 560px) { .grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 24px 16px; } }
 .book { display: block; cursor: pointer; border-radius: 4px; }
-.book b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font: 600 13px/1.3 var(--sans); margin-top: 8px; }
+.book b { overflow-wrap: break-word; hyphens: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font: 600 13px/1.3 var(--sans); margin-top: 8px; }
 .book small { display: block; font-size: 12px; color: var(--t3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cv-wrap { position: relative; }
 .copies { position: absolute; right: 4px; bottom: 4px; font: 500 11px var(--mono); background: var(--ink); color: var(--on-ink); border-radius: 4px; padding: 2px 6px; }
@@ -182,7 +186,7 @@ small.dauthor { display: block; font-size: 13px; color: var(--t3); }
 .loc b.mono { font: 500 22px/1.1 var(--mono); letter-spacing: -0.02em; }
 .loc small { display: block; font-size: 13px; color: var(--t3); margin-top: 4px; }
 .loc strong { color: var(--t1); font: 500 13px var(--mono); }
-dl.facts { display: grid; grid-template-columns: auto 1fr; font-size: 14px; }
+dl.facts { display: grid; grid-template-columns: auto minmax(0, 1fr); font-size: 14px; }
 dl.facts dt, dl.facts dd { padding: 12px 0; border-bottom: var(--hw) solid var(--hair); }
 dl.facts dt { color: var(--t3); padding-right: 16px; }
 dl.facts dd { text-align: right; overflow-wrap: anywhere; }
@@ -236,7 +240,7 @@ a.row, button.row { cursor: pointer; }
 .series-row em.miss { color: var(--t1); }
 .series-row small { display: block; color: var(--t3); font-size: 13px; }
 .series-row .track { margin: 8px 0 0; }
-.sgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.sgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 @media (min-width: 560px) { .sgrid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); } }
 .vol { position: relative; display: block; border-radius: 4px; }
 .vol .no { position: absolute; top: 4px; left: 4px; font: 500 11px var(--mono); background: var(--surface); color: var(--t1); border-radius: 4px; padding: 0 4px; box-shadow: 0 0 0 var(--hw) var(--hair); }
@@ -264,7 +268,7 @@ a.row, button.row { cursor: pointer; }
 .strip i.new { outline: 2px solid var(--t1); outline-offset: 1px; }
 .strip i.move { outline: 2px solid var(--warn); outline-offset: 1px; }
 /* Numbers in one row, hairlines between them. */
-.summary { display: grid; grid-template-columns: repeat(3, 1fr); margin: 4px 0 20px; border-top: var(--hw) solid var(--hair); border-bottom: var(--hw) solid var(--hair); }
+.summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 4px 0 20px; border-top: var(--hw) solid var(--hair); border-bottom: var(--hw) solid var(--hair); }
 .summary div { padding: 12px 0 12px 12px; font-size: 13px; color: var(--t3); }
 .summary div:first-child { padding-left: 0; }
 .summary div + div { border-left: var(--hw) solid var(--hair); }
@@ -273,8 +277,8 @@ a.row, button.row { cursor: pointer; }
 /* ---------- Statistik ---------- */
 .value { font: 600 clamp(46px, 14vw, 72px) / 1 var(--sans); letter-spacing: -0.03em; margin: 8px 0; }
 .value small { font-size: .45em; letter-spacing: 0; }
-.kpis { display: grid; grid-template-columns: repeat(2, 1fr); border-top: var(--hw) solid var(--hair); margin-top: 20px; }
-@media (min-width: 760px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: var(--hw) solid var(--hair); margin-top: 20px; }
+@media (min-width: 760px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .kpis div { padding: 16px 0; border-bottom: var(--hw) solid var(--hair); }
 .kpis b { display: block; font: 600 24px/1.2 var(--sans); }
 .kpis span { font-size: 13px; color: var(--t3); }
@@ -285,7 +289,7 @@ a.row, button.row { cursor: pointer; }
 .field input, .field select, .field textarea { width: 100%; border: 1px solid var(--field); border-radius: 6px; padding: 8px 12px; background: var(--surface); min-height: var(--tap); font-size: 16px; }
 .field input::placeholder { color: var(--t3); }
 .field textarea { min-height: 120px; resize: vertical; }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 /* ---------- Kamera & Scan ---------- */
 .result { margin-top: 16px; max-width: 560px; }
