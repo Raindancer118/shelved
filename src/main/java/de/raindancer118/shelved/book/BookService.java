@@ -149,6 +149,7 @@ public class BookService {
         Book b = get(owner, id);
         books.delete(b);
         covers.delete(b.getCoverFile());
+        covers.delete(b.getBackCoverFile());
     }
 
     @Transactional
@@ -157,6 +158,35 @@ public class BookService {
         String old = b.getCoverFile();
         b.setCoverFile(covers.save(b.getId(), image, ext));
         covers.delete(old);
+        return b;
+    }
+
+    @Transactional
+    public Book replaceBack(String owner, UUID id, byte[] image, String ext) {
+        Book b = get(owner, id);
+        String old = b.getBackCoverFile();
+        b.setBackCoverFile(covers.save(b.getId(), image, ext));
+        covers.delete(old);
+        return b;
+    }
+
+    @Transactional
+    public Book removeBack(String owner, UUID id) {
+        Book b = get(owner, id);
+        covers.delete(b.getBackCoverFile());
+        b.setBackCoverFile(null);
+        return b;
+    }
+
+    /** {@code #rrggbb}, {@code none} for plain edges, or null to let the page guess again. */
+    @Transactional
+    public Book setEdgeColor(String owner, UUID id, String color) {
+        String c = color == null || color.isBlank() ? null : color.trim().toLowerCase(java.util.Locale.ROOT);
+        if (c != null && !c.equals("none") && !c.matches("#[0-9a-f]{6}")) {
+            throw new IllegalArgumentException("Farbe als #rrggbb");
+        }
+        Book b = get(owner, id);
+        b.setEdgeColor(c);
         return b;
     }
 

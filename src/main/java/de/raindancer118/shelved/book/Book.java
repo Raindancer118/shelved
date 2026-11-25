@@ -48,6 +48,9 @@ public class Book {
     private String description;
     private Integer listPriceCents;
     private String coverFile;
+    private String backCoverFile;
+    /** Colour of sprayed page edges as #rrggbb, "none" for plain ones, null when nobody said. */
+    private String edgeColor;
     private String metadataSource;
     private UUID shelfId;
     private Integer boardNumber;
@@ -123,6 +126,10 @@ public class Book {
     public void setListPriceCents(Integer listPriceCents) { this.listPriceCents = listPriceCents; }
     public String getCoverFile() { return coverFile; }
     public void setCoverFile(String coverFile) { this.coverFile = coverFile; }
+    public String getBackCoverFile() { return backCoverFile; }
+    public void setBackCoverFile(String backCoverFile) { this.backCoverFile = backCoverFile; }
+    public String getEdgeColor() { return edgeColor; }
+    public void setEdgeColor(String edgeColor) { this.edgeColor = edgeColor; }
     public String getMetadataSource() { return metadataSource; }
     public void setMetadataSource(String metadataSource) { this.metadataSource = metadataSource; }
     public UUID getShelfId() { return shelfId; }

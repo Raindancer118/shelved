@@ -28,7 +28,7 @@ public final class Views {
                              String description,
                              Integer listPriceCents, Integer usedPriceCents, Integer buybackPriceCents, String cover, UUID shelfId,
                              Integer boardNumber, Integer boardPosition, String location, String metadataSource,
-                             int copies, Instant createdAt) {
+                             int copies, Instant createdAt, String backCover, String edgeColor) {
     }
 
     public static String cover(Book b) {
@@ -48,8 +48,11 @@ public final class Views {
                 UsedPriceEstimator.privateCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 UsedPriceEstimator.buybackCents(b.getListPriceCents(), b.getFormat(), b.getPublishedYear(), Year.now().getValue()),
                 cover(b), b.getShelfId(), b.getBoardNumber(), b.getBoardPosition(), location(b, shelfNumbers),
-                b.getMetadataSource(), b.getCopies(), b.getCreatedAt());
+                b.getMetadataSource(), b.getCopies(), b.getCreatedAt(),
+                b.getBackCoverFile() == null ? null : "/api/books/" + b.getId() + "/back?v=" + b.getBackCoverFile().hashCode(),
+                b.getEdgeColor());
     }
+
 
     static String location(Book b, Map<UUID, Integer> shelfNumbers) {
         if (b.getShelfId() == null) {

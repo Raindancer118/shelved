@@ -152,11 +152,42 @@ public class BookController {
     @PutMapping(value = "/books/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Views.BookDetail uploadCover(Authentication auth, @PathVariable UUID id, @RequestParam("image") MultipartFile image) throws IOException {
         String owner = Owner.of(auth);
+        return Views.detail(books.replaceCover(owner, id, image.getBytes(), imageExt(image)), shelfNumbers(owner));
+    }
+
+    private static String imageExt(MultipartFile image) {
         String type = image.getContentType() == null ? "" : image.getContentType();
         if (!type.equals("image/jpeg") && !type.equals("image/png")) {
             throw new IllegalArgumentException("Nur JPEG oder PNG");
         }
-        return Views.detail(books.replaceCover(owner, id, image.getBytes(), type.endsWith("png") ? "png" : "jpg"), shelfNumbers(owner));
+        return type.endsWith("png") ? "png" : "jpg";
+    }
+
+    @GetMapping("/books/{id}/back")
+    public ResponseEntity<FileSystemResource> back(Authentication auth, @PathVariable UUID id) {
+        Book b = books.get(Owner.of(auth), id);
+        return CoverResponse.of(covers.path(b.getBackCoverFile()).orElseThrow(() -> new NotFoundException("Rückseite")), true);
+    }
+
+    @PutMapping(value = "/books/{id}/back", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Views.BookDetail uploadBack(Authentication auth, @PathVariable UUID id, @RequestParam("image") MultipartFile image) throws IOException {
+        String owner = Owner.of(auth);
+        return Views.detail(books.replaceBack(owner, id, image.getBytes(), imageExt(image)), shelfNumbers(owner));
+    }
+
+    @DeleteMapping("/books/{id}/back")
+    public Views.BookDetail removeBack(Authentication auth, @PathVariable UUID id) {
+        String owner = Owner.of(auth);
+        return Views.detail(books.removeBack(owner, id), shelfNumbers(owner));
+    }
+
+    public record EdgeInput(String color) {
+    }
+
+    @PutMapping("/books/{id}/edge")
+    public Views.BookDetail edge(Authentication auth, @PathVariable UUID id, @RequestBody EdgeInput in) {
+        String owner = Owner.of(auth);
+        return Views.detail(books.setEdgeColor(owner, id, in.color()), shelfNumbers(owner));
     }
 
     @GetMapping("/covers/{isbn}")
