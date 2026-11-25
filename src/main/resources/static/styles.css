@@ -225,33 +225,6 @@ a.row, button.row { cursor: pointer; }
 .tag.owned::before { background: var(--live); }
 .tag.move::before, .tag.unsure::before { background: var(--warn); }
 
-/* ---------- Reihen ---------- */
-.big { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-.big b { font: 600 52px/1 var(--sans); letter-spacing: -0.03em; }
-.big span { font-size: 15px; color: var(--t2); }
-.track { height: 4px; background: var(--soft); border-radius: 2px; margin: 12px 0 16px; overflow: hidden; }
-.track i { display: block; height: 100%; width: var(--p, 0%); background: var(--t1); }
-.track.done i { background: var(--live); }
-.track.unknown i { background: var(--line-strong); }
-.series-row { display: block; padding: 16px 0; }
-.series-row .top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
-.series-row b { font: 600 15px var(--sans); }
-.series-row em { font-style: normal; font-size: 13px; color: var(--t3); white-space: nowrap; }
-.series-row em.miss { color: var(--t1); }
-.series-row small { display: block; color: var(--t3); font-size: 13px; }
-.series-row .track { margin: 8px 0 0; }
-.sgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-@media (min-width: 560px) { .sgrid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); } }
-.vol { position: relative; display: block; border-radius: 4px; }
-.vol .no { position: absolute; top: 4px; left: 4px; font: 500 11px var(--mono); background: var(--surface); color: var(--t1); border-radius: 4px; padding: 0 4px; box-shadow: 0 0 0 var(--hw) var(--hair); }
-/* An empty slot on the shelf: dashed outline of the missing spine, the one dashed line in the app. */
-.vol.miss { border: 0; background: none; padding: 0; text-align: left; cursor: pointer; width: 100%; }
-.vol.miss .ph { aspect-ratio: 2 / 3; border: 1px dashed var(--line-strong); border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 8px; font: 600 11px/1.25 var(--sans); color: var(--t2); overflow-wrap: anywhere;
-  transition: background-color var(--dur-press) var(--ease); }
-.vol.miss .ph em { font-style: normal; font-weight: 500; color: var(--t3); }
-.vol.miss.wished .ph { border-style: solid; border-color: var(--t1); }
-.vol.miss.wished .ph em { color: var(--t1); }
-@media (hover: hover) { .vol.miss:hover .ph { background: var(--soft); } }
 .note { font-size: 13px; color: var(--t3); margin: 12px 0; max-width: 68ch; }
 .note.warn { color: var(--warn); }
 
@@ -368,7 +341,6 @@ dialog.sheet .close { position: absolute; top: 16px; right: 16px; }
 @media (max-width: 480px) {
   .head h1, .dtitle { font-size: 28px; }
   .empty h2 { font-size: 22px; }
-  .big b { font-size: 44px; }
   .value { font-size: clamp(40px, 12vw, 56px); }
   .loc b { font-size: 20px; }
 }

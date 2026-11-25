@@ -5,17 +5,13 @@ const svg = d => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${d}</sv
 // Lucide shapes, drawn with the stroke settings from styles.css (2 px, square caps).
 export const icons = {
   back: svg('<path d="m15 18-6-6 6-6"/>'),
-  next: svg('<path d="m9 18 6-6-6-6"/>'),
   cam: svg('<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>'),
-  barcode: svg('<path d="M3 5v14M8 5v14M12 5v14M17 5v14M21 5v14"/>'),
   book: svg('<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>'),
-  shelf: svg('<path d="m16 6 4 14M12 6v14M8 8v12M4 4v16"/>'),
   pen: svg('<path d="M21.17 6.81a2.82 2.82 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/>'),
   plus: svg('<path d="M5 12h14M12 5v14"/>'),
   minus: svg('<path d="M5 12h14"/>'),
   keyboard: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>'),
   search: svg('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
-  refresh: svg('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>'),
   check: svg('<path d="M20 6 9 17l-5-5"/>'),
   x: svg('<path d="M18 6 6 18M6 6l12 12"/>'),
   image: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/>'),
