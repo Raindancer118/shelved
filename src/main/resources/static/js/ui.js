@@ -5,6 +5,7 @@ const svg = d => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${d}</sv
 // Lucide shapes, drawn with the stroke settings from styles.css (2 px, square caps).
 export const icons = {
   back: svg('<path d="m15 18-6-6 6-6"/>'),
+  next: svg('<path d="m9 18 6-6-6-6"/>'),
   cam: svg('<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>'),
   book: svg('<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>'),
   pen: svg('<path d="M21.17 6.81a2.82 2.82 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/>'),

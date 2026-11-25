@@ -78,6 +78,12 @@ public class WishController {
         return ResponseEntity.status(a.created() ? HttpStatus.CREATED : HttpStatus.OK).body(view(a.wish(), null));
     }
 
+    @GetMapping("/{id}")
+    public WishView get(Authentication auth, @PathVariable UUID id) {
+        var e = wishes.entry(Owner.of(auth), id);
+        return view(e.wish(), e.owned());
+    }
+
     @PostMapping("/resolve")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resolve(Authentication auth, @Valid @RequestBody Resolve in) {

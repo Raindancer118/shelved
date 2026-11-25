@@ -93,6 +93,13 @@ public class WishService {
         return new Added(wishes.save(w), true);
     }
 
+    /** One wish and, if the library has it by now, that book. */
+    @Transactional(readOnly = true)
+    public Entry entry(String owner, UUID id) {
+        Wish w = get(owner, id);
+        return new Entry(w, owned(books.all(owner), w).orElse(null));
+    }
+
     @Transactional(readOnly = true)
     public Wish get(String owner, UUID id) {
         return wishes.findByIdAndOwnerId(id, owner).orElseThrow(() -> new NotFoundException("Wunsch"));

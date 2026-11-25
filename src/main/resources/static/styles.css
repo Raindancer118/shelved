@@ -207,6 +207,9 @@ h3.sec { font: 600 17px var(--sans); margin: 32px 0 8px; }
 .row { display: flex; gap: 12px; align-items: center; padding: 12px 0; min-height: 56px; width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-top: 0; cursor: default; }
 a.row, button.row { cursor: pointer; }
 .row .cover { width: 40px; flex: none; }
+.row.scan .cover { width: 56px; }
+/* a row that opens something and still has its own button: the link takes everything but the button */
+.row-main { display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; }
 .row .grow { flex: 1; min-width: 0; }
 .row b { display: block; font: 600 15px/1.35 var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row small { display: block; font-size: 13px; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

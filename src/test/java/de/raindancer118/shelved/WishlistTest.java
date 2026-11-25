@@ -49,7 +49,13 @@ class WishlistTest extends IntegrationTestBase {
         mvc.perform(get("/api/wishes")).andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].ownedBookId").value(nullValue()));
 
+        // a wish opens like a book
+        mvc.perform(get("/api/wishes/" + id)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Tintenherz"))
+                .andExpect(jsonPath("$.publisher").value("Dressler"));
+
         mvc.perform(delete("/api/wishes/" + id).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(get("/api/wishes/" + id)).andExpect(status().isNotFound());
         mvc.perform(get("/api/wishes")).andExpect(jsonPath("$", hasSize(0)));
     }
 
