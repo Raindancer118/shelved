@@ -18,6 +18,7 @@ export const icons = {
   refresh: svg('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>'),
   check: svg('<path d="M20 6 9 17l-5-5"/>'),
   x: svg('<path d="M18 6 6 18M6 6l12 12"/>'),
+  image: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/>'),
   share: svg('<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/>'),
   bookmark: svg('<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>'),
   user: svg('<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>'),
@@ -70,7 +71,8 @@ export function toast(message, isError = false) {
   toastTimer = setTimeout(() => el.remove(), isError ? 6000 : 3000);
 }
 
-export const pendingView = text => `<div class="pending"><div class="spinner"></div><p>${esc(text)}</p></div>`;
+/** Loading: a row of spines, one after another pulled out a little, as if someone ran a finger along the shelf. */
+export const pendingView = text => `<div class="pending" role="status"><div class="seeker" aria-hidden="true">${'<i></i>'.repeat(9)}</div><p>${esc(text)}</p></div>`;
 
 // ---------------------------------------------------------------- Hell/Dunkel
 

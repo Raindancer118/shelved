@@ -1,6 +1,6 @@
 import { api, get, post, put, del, upload, poll, PUBLIC } from './api.js';
 import { esc, icons, cover, applyVars, surname, euros, authors, toast, pendingView, colorFor, themeButton, toggleTheme, dialog, coverSrc } from './ui.js';
-import { liveCamera, cameraAvailable, prepareImage, capturePhoto } from './camera.js';
+import { liveCamera, cameraAvailable, prepareImage, capturePhoto, pickPhotos, barcodeTracker } from './camera.js';
 
 const app = document.getElementById('app');
 const state = { me: null, books: null, wishes: null, sort: 'author', query: '' };
@@ -355,24 +355,55 @@ async function viewEdit(id) {
 
 // ---------------------------------------------------------------- Hinzufügen & Nachschlagen
 
+/** Uploads a photo as a scan; the review page reads it. */
+async function submitScan(file, mode, shelfId = null, board = null) {
+  const form = new FormData();
+  form.append('image', await prepareImage(file), 'photo.jpg');
+  form.append('mode', mode);
+  if (shelfId) { form.append('shelfId', shelfId); form.append('board', board); }
+  return upload('/api/scans', form);
+}
+
 async function photoScan(mode, shelfId, board, photo = null) {
   const file = photo ?? await capturePhoto(mode === 'SHELF'
     ? 'Gerade von vorn, ganze Bretter mit beiden Seitenwänden ins Bild'
     : 'Cover oder Buchrücken formatfüllend');
   if (!file) return;
   paint(pendingView('Foto wird hochgeladen …'));
-  const form = new FormData();
-  form.append('image', await prepareImage(file), 'photo.jpg');
-  form.append('mode', mode);
-  if (shelfId) { form.append('shelfId', shelfId); form.append('board', board); }
-  const scan = await upload('/api/scans', form);
+  const scan = await submitScan(file, mode, shelfId, board);
   go(`/scan/${scan.id}`);
 }
 
+// Several photos from the gallery are reviewed one after the other; the rest waits here.
+const QUEUE = 'shelved.scanQueue';
+const scanPath = (id, wish) => `/scan/${id}${wish ? '?wunsch' : ''}`;
+function nextQueuedScan(fallback) {
+  const queue = JSON.parse(sessionStorage.getItem(QUEUE) ?? '{"ids":[]}');
+  const next = queue.ids.shift();
+  sessionStorage.setItem(QUEUE, JSON.stringify(queue));
+  go(next ? scanPath(next, queue.wish) : fallback);
+}
+
 /**
- * The one way in for a single book: a full-screen camera. Barcodes are read live, one after another. The shutter
- * takes a photo: with a barcode it is that ISBN, without one the photo is read as a cover, and with several spines
- * on it as a shelf. "Eintippen" switches to one field that takes an ISBN, a title or an author.
+ * Reads one photo: a barcode is that ISBN, without one the server reads the cover (and, outside the wish list,
+ * decides between one book and a shelf). Resolves with { isbn } or { scan }.
+ */
+async function readPhoto(photo, purpose) {
+  const form = new FormData();
+  form.append('image', await prepareImage(photo, 2400), 'photo.jpg');
+  try {
+    return { isbn: (await upload('/api/barcode', form)).isbn };
+  } catch (err) {
+    if (err.status !== 404) throw err;
+  }
+  if (!state.me?.aiAvailable) throw new Error('Kein Barcode erkannt. Näher ran und scharf stellen.');
+  return { scan: await submitScan(photo, purpose === 'wish' ? 'BOOK' : 'AUTO') };
+}
+
+/**
+ * The one way in for a single book: a full-screen camera. Barcodes are read live, one after another, with a frame
+ * drawn around them. The shutter takes a photo, "Fotos" imports pictures from the gallery: barcode, cover or shelf,
+ * the app works out which. "Eintippen" switches to one field that takes an ISBN, a title or an author.
  */
 async function viewFind(purpose, typing = new URLSearchParams(location.hash.split('?')[1] ?? '').has('eingabe')) {
   const forWish = purpose === 'wish';
@@ -384,6 +415,7 @@ async function viewFind(purpose, typing = new URLSearchParams(location.hash.spli
       <h1 class="dtitle">${forWish ? 'Buch merken' : 'Hab ich das schon?'}</h1>
       <form class="search" id="q">${icons.search}
         <input id="term" type="search" placeholder="ISBN, Titel oder Autor" aria-label="ISBN, Titel oder Autor" autocomplete="off" enterkeyhint="search" autofocus>
+        <button class="cam" type="button" id="gallery" aria-label="Fotos hochladen" title="Fotos hochladen">${icons.image}</button>
       </form>
       <div id="out"></div>`);
     const out = document.getElementById('out');
@@ -392,54 +424,89 @@ async function viewFind(purpose, typing = new URLSearchParams(location.hash.spli
       const term = document.getElementById('term').value.trim();
       if (term) find(term, out, purpose);
     });
+    document.getElementById('gallery').addEventListener('click', async () => importPhotos(await pickPhotos(), out, purpose));
     const given = new URLSearchParams(location.hash.split('?')[1] ?? '').get('q');
     if (given) { document.getElementById('term').value = given; find(given, out, purpose); }
     return;
   }
   document.body.classList.add('fullcam');
-  const coverToo = !forWish && state.me?.aiAvailable;
+  const ai = state.me?.aiAvailable;
+  const hint = !ai ? 'Barcode vor die Kamera halten' : forWish ? 'Barcode vor die Kamera halten oder das Cover fotografieren'
+    : 'Barcode vor die Kamera halten, oder Cover oder Regal fotografieren';
   paint(`<div class="fcam">
       <video id="video" muted playsinline></video>
+      <svg class="fcam-track" aria-hidden="true"><polygon/><line/></svg>
       <div class="fcam-top">
         <a class="round on-dark" href="${back}" aria-label="Schließen">${icons.x}</a>
-        <p>${coverToo ? 'Barcode in den Rahmen, oder ein Foto vom Buch oder Regal' : 'Barcode in den Rahmen halten'}</p>
+        <p>${hint}</p>
         <span class="round-gap"></span>
       </div>
-      <div class="fcam-frame" aria-hidden="true"></div>
       <div class="fcam-sheet" id="out"></div>
       <div class="fcam-bar">
         <a class="fcam-side" href="#${base}?eingabe">${icons.keyboard}<span>Eintippen</span></a>
         <button class="shutter" id="shoot" aria-label="Foto aufnehmen"></button>
-        <span class="fcam-side"></span>
+        <button class="fcam-side end" id="gallery">${icons.image}<span>Fotos</span></button>
       </div>
     </div>`);
   const out = document.getElementById('out');
-  const warn = (text, typeLink = true) => {
-    out.innerHTML = `<p class="note warn">${esc(text)}</p>${typeLink ? `<div class="actions"><a class="btn ghost" href="#${base}?eingabe">${icons.keyboard} Eintippen</a></div>` : ''}`;
-  };
-  const cam = liveCamera(document.getElementById('video'), {
-    onIsbn: isbn => { navigator.vibrate?.(60); showIsbn(isbn, out, purpose); },
+  const video = document.getElementById('video');
+  const tracker = barcodeTracker(video, app.querySelector('.fcam-track'));
+  const cam = liveCamera(video, {
+    onCodes: codes => tracker.update(codes),
+    onIsbn: isbn => { navigator.vibrate?.(60); tracker.lock(); showIsbn(isbn, out, purpose); },
     onError: () => location.replace(`#${base}?eingabe`), // no camera or no permission: typing is all that's left
   });
-  cleanup = () => { cam.stop(); document.body.classList.remove('fullcam'); };
+  cleanup = () => { cam.stop(); tracker.stop(); document.body.classList.remove('fullcam'); };
+  const leave = () => { cam.stop(); tracker.stop(); document.body.classList.remove('fullcam'); };
   document.getElementById('shoot').addEventListener('click', async e => {
     const btn = e.currentTarget;
     btn.disabled = true;
+    out.innerHTML = pendingView('Foto wird gelesen …');
     try {
-      const photo = await cam.shoot();
-      out.innerHTML = pendingView('Foto wird gelesen …');
-      const form = new FormData();
-      form.append('image', await prepareImage(photo, 2400), 'photo.jpg');
-      try {
-        showIsbn((await upload('/api/barcode', form)).isbn, out, purpose);
-      } catch (err) {
-        if (err.status !== 404) { warn(err.message, false); return; }
-        if (!coverToo) { warn('Kein Barcode erkannt. Näher ran und scharf stellen.'); return; }
-        cam.stop();
-        document.body.classList.remove('fullcam');
-        await photoScan('AUTO', null, null, photo); // no barcode: one book or a whole shelf, the server decides
-      }
+      const r = await readPhoto(await cam.shoot(), purpose);
+      if (r.isbn) showIsbn(r.isbn, out, purpose);
+      else { leave(); go(scanPath(r.scan.id, forWish)); }
+    } catch (err) {
+      out.innerHTML = `<p class="note warn">${esc(err.message)}</p>`;
     } finally { btn.disabled = false; }
+  });
+  document.getElementById('gallery').addEventListener('click', async () => {
+    const files = await pickPhotos();
+    if (files.length) importPhotos(files, out, purpose, leave);
+  });
+}
+
+/**
+ * Imports photos taken earlier: each one is read like a fresh one. Barcodes show up here right away, covers and
+ * shelves go to the review page one after the other.
+ */
+async function importPhotos(files, out, purpose, leave = () => {}) {
+  if (!files.length) return;
+  const isbns = [], scans = [], problems = [];
+  for (const [i, f] of files.entries()) {
+    out.innerHTML = pendingView(files.length > 1 ? `Foto ${i + 1} von ${files.length} wird gelesen …` : 'Foto wird gelesen …');
+    try {
+      const r = await readPhoto(f, purpose);
+      if (r.isbn) isbns.push(r.isbn); else scans.push(r.scan.id);
+    } catch (err) {
+      problems.push(`${f.name}: ${err.message}`);
+    }
+  }
+  const wish = purpose === 'wish';
+  if (!isbns.length && scans.length) {
+    sessionStorage.setItem(QUEUE, JSON.stringify({ ids: scans.slice(1), wish }));
+    leave();
+    go(scanPath(scans[0], wish));
+    return;
+  }
+  out.innerHTML = `${isbns.map((_, i) => `<div data-isbn-slot="${i}"></div>`).join('')}
+    ${scans.length ? `<div class="actions"><button class="btn" id="review">${scans.length} ${scans.length === 1 ? 'weiteres Foto' : 'weitere Fotos'} prüfen</button></div>` : ''}
+    ${problems.length ? `<p class="note warn">${problems.map(esc).join('<br>')}</p>` : ''}`;
+  isbns.forEach((isbn, i) => showIsbn(isbn, out.querySelector(`[data-isbn-slot="${i}"]`), purpose));
+  out.querySelector('#review')?.addEventListener('click', () => {
+    sessionStorage.setItem(QUEUE, JSON.stringify({ ids: scans.slice(1), wish }));
+    leave();
+    go(scanPath(scans[0], wish));
   });
 }
 
@@ -491,13 +558,13 @@ async function showIsbn(isbn, out, purpose) {
       <p class="note">${b.location ? `Steht bei <span class="mono">${esc(b.location)}</span>` : 'Noch ohne Regalplatz'}</p></div>`;
   } else if (r.metadata) {
     const m = r.metadata;
-    const add = `<button class="btn" id="addit">${icons.plus} In die Bibliothek</button>`;
-    const wish = wished ? '' : `<button class="btn ${purpose === 'wish' ? '' : 'ghost'}" id="wishit">${icons.bookmark} Merken</button>`;
+    const add = `<button class="btn" data-act="add">${icons.plus} In die Bibliothek</button>`;
+    const wish = wished ? '' : `<button class="btn ${purpose === 'wish' ? '' : 'ghost'}" data-act="wish">${icons.bookmark} Merken</button>`;
     out.innerHTML = `<div class="result"><div class="list"><div class="row">${cover({ title: m.title, authors: m.authors })}<div class="grow"><b>${esc(m.title)}</b><small>${esc(authors(m.authors))}</small>
       <small>${esc([m.publisher, m.publishedYear, m.listPriceCents != null && euros(m.listPriceCents)].filter(Boolean).join(' · '))}</small></div>
       ${wished ? '<span class="tag new">Gemerkt</span>' : '<span class="tag plain">Neu</span>'}</div></div>
       <div class="actions">${purpose === 'wish' ? wish : add + wish}</div></div>`;
-    document.getElementById('addit')?.addEventListener('click', async e => {
+    out.querySelector('[data-act="add"]')?.addEventListener('click', async e => {
       const btn = e.currentTarget;
       btn.disabled = true;
       const b = await addOrCopy(another => post('/api/books/isbn', { isbn: r.isbn13, anotherCopy: another })).finally(() => { btn.disabled = false; });
@@ -507,7 +574,7 @@ async function showIsbn(isbn, out, purpose) {
       await askAboutWishes();
       showIsbn(isbn, out, purpose); // stays here: the next book can be scanned right away
     });
-    document.getElementById('wishit')?.addEventListener('click', async e => {
+    out.querySelector('[data-act="wish"]')?.addEventListener('click', async e => {
       e.currentTarget.disabled = true;
       await addWish({ isbn: r.isbn13 });
       if (purpose === 'wish') go('/wishes'); else showIsbn(isbn, out, purpose);
@@ -566,9 +633,16 @@ async function viewScan(id) {
   paint(pendingView('Die Buchrücken werden gelesen … das dauert bei einem vollen Brett etwa eine halbe Minute.'));
   const scan = await poll(() => get(`/api/scans/${id}`), s => s.status !== 'PENDING');
   if (scan.status === 'FAILED') throw new Error(scan.error ?? 'Scan fehlgeschlagen');
-  if (scan.status === 'ACCEPTED') { toast('Dieser Scan ist schon übernommen'); go('/'); return; }
+  const wish = param('wunsch') !== null;
+  const done = wish ? '/wishes' : (scan.shelfId ? '/shelves' : '/');
+  if (scan.status === 'ACCEPTED') { toast('Dieser Scan ist schon übernommen'); nextQueuedScan(done); return; }
   const items = scan.items;
-  if (!items.length) throw new Error('Auf dem Foto wurden keine Bücher erkannt.');
+  if (!items.length) {
+    toast('Auf dem Foto wurden keine Bücher erkannt', true);
+    nextQueuedScan(wish ? '/wishes/add' : '/add');
+    return;
+  }
+  const waiting = JSON.parse(sessionStorage.getItem(QUEUE) ?? '{"ids":[]}').ids.length;
   const count = s => items.filter(i => i.status === s).length;
   const rows = new Set(items.map(it => it.reading.row || 1)).size;
   const itemHtml = it => {
@@ -576,7 +650,8 @@ async function viewScan(id) {
     const options = [it.candidate, ...(it.alternatives ?? [])].filter(Boolean);
     const [cls, label] = STATUS[it.status];
     return `<div class="row">
-      ${it.status === 'OWNED' ? `<span class="pos" aria-label="hast du">${icons.check}</span>` : `<input class="check" type="checkbox" data-i="${it.index}" ${it.status === 'NEW' ? 'checked' : ''} aria-label="übernehmen">`}
+      ${it.status === 'OWNED' ? `<span class="pos" aria-label="hast du">${icons.check}</span>` : `<input class="check" type="checkbox" data-i="${it.index}" ${it.status === 'NEW' ? 'checked' : ''} aria-label="${wish ? 'merken' : 'übernehmen'}">`}
+      ${cover(options[0] ?? { title: r.title ?? '?', authors: r.authors })}
       <div class="grow"><b>${esc(options[0]?.title ?? r.title ?? '?')}</b>
         <small>${esc(authors(options[0]?.authors?.length ? options[0].authors : r.authors))}${r.series ? ' · ' + esc(r.series) + (r.volume ? ' ' + r.volume : '') : ''}</small>
         ${it.status === 'UNSURE' ? `<small>Gelesen: „${esc(r.spineText || r.title)}“</small>` : ''}
@@ -585,7 +660,8 @@ async function viewScan(id) {
       </div><span class="tag ${cls}">${label}</span></div>`;
   };
   paint(`
-    ${backBar('#/add')}
+    ${backBar(wish ? '#/wishes/add' : '#/add')}
+    ${waiting ? `<small class="dauthor">Danach noch ${waiting} ${waiting === 1 ? 'Foto' : 'Fotos'}</small>` : ''}
     <h1 class="dtitle">${items.length} ${items.length === 1 ? 'Buch' : 'Bücher'} erkannt</h1>
     <div class="summary"><div><b>${count('NEW')}</b>neu</div><div><b>${count('OWNED')}</b>hast du schon</div><div><b>${count('UNSURE')}</b>prüfen</div></div>
     ${[...new Set(items.map(it => it.reading.row || 1))].sort((a, b) => a - b).map(row => `
@@ -595,12 +671,23 @@ async function viewScan(id) {
   const btn = document.getElementById('accept');
   const refresh = () => {
     const n = app.querySelectorAll('.check:checked').length;
-    btn.textContent = n ? `${n} ${n === 1 ? 'Buch' : 'Bücher'} übernehmen` : (scan.shelfId ? 'Nur Platz speichern' : 'Nichts übernehmen');
+    btn.textContent = wish ? (n ? `${n} ${n === 1 ? 'Buch' : 'Bücher'} merken` : 'Nichts merken')
+      : n ? `${n} ${n === 1 ? 'Buch' : 'Bücher'} übernehmen` : (scan.shelfId ? 'Nur Platz speichern' : 'Nichts übernehmen');
   };
   refresh();
   app.querySelectorAll('.check').forEach(c => c.addEventListener('change', refresh));
   btn.addEventListener('click', async () => {
     btn.disabled = true;
+    if (wish) {
+      // the reading becomes wishes: the chosen edition by ISBN, otherwise title and author as read
+      for (const c of app.querySelectorAll('.check:checked')) {
+        const it = items.find(x => x.index === Number(c.dataset.i));
+        const isbn = app.querySelector(`[data-pick="${c.dataset.i}"]`)?.value || it.candidate?.isbn13;
+        await addWish(isbn ? { isbn } : { title: it.candidate?.title ?? it.reading.title, authors: it.candidate?.authors ?? it.reading.authors });
+      }
+      nextQueuedScan(done);
+      return;
+    }
     const decisions = [...app.querySelectorAll('.check')].map(c => ({
       index: Number(c.dataset.i), take: c.checked,
       anotherCopy: items.find(it => it.index === Number(c.dataset.i))?.status === 'DUPLICATE' && c.checked,
@@ -611,7 +698,7 @@ async function viewScan(id) {
     const est = (res.estimatedBoards ?? []).map(b => `Boden ${b.board} ≈ ${b.widthMm / 10} cm`).join(', ');
     toast(`${res.created.length} hinzugefügt${res.placed.length ? `, ${res.placed.length} Plätze gespeichert` : ''}${est ? `. Breite geschätzt: ${est}` : ''}`);
     await askAboutWishes();
-    go(scan.shelfId ? '/shelves' : '/');
+    nextQueuedScan(done);
   });
 }
 
