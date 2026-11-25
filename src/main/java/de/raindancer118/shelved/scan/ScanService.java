@@ -112,13 +112,21 @@ public class ScanService {
 
     void process(UUID scanId, String owner, Scan.Mode mode, BufferedImage img) {
         try {
+            LibraryAi.ShelfReading reading;
             if (mode == Scan.Mode.SHELF) {
-                String file = photos.save(scanId, img);
-                tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(sc -> sc.setPhotoFile(file)));
+                reading = shelf(scanId, img);
+            } else {
+                reading = ai.readSingleBook(ImageTiler.jpeg(ImageTiler.fit(img)));
+                if (mode == Scan.Mode.AUTO) {
+                    // the single-image reading already counts the spines; a shelf deserves the tiled, more exact pass
+                    boolean isShelf = reading.books() != null && reading.books().size() >= SHELF_FROM_BOOKS;
+                    if (isShelf) {
+                        reading = shelf(scanId, img);
+                    }
+                    Scan.Mode decided = isShelf ? Scan.Mode.SHELF : Scan.Mode.BOOK;
+                    tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(sc -> sc.turnedOutAs(decided)));
+                }
             }
-            LibraryAi.ShelfReading reading = mode == Scan.Mode.SHELF
-                    ? readShelf(img)
-                    : ai.readSingleBook(ImageTiler.jpeg(ImageTiler.fit(img)));
             List<ScanItem> items = new ArrayList<>();
             List<LibraryAi.SpineReading> spines = reading.books() == null ? List.of() : reading.books();
             for (int i = 0; i < spines.size(); i++) {
@@ -133,6 +141,15 @@ public class ScanService {
             log.warn("Scan {} failed", scanId, e);
             tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(sc -> sc.failed(e.getMessage())));
         }
+    }
+
+    /** From this many books on one photo it is treated as a shelf. */
+    static final int SHELF_FROM_BOOKS = 3;
+
+    private LibraryAi.ShelfReading shelf(UUID scanId, BufferedImage img) {
+        String file = photos.save(scanId, img);
+        tx.executeWithoutResult(s -> scans.findById(scanId).ifPresent(sc -> sc.setPhotoFile(file)));
+        return readShelf(img);
     }
 
     private LibraryAi.ShelfReading readShelf(BufferedImage img) {

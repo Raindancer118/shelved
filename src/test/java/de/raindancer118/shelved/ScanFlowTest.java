@@ -167,6 +167,26 @@ class ScanFlowTest extends IntegrationTestBase {
     }
 
     @Test
+    void aPhotoWithoutChoosingAModeIsOneBookOrAShelfDependingOnWhatIsOnIt() throws Exception {
+        when(metadata.search(any(), any(), any())).thenReturn(List.of());
+        ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("Momo", "Michael Ende", "", 0, "high")), List.of());
+        String single = JsonPath.read(mvc.perform(multipart("/api/scans").file(new MockMultipartFile("image", "p.jpg", "image/jpeg", widePhoto()))
+                .param("mode", "AUTO").with(csrf())).andReturn().getResponse().getContentAsString(), "$.id");
+        await().untilAsserted(() -> mvc.perform(get("/api/scans/" + single)).andExpect(jsonPath("$.status").value("DONE")));
+        mvc.perform(get("/api/scans/" + single)).andExpect(jsonPath("$.mode").value("BOOK")).andExpect(jsonPath("$.items", hasSize(1)));
+        assertThat(ai.tileCounts).isEmpty();
+
+        // several spines: read again as a shelf (tiles, photo kept as evidence for the insurance list)
+        ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("A", "X", "", 0, "high"), spine("B", "X", "", 0, "high"),
+                spine("C", "X", "", 0, "high"), spine("D", "X", "", 0, "high")), List.of());
+        String shelf = JsonPath.read(mvc.perform(multipart("/api/scans").file(new MockMultipartFile("image", "p.jpg", "image/jpeg", widePhoto()))
+                .param("mode", "AUTO").with(csrf())).andReturn().getResponse().getContentAsString(), "$.id");
+        await().untilAsserted(() -> mvc.perform(get("/api/scans/" + shelf)).andExpect(jsonPath("$.status").value("DONE")));
+        mvc.perform(get("/api/scans/" + shelf)).andExpect(jsonPath("$.mode").value("SHELF")).andExpect(jsonPath("$.items", hasSize(4)));
+        assertThat(ai.tileCounts).isNotEmpty();
+    }
+
+    @Test
     void barcodePhotoGivesTheIsbnWithoutAnyAi() throws Exception {
         var out = new ByteArrayOutputStream();
         ImageIO.write(de.raindancer118.shelved.scan.BarcodeReaderTest.photoWithBarcode("9783492281980"), "png", out);

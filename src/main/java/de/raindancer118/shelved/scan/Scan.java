@@ -13,7 +13,8 @@ import java.util.UUID;
 @Table(name = "scan")
 public class Scan {
 
-    public enum Mode { SHELF, BOOK }
+    /** AUTO is only asked for; the scan stores what it turned out to be. */
+    public enum Mode { SHELF, BOOK, AUTO }
 
     public enum Status { PENDING, DONE, FAILED, ACCEPTED }
 
@@ -64,6 +65,7 @@ public class Scan {
     public UUID getId() { return id; }
     public String getOwnerId() { return ownerId; }
     public Mode getMode() { return mode; }
+    void turnedOutAs(Mode mode) { this.mode = mode; }
     public Status getStatus() { return status; }
     public UUID getShelfId() { return shelfId; }
     public Integer getBoardNumber() { return boardNumber; }
