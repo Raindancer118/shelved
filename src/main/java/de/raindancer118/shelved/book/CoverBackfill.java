@@ -14,7 +14,7 @@ import java.util.Optional;
 
 /**
  * Books that came in without a cover (a shelf photo without catalogue match, a source that was down, an edition only
- * Google knows) get one later: by their ISBN, else by the same work found under title and author. Runs after start.
+ * Google knows, a placeholder card taken for a cover) get one later: by their ISBN, else by the same work found under title and author. Runs after start.
  */
 @Component
 public class CoverBackfill {
@@ -35,7 +35,16 @@ public class CoverBackfill {
 
     /** Returns how many books got a cover. */
     public int fill() {
-        List<Book> missing = tx.execute(s -> books.findByCoverFileIsNull());
+        List<Book> missing = tx.execute(s -> {
+            // stored before placeholders were recognised: Google's grey "no cover" card counts as no cover
+            for (Book b : books.findByCoverFileIsNotNull()) {
+                if (covers.path(b.getCoverFile()).map(covers::isPlaceholder).orElse(false)) {
+                    covers.delete(b.getCoverFile());
+                    b.setCoverFile(null);
+                }
+            }
+            return books.findByCoverFileIsNull();
+        });
         int found = 0;
         for (Book b : missing == null ? List.<Book>of() : missing) {
             Optional<String> file = b.getIsbn13() == null ? Optional.empty()

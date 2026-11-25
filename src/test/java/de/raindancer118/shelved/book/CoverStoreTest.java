@@ -10,6 +10,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -98,6 +99,27 @@ class CoverStoreTest {
         assertThat(covers.googleCover("zyTCAlFPjgYC")).isPresent();
         assertThat(covers.googleCover("zyTCAlFPjgYC")).isPresent();
         assertThat(covers.googleCover("../etc")).isEmpty();
+        server.verify();
+    }
+
+    /** Google answers "no cover" with a plain grey card; that is not a cover, the next source is asked. */
+    @Test
+    void aPlainGreyPlaceholderIsNoCover() throws Exception {
+        var grey = new java.awt.image.BufferedImage(600, 863, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var g = grey.createGraphics();
+        g.setColor(new java.awt.Color(158, 160, 164));
+        g.fillRect(0, 0, 600, 863);
+        g.setColor(new java.awt.Color(170, 172, 176));
+        g.fillRect(150, 300, 300, 20); // the faint stripes
+        g.dispose();
+        var out = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(grey, "jpg", out);
+
+        server.expect(requestTo("https://example.org/placeholder.jpg")).andRespond(withSuccess(out.toByteArray(), MediaType.IMAGE_JPEG));
+        server.expect(requestTo("https://example.org/real.jpg")).andRespond(withSuccess(Mockups.paperbackJpeg(), MediaType.IMAGE_JPEG));
+
+        String file = covers.fetch(java.util.UUID.randomUUID(), List.of("https://example.org/placeholder.jpg", "https://example.org/real.jpg")).orElseThrow();
+        assertThat(covers.isPlaceholder(covers.path(file).orElseThrow())).isFalse();
         server.verify();
     }
 

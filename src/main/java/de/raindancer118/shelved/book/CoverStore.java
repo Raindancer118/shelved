@@ -69,7 +69,7 @@ public class CoverStore {
                 ResponseEntity<byte[]> r = http.get().uri(URI.create(url)).retrieve().toEntity(byte[].class);
                 byte[] body = r.getBody();
                 var type = r.getHeaders().getContentType();
-                if (body != null && body.length >= MIN_BYTES && type != null && "image".equals(type.getType())) {
+                if (body != null && body.length >= MIN_BYTES && type != null && "image".equals(type.getType()) && !isPlaceholder(body)) {
                     return Optional.of(new Image(body, type.getSubtype().contains("png") ? "png" : "jpg"));
                 }
             } catch (RestClientException e) {
@@ -97,6 +97,46 @@ public class CoverStore {
         }
         return cached("g-" + volumeId,
                 List.of("https://books.google.com/books/content?id=" + volumeId + "&printsec=frontcover&img=1&zoom=1&fife=w600"));
+    }
+
+    /**
+     * A source's "no cover" card (Google: a plain grey card with two faint stripes) rather than a cover: the picture is
+     * nearly one shade. Real covers, even white or black ones, carry a title in contrast.
+     */
+    static boolean isPlaceholder(byte[] image) {
+        try {
+            java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(image));
+            return img != null && luminanceSpread(img) < PLACEHOLDER_SPREAD;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public boolean isPlaceholder(Path file) {
+        try {
+            return isPlaceholder(Files.readAllBytes(file));
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static final double PLACEHOLDER_SPREAD = 12;
+
+    /** Standard deviation of brightness over a coarse grid of the picture. */
+    private static double luminanceSpread(java.awt.image.BufferedImage img) {
+        int n = 0;
+        double sum = 0, sq = 0;
+        for (int y = 0; y < img.getHeight(); y += Math.max(1, img.getHeight() / 48)) {
+            for (int x = 0; x < img.getWidth(); x += Math.max(1, img.getWidth() / 32)) {
+                int rgb = img.getRGB(x, y);
+                double l = (((rgb >> 16) & 255) + ((rgb >> 8) & 255) + (rgb & 255)) / 3.0;
+                sum += l;
+                sq += l * l;
+                n++;
+            }
+        }
+        double mean = sum / n;
+        return Math.sqrt(Math.max(0, sq / n - mean * mean));
     }
 
     /** An author's portrait from Open Library. */
