@@ -1,16 +1,27 @@
 // Rendering helpers. Every dynamic string goes through esc(): no HTML injection from book data.
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+const svg = d => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+// Lucide shapes, drawn with the stroke settings from styles.css (2 px, square caps).
 export const icons = {
-  back: '<svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
-  cam: '<svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
-  barcode: '<svg class="i" viewBox="0 0 24 24"><path d="M4 6v12M7 6v12M10 6v12M14 6v12M16 6v12M20 6v12"/></svg>',
-  book: '<svg class="i" viewBox="0 0 24 24"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h11"/></svg>',
-  shelf: '<svg class="i" viewBox="0 0 24 24"><path d="M3 20h18M5 20V6M8 20V8M11 20V5M15 20l-2-13 3-.5 2.5 13.5"/></svg>',
-  pen: '<svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
-  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
-  search: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>',
-  more: '<svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>',
+  back: svg('<path d="m15 18-6-6 6-6"/>'),
+  next: svg('<path d="m9 18 6-6-6-6"/>'),
+  cam: svg('<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>'),
+  barcode: svg('<path d="M3 5v14M8 5v14M12 5v14M17 5v14M21 5v14"/>'),
+  book: svg('<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>'),
+  shelf: svg('<path d="m16 6 4 14M12 6v14M8 8v12M4 4v16"/>'),
+  pen: svg('<path d="M21.17 6.81a2.82 2.82 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/>'),
+  plus: svg('<path d="M5 12h14M12 5v14"/>'),
+  minus: svg('<path d="M5 12h14"/>'),
+  search: svg('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+  refresh: svg('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>'),
+  check: svg('<path d="M20 6 9 17l-5-5"/>'),
+  x: svg('<path d="M18 6 6 18M6 6l12 12"/>'),
+  share: svg('<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/>'),
+  bookmark: svg('<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>'),
+  user: svg('<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>'),
+  sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>'),
+  moon: svg('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'),
 };
 
 const PALETTE = ['#3d5a80', '#8a3b2e', '#2f5d50', '#6b4f7a', '#9a6b1f', '#38495a', '#7a2e4a', '#4f6b2f', '#5a3d2b', '#2e5a7a'];
@@ -54,3 +65,51 @@ export function toast(message, isError = false) {
 }
 
 export const pendingView = text => `<div class="pending"><div class="spinner"></div><p>${esc(text)}</p></div>`;
+
+// ---------------------------------------------------------------- Hell/Dunkel
+
+const isDark = () => document.documentElement.dataset.theme
+  ? document.documentElement.dataset.theme === 'dark'
+  : matchMedia('(prefers-color-scheme: dark)').matches;
+
+/** Round button for the page head. The choice is stored; without one the system setting applies. */
+export const themeButton = () => `<button class="round" data-theme-toggle aria-label="${isDark() ? 'Helles' : 'Dunkles'} Design">${isDark() ? icons.sun : icons.moon}</button>`;
+
+export function toggleTheme() {
+  const next = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('shelved.theme', next); } catch { /* not stored, still switched */ }
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = next === 'dark' ? '#161616' : '#fdfdfd'; });
+  document.querySelectorAll('[data-theme-toggle]').forEach(b => {
+    b.innerHTML = isDark() ? icons.sun : icons.moon;
+    b.setAttribute('aria-label', isDark() ? 'Helles Design' : 'Dunkles Design');
+  });
+}
+
+// ---------------------------------------------------------------- Dialog
+
+/**
+ * Modal with a title, free HTML and buttons (left aligned, primary first). Resolves with the value of the
+ * pressed button, or null when closed with Esc or the cross.
+ */
+export function dialog({ title, body, buttons }) {
+  return new Promise(resolve => {
+    const d = document.createElement('dialog');
+    d.className = 'sheet';
+    d.innerHTML = `<button class="round sm close" value="" aria-label="Schließen">${icons.x}</button>
+      <h2>${esc(title)}</h2>${body}
+      <div class="actions">${buttons.map(b => `<button class="btn ${b.kind ?? ''}" value="${esc(b.value)}">${esc(b.label)}</button>`).join('')}</div>`;
+    let result = null;
+    d.addEventListener('click', e => {
+      const b = e.target.closest('button[value]');
+      if (!b) return;
+      result = b.value || null;
+      d.close();
+    });
+    d.addEventListener('close', () => { d.remove(); resolve(result === null ? null : { value: result, root: d }); });
+    document.body.append(d);
+    applyVars(d);
+    d.showModal();
+    d.querySelector('.actions .btn')?.focus();
+  });
+}
