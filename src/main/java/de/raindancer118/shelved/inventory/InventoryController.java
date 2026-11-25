@@ -56,7 +56,7 @@ public class InventoryController {
     public ResponseEntity<byte[]> pdf(Authentication auth) {
         String owner = owner(auth);
         InventoryService.Inventory inv = inventory.build(owner, displayName(auth));
-        byte[] pdf = InventoryPdf.render(inv, b -> covers.path(b.getCoverFile()), id -> scans.photo(owner, id));
+        byte[] pdf = InventoryPdf.render(inv, b -> covers.path(b.getCoverFile()).map(covers::flat), id -> scans.photo(owner, id));
         return download(pdf, MediaType.APPLICATION_PDF, "shelved-inventar-" + inv.date() + ".pdf");
     }
 

@@ -80,6 +80,16 @@ class CoverStoreTest {
         assertThat(covers.flat(original)).isEqualTo(flat);
     }
 
+    /** Covers stored before mockups were cut are prepared once after the start, not on the first slow page view. */
+    @Test
+    void existingCoversArePreparedOnce() {
+        covers.save(java.util.UUID.randomUUID(), Mockups.paperbackJpeg(), "jpg");
+        covers.save(java.util.UUID.randomUUID(), new byte[]{1, 2, 3}, "jpg"); // unreadable: left alone, no error
+
+        assertThat(covers.flattenAll()).isEqualTo(1);
+        assertThat(covers.flattenAll()).isZero(); // already done
+    }
+
     @Test
     void onlyIsbnsReachTheDisk() {
         assertThat(covers.catalogCover("../../etc/passwd")).isEmpty();

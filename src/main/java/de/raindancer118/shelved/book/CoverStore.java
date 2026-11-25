@@ -158,6 +158,37 @@ public class CoverStore {
         }
     }
 
+    /**
+     * Prepares every stored cover (books, wishes, search hits) once, so covers saved before mockups were cut show
+     * their front without a slow first request. Returns how many were cut in this run; already checked ones are skipped.
+     */
+    public int flattenAll() {
+        int cut = 0;
+        for (Path d : List.of(dir, catalogDir)) {
+            try (var files = Files.list(d)) {
+                for (Path p : files.filter(Files::isRegularFile).toList()) {
+                    boolean before = Files.exists(flatDir.resolve(p.getFileName() + ".jpg"));
+                    if (!before && !flat(p).equals(p)) {
+                        cut++;
+                    }
+                }
+            } catch (IOException e) {
+                log.warn("Could not prepare covers in {}: {}", d, e.getMessage());
+            }
+        }
+        return cut;
+    }
+
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    void flattenAllInTheBackground() {
+        Thread.ofVirtual().name("cover-flatten").start(() -> {
+            int cut = flattenAll();
+            if (cut > 0) {
+                log.info("Cut {} publisher mockup(s) down to their front", cut);
+            }
+        });
+    }
+
     public void delete(String file) {
         path(file).ifPresent(p -> {
             try {

@@ -24,6 +24,15 @@ class CoverFlattenerTest {
         }
     }
 
+    /** "Never Be My Date": a white front, so only the outlines show where the front ends and the page block begins. */
+    @Test
+    void aWhiteMockupIsCutAtItsOutlines() {
+        BufferedImage flat = CoverFlattener.flatten(Mockups.whitePaperback());
+
+        assertThat(flat.getWidth()).isBetween(320, 340);
+        assertThat(flat.getHeight()).isBetween(515, 536);
+    }
+
     @Test
     void aFlatCoverStaysAsItIs() {
         BufferedImage flat = new BufferedImage(400, 600, BufferedImage.TYPE_INT_RGB);

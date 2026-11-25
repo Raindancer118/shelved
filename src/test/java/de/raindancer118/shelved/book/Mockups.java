@@ -36,6 +36,26 @@ final class Mockups {
         return img;
     }
 
+    /** A white cover: hardly any colour on the front, only thin outlines tell front and page block apart. */
+    static BufferedImage whitePaperback() {
+        BufferedImage img = new BufferedImage(398, 599, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, 398, 599);
+        g.setColor(new Color(232, 232, 230)); // page block, above and right of the front
+        g.fillRect(40, 10, 336, 28);
+        g.fillRect(348, 10, 28, 565);
+        g.setColor(new Color(100, 100, 100));
+        g.drawLine(40, 10, 375, 10);       // outer outline of the page block
+        g.drawLine(375, 10, 375, 574);
+        g.setColor(new Color(170, 170, 170));
+        g.drawRect(8, 38, 339, 536);       // the front's own outline
+        g.setColor(new Color(120, 90, 160)); // a title, the only colour on the front
+        g.fillRect(60, 120, 230, 60);
+        g.dispose();
+        return img;
+    }
+
     static byte[] paperbackJpeg() {
         try {
             var out = new ByteArrayOutputStream();
