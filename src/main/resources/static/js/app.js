@@ -34,10 +34,18 @@ const routes = [
   [/^\/account$/, viewAccount, null],
 ];
 
+// Every page keeps where it was scrolled to: closing a book brings the list back at the same height, whether
+// through the back arrow (a plain link), the browser's back or a tab.
+const scrolls = new Map();
+let shown = null;
+history.scrollRestoration = 'manual';
+
 async function route() {
   cleanup?.();
   cleanup = null;
   const full = location.hash.replace(/^#/, '') || '/';
+  if (shown !== null) scrolls.set(shown, scrollY);
+  shown = full;
   const path = full.split('?')[0];
   if (!state.me && !PUBLIC.test(full)) {
     // not logged in (or not yet known): the login page, coming back here afterwards
@@ -73,7 +81,7 @@ async function route() {
   } else {
     await render();
   }
-  window.scrollTo(0, 0);
+  if (shown === full) window.scrollTo(0, scrolls.get(full) ?? 0);
 }
 
 // Overviews use the full width; reading and forms keep a measure.
