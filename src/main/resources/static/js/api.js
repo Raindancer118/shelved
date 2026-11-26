@@ -17,6 +17,51 @@ export class ApiError extends Error {
   constructor(status, message, data = null) { super(message); this.status = status; this.data = data; }
 }
 
+// Immediate feedback: the control that was just pressed shows it is working until the request it started is
+// answered, and can't be pressed twice meanwhile. Works for every button without wiring each one.
+const PRESSABLE = 'button, .btn, .round, a.link, .seg button';
+let pressed = null;
+const pending = new WeakMap();
+
+function busy(el, on) {
+  const n = (pending.get(el) ?? 0) + (on ? 1 : -1);
+  pending.set(el, Math.max(0, n));
+  el.classList.toggle('busy', n > 0);
+  if (n > 0) el.setAttribute('aria-busy', 'true'); else el.removeAttribute('aria-busy');
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', e => {
+    const el = e.target.closest?.(PRESSABLE);
+    if (el) pressed = { el, at: performance.now() };
+  }, true);
+  document.addEventListener('submit', e => {
+    const el = e.submitter ?? e.target.querySelector('[type=submit]');
+    if (el) pressed = { el, at: performance.now() };
+  }, true);
+  // choosing a photo: resizing it takes a moment before any request starts, so the control is busy right away
+  document.addEventListener('change', e => {
+    if (e.target.type !== 'file' || !e.target.files?.length) return;
+    const el = e.target.closest('label') ?? e.target;
+    busy(el, true);
+    const release = () => busy(el, false);
+    pressed = { el, at: performance.now(), release };
+    setTimeout(() => { if (pressed?.release === release) { pressed = null; release(); } }, 8000);
+  }, true);
+}
+
+/** The control behind a request started right after a press, marked busy; returns how to release it. */
+function claimPress() {
+  if (!pressed || performance.now() - pressed.at > 1500 || !pressed.el.isConnected) return () => {};
+  const { el, release } = pressed;
+  if (release) {
+    pressed = null;
+    return release; // already busy since the photo was chosen
+  }
+  busy(el, true);
+  return () => busy(el, false);
+}
+
 export async function api(path, { method = 'GET', json, form } = {}) {
   const headers = { Accept: 'application/json' };
   let body;
@@ -26,7 +71,13 @@ export async function api(path, { method = 'GET', json, form } = {}) {
   }
   if (json !== undefined) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(json); }
   if (form) body = form;
-  const res = await fetch(path, { method, headers, body, credentials: 'same-origin' });
+  const release = claimPress();
+  let res;
+  try {
+    res = await fetch(path, { method, headers, body, credentials: 'same-origin' });
+  } finally {
+    release();
+  }
   if (res.status === 401 && !path.startsWith('/api/auth/')) {
     const here = location.hash.replace(/^#/, '') || '/';
     if (!PUBLIC.test(here)) location.hash = '#/login?next=' + encodeURIComponent(here);

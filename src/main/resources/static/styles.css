@@ -147,6 +147,18 @@ p.empty { padding: 24px 0; }
 .btn.block { width: 100%; }
 .btn:active { scale: .97; }
 .btn[disabled] { opacity: .45; cursor: default; scale: 1; }
+/* busy: pressed and waiting for the answer. The label stays readable, a hairline runs along the bottom edge. */
+.busy { pointer-events: none; cursor: progress; }
+.btn.busy { position: relative; overflow: hidden; }
+.btn.busy { opacity: .85; }
+.btn.busy::after { content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 40%; background: currentColor;
+  animation: busy-run 900ms var(--ease) infinite; }
+.round.busy svg, a.link.busy, .seg button.busy, label.busy { opacity: .45; transition: opacity var(--dur-press) linear; }
+.round.busy { position: relative; }
+.round.busy::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid transparent;
+  border-top-color: var(--t1); animation: busy-spin 800ms linear infinite; }
+@keyframes busy-run { from { translate: -100% 0; } to { translate: 250% 0; } }
+@keyframes busy-spin { to { rotate: 1turn; } }
 @media (hover: hover) and (pointer: fine) {
   .btn:not([disabled]):hover { translate: 0 -1px; }
   .btn.ghost:not([disabled]):hover, .btn.danger:not(.solid):not([disabled]):hover { background: var(--soft); }
@@ -410,6 +422,8 @@ dialog.sheet .close { position: absolute; top: 16px; right: 16px; }
   .loc b { font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .btn.busy::after { animation: none; width: 100%; opacity: .5; }
+  .round.busy::after { animation: none; border-color: var(--line-strong); }
   .b3d .body { transition: none; }
   .cover:has(> img):not(.loaded), .skeleton .cover, .sk { animation: none; }
   .fcam-sheet { animation: fade 150ms linear; }
