@@ -4,9 +4,9 @@ import de.raindancer118.shelved.book.BookFormat;
 
 public final class ThicknessEstimator {
 
-    // German trade books mostly use bulky "Werkdruck" paper. Measured on a real 76 cm shelf: 14 books,
-    // 6330 pages, about 71 cm wide → 0.1 mm per page (classic thin novel paper would be ~0.07).
-    private static final double MM_PER_PAGE = 0.1;
+    // A sheet carries two pages. Fourth Wing (dtv hardcover, 768 pages) is listed at 54 mm: 48 mm of pages,
+    // 0.0625 mm per page. The earlier 0.1 came from a shelf measured with its gaps and made thick books far too wide.
+    private static final double MM_PER_PAGE = 0.0625;
     private static final int TYPICAL_NOVEL_MM = 25;
 
     private ThicknessEstimator() {

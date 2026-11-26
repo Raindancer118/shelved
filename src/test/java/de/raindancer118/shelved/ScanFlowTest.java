@@ -145,7 +145,7 @@ class ScanFlowTest extends IntegrationTestBase {
                 spine("Zwei", "B Autor", "high", 1),
                 spine("Drei", "C Autor", "high", 2)),
                 List.of(new LibraryAi.BoardReading(1, 0.25, true), new LibraryAi.BoardReading(2, 0.1, true)));
-        // 300 pages paperback ≈ 31 mm each → 62 mm fill a quarter → ~250 mm board
+        // 300 pages paperback ≈ 20 mm each → 40 mm fill a quarter → ~160 mm board
         when(metadata.search(any(), any(), any())).thenAnswer(inv -> List.of(meta(null, inv.getArgument(0), inv.getArgument(1), "Verlag")));
 
         String scan = JsonPath.read(mvc.perform(multipart("/api/scans")
@@ -157,10 +157,10 @@ class ScanFlowTest extends IntegrationTestBase {
                         .content("{\"items\":[{\"index\":0,\"take\":true},{\"index\":1,\"take\":true},{\"index\":2,\"take\":true}]}"))
                 .andExpect(jsonPath("$.estimatedBoards", hasSize(1)))
                 .andExpect(jsonPath("$.estimatedBoards[0].board").value(1))
-                .andExpect(jsonPath("$.estimatedBoards[0].widthMm").value(250));
+                .andExpect(jsonPath("$.estimatedBoards[0].widthMm").value(160));
 
         mvc.perform(get("/api/shelves"))
-                .andExpect(jsonPath("$[0].boardWidthsMm[0]").value(250))
+                .andExpect(jsonPath("$[0].boardWidthsMm[0]").value(160))
                 .andExpect(jsonPath("$[0].boardsEstimated[0]").value(true))
                 .andExpect(jsonPath("$[0].boardWidthsMm[1]").value(500)); // measured width is never overwritten
     }
@@ -226,15 +226,15 @@ class ScanFlowTest extends IntegrationTestBase {
                 .content("{\"name\":\"Flur\",\"boardWidthsMm\":[null]}")).andReturn().getResponse().getContentAsString(), "$.id");
         when(metadata.search(eq("Erstes"), any(), any())).thenReturn(List.of(meta("9783000000019", "Erstes", "A", "X")));
         when(metadata.search(eq("Zweites"), any(), any())).thenReturn(List.of(meta("9783000000026", "Zweites", "B", "X")));
-        // both 300 pages: 31 mm each by page count, 62 mm together; the photo shows one three times as wide as the other
+        // both 300 pages: 20 mm each by page count, 40 mm together; the photo shows one three times as wide as the other
         ai.nextShelf = new LibraryAi.ShelfReading(List.of(spine("Erstes", "A", 0.05), spine("Zweites", "B", 0.15)),
                 List.of(new LibraryAi.BoardReading(1, 0.2, true)));
         String scan = shelfScan(shelf, "1");
         mvc.perform(post("/api/scans/" + scan + "/accept").with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"items\":[{\"index\":0,\"take\":true},{\"index\":1,\"take\":true}]}")).andExpect(status().isOk());
 
-        mvc.perform(get("/api/books/" + bookId("erstes"))).andExpect(jsonPath("$.estimatedThicknessMm").value(16));
-        mvc.perform(get("/api/books/" + bookId("zweites"))).andExpect(jsonPath("$.estimatedThicknessMm").value(47));
+        mvc.perform(get("/api/books/" + bookId("erstes"))).andExpect(jsonPath("$.estimatedThicknessMm").value(10));
+        mvc.perform(get("/api/books/" + bookId("zweites"))).andExpect(jsonPath("$.estimatedThicknessMm").value(30));
     }
 
     @Test

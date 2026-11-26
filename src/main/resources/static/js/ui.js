@@ -152,7 +152,7 @@ const HEIGHT_MM = { HARDCOVER: 215, PAPERBACK: 187 };
  * Drag to turn it, tap to flip it over. Colours for spine, back and a guessed Farbschnitt come from the cover.
  */
 export function book3d(b, { thicknessMm, backCover = null, spine = null, edgePhoto = null, edgeColor = null } = {}) {
-  const pages = b.pageCount ? b.pageCount * 0.1 + (b.format === 'HARDCOVER' ? 6 : 1) : 24;
+  const pages = b.pageCount ? b.pageCount * 0.0625 + (b.format === 'HARDCOVER' ? 6 : 1) : 24; // same rule as ThicknessEstimator
   const t = Math.max(4, Math.round(thicknessMm ?? pages));
   const heightMm = b.heightMm ?? HEIGHT_MM[b.format] ?? 200;
   const sprayed = edgeColor && edgeColor !== 'none' ? edgeColor
