@@ -28,11 +28,16 @@ public class MailConfig {
         return mail -> {
             try {
                 MimeMessage m = smtp.createMimeMessage();
-                MimeMessageHelper h = new MimeMessageHelper(m, !mail.attachments().isEmpty(), StandardCharsets.UTF_8.name());
+                MimeMessageHelper h = new MimeMessageHelper(m, mail.html() != null || !mail.attachments().isEmpty(), StandardCharsets.UTF_8.name());
                 h.setFrom(from);
                 h.setTo(mail.to());
                 h.setSubject(mail.subject());
-                h.setText(mail.text(), false);
+                if (mail.html() == null) {
+                    h.setText(mail.text(), false);
+                } else {
+                    h.setText(mail.text(), mail.html());
+                    h.addInline(Letter.LOGO_CID, new ByteArrayResource(Letter.logoPng()), "image/png");
+                }
                 for (Mailer.Attachment a : mail.attachments()) {
                     h.addAttachment(a.name(), new ByteArrayResource(a.bytes()), a.contentType());
                 }

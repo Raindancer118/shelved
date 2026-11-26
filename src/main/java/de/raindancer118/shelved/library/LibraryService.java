@@ -197,16 +197,13 @@ public class LibraryService {
         String token = Tokens.create();
         invitations.save(new Invitation(l.getId(), mail, role, Tokens.hash(token), inviter.getId(), INVITATION_VALID));
         String who = inviter.getDisplayName() != null ? inviter.getDisplayName() : "Jemand";
-        mailer.send(Mailer.Mail.of(mail, "Einladung in die Bibliothek „" + l.getName() + "“", """
-                Hallo,
-
-                %s lädt dich in die Bibliothek „%s“ bei shelved ein (Rolle: %s).
-
-                Einladung annehmen:
-                %s/#/invite?token=%s
-
-                Der Link gilt 14 Tage. Wenn du damit nichts anfangen kannst, ignoriere diese Mail einfach.
-                """.formatted(who, l.getName(), roleName(role), props.publicUrl(), token)));
+        mailer.send(Mailer.Mail.of(mail, "Einladung in die Bibliothek „" + l.getName() + "“", de.raindancer118.shelved.account.Letter
+                .titled("„" + l.getName() + "“")
+                .preheader(who + " lädt dich in eine Bibliothek bei shelved ein.")
+                .greeting("Hallo,")
+                .paragraph(who + " lädt dich in die Bibliothek „" + l.getName() + "“ bei shelved ein. Deine Rolle: " + roleName(role) + ".")
+                .action("Einladung annehmen", props.publicUrl() + "/#/invite?token=" + token)
+                .note("Der Link gilt 14 Tage. Wenn du damit nichts anfangen kannst, ignoriere diese Mail einfach.")));
     }
 
     @Transactional(readOnly = true)

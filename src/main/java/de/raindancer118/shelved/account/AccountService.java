@@ -67,14 +67,12 @@ public class AccountService {
         checkPassword(password);
         String displayName = cleanDisplayName(name);
         if (accounts.findByEmail(mail).isPresent()) {
-            mailer.send(Mailer.Mail.of(mail, "Für diese Adresse gibt es bereits ein Konto", """
-                    Hallo,
-
-                    gerade wollte jemand mit dieser Adresse ein neues Konto bei shelved anlegen. Es gibt aber schon eins.
-                    Passwort vergessen? Hier setzt du es neu: %s/#/forgot
-
-                    Warst du das nicht, kannst du diese Mail ignorieren.
-                    """.formatted(props.publicUrl())));
+            mailer.send(Mailer.Mail.of(mail, "Für diese Adresse gibt es bereits ein Konto", Letter.titled("Für diese Adresse gibt es schon ein Konto")
+                    .preheader("Jemand wollte mit deiner Adresse ein neues Konto anlegen.")
+                    .greeting("Hallo,")
+                    .paragraph("gerade wollte jemand mit dieser Adresse ein neues Konto bei shelved anlegen. Es gibt aber schon eins. Passwort vergessen? Dann setz es hier neu.")
+                    .action("Passwort neu setzen", props.publicUrl() + "/#/forgot")
+                    .note("Warst du das nicht, kannst du diese Mail ignorieren.")));
             return;
         }
         Account a = accounts.save(Account.withPassword(mail, displayName, encoder.encode(password)));
@@ -88,14 +86,12 @@ public class AccountService {
             return;
         }
         libraries.create(a.getId(), libraryName == null || libraryName.isBlank() ? "Meine Bibliothek" : libraryName, kind);
-        sendLink(a, AccountToken.Kind.VERIFY, mail, null, VERIFY_VALID, "Bitte bestätige deine E-Mail-Adresse", """
-                Hallo %s,
-
-                willkommen bei shelved. Bitte bestätige deine Adresse, dann kannst du dich anmelden:
-                %s
-
-                Der Link gilt zwei Tage.
-                """);
+        sendLink(a, AccountToken.Kind.VERIFY, mail, null, VERIFY_VALID, "Bitte bestätige deine E-Mail-Adresse", link -> Letter.titled("Bestätige deine E-Mail-Adresse")
+                .preheader("Ein Klick, dann kannst du dich anmelden.")
+                .greeting(hello(a))
+                .paragraph("willkommen bei shelved. Bestätige kurz deine Adresse, dann kannst du dich anmelden.")
+                .action("Adresse bestätigen", link)
+                .note("Der Link gilt zwei Tage."));
     }
 
     /** Confirms a new account or a changed address. */
@@ -143,14 +139,12 @@ public class AccountService {
             return;
         }
         accounts.findByEmail(mail).ifPresent(a -> sendLink(a, AccountToken.Kind.RESET, mail, null, RESET_VALID,
-                "Neues Passwort für shelved", """
-                        Hallo %s,
-
-                        hier kannst du ein neues Passwort setzen:
-                        %s
-
-                        Der Link gilt eine Stunde und funktioniert einmal. Hast du das nicht angefordert, ignoriere diese Mail.
-                        """));
+                "Neues Passwort für shelved", link -> Letter.titled("Neues Passwort setzen")
+                        .preheader("Der Link gilt eine Stunde.")
+                        .greeting(hello(a))
+                        .paragraph("hier kannst du ein neues Passwort für shelved setzen.")
+                        .action("Neues Passwort setzen", link)
+                        .note("Der Link gilt eine Stunde und funktioniert einmal. Hast du das nicht angefordert, ignoriere diese Mail. Dein Passwort bleibt dann, wie es ist.")));
     }
 
     @Transactional
@@ -194,12 +188,12 @@ public class AccountService {
         if (accounts.findByEmail(mail).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Diese Adresse gehört schon zu einem Konto");
         }
-        sendLink(a, AccountToken.Kind.CHANGE_EMAIL, mail, mail, VERIFY_VALID, "Neue E-Mail-Adresse bestätigen", """
-                Hallo %s,
-
-                bitte bestätige deine neue Adresse für shelved:
-                %s
-                """);
+        sendLink(a, AccountToken.Kind.CHANGE_EMAIL, mail, mail, VERIFY_VALID, "Neue E-Mail-Adresse bestätigen", link -> Letter.titled("Neue E-Mail-Adresse bestätigen")
+                .preheader("Ein Klick, dann gilt die neue Adresse.")
+                .greeting(hello(a))
+                .paragraph("bitte bestätige, dass diese Adresse ab jetzt zu deinem shelved-Konto gehört.")
+                .action("Adresse bestätigen", link)
+                .note("Der Link gilt zwei Tage."));
     }
 
     @Transactional
@@ -220,25 +214,27 @@ public class AccountService {
         DataExport.Export data = export.collect(a);
         byte[] pdf = ExportPdf.render(data, file -> covers.path(file).map(covers::flat));
         byte[] machine = json.writerWithDefaultPrettyPrinter().writeValueAsString(data).getBytes(StandardCharsets.UTF_8);
-        mailer.send(new Mailer.Mail(a.getEmail(), "Deine Daten bei shelved", """
-                Hallo %s,
-
-                im Anhang findest du alles, was shelved über dich speichert (Art. 15 DSGVO):
-
-                shelved-daten.pdf   zum Lesen und Ausdrucken, mit allen Büchern, deiner Wunschliste und deinen Regalen
-                shelved-daten.json  dieselben Daten maschinenlesbar, zum Mitnehmen in eine andere App
-                """.formatted(greeting(a)), List.of(
+        mailer.send(Mailer.Mail.of(a.getEmail(), "Deine Daten bei shelved", Letter.titled("Deine Daten bei shelved")
+                .preheader("Alles, was shelved über dich speichert, im Anhang.")
+                .greeting(hello(a))
+                .paragraph("im Anhang steht alles, was shelved über dich speichert (Art. 15 DSGVO).")
+                .facts(List.of(new Letter.Fact(String.valueOf(data.books()), data.books() == 1 ? "Buch" : "Bücher"),
+                        new Letter.Fact(String.valueOf(data.wishes()), data.wishes() == 1 ? "Wunsch" : "Wünsche"),
+                        new Letter.Fact(String.valueOf(data.shelves()), data.shelves() == 1 ? "Regal" : "Regale")))
+                .paragraph("shelved-daten.pdf ist zum Lesen und Ausdrucken, mit allen Büchern, deiner Wunschliste und deinen Regalen.")
+                .paragraph("shelved-daten.json enthält dieselben Daten maschinenlesbar, zum Mitnehmen in eine andere App."), List.of(
                 new Mailer.Attachment("shelved-daten.pdf", "application/pdf", pdf),
                 new Mailer.Attachment("shelved-daten.json", "application/json", machine))));
     }
 
     // ------------------------------------------------------------------ helpers
 
-    private void sendLink(Account a, AccountToken.Kind kind, String to, String payload, Duration valid, String subject, String text) {
+    private void sendLink(Account a, AccountToken.Kind kind, String to, String payload, Duration valid, String subject,
+                          java.util.function.Function<String, Letter> letter) {
         String token = Tokens.create();
         tokens.save(new AccountToken(a.getId(), kind, Tokens.hash(token), payload, valid));
         String page = kind == AccountToken.Kind.RESET ? "reset" : "verify";
-        mailer.send(Mailer.Mail.of(to, subject, text.formatted(greeting(a), props.publicUrl() + "/#/" + page + "?token=" + token)));
+        mailer.send(Mailer.Mail.of(to, subject, letter.apply(props.publicUrl() + "/#/" + page + "?token=" + token)));
     }
 
     private AccountToken usable(String token, AccountToken.Kind... kinds) {
@@ -270,7 +266,8 @@ public class AccountService {
         return n;
     }
 
-    private static String greeting(Account a) {
-        return a.getDisplayName() == null ? "" : a.getDisplayName();
+    private static String hello(Account a) {
+        return a.getDisplayName() == null || a.getDisplayName().isBlank() ? "Hallo," : "Hallo " + a.getDisplayName() + ",";
     }
+
 }

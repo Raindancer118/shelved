@@ -84,6 +84,7 @@ class AccountFlowTest {
                 {"email":"Ada@Example.org","name":"Ada","password":"lang-genug-123","libraryName":"Schulbücherei Nord"}""", null)
                 .andExpect(status().isCreated());
         assertThat(mail.last("ada@example.org").text()).contains("https://shelf.test/#/verify?token=");
+        assertThat(mail.last("ada@example.org").html()).contains(">Adresse bestätigen<").contains("https://shelf.test/#/verify?token=");
 
         // not confirmed yet
         json(post("/api/auth/login"), "{\"email\":\"ada@example.org\",\"password\":\"lang-genug-123\"}", null)
